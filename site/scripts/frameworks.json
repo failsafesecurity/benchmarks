@@ -1,0 +1,22 @@
+{
+  "frameworks": [
+    {
+      "id": "ironclaw",
+      "name": "IronClaw",
+      "url": "https://github.com/nearai/ironclaw",
+      "versions": {}
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "url": "https://github.com/openclawai/openclaw",
+      "versions": {}
+    },
+    {
+      "id": "nanobot",
+      "name": "NanoBot",
+      "url": "",
+      "versions": {}
+    }
+  ]
+}

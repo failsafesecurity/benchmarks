@@ -64,6 +64,14 @@ enum Commands {
         #[arg(long)]
         results_dir: Option<PathBuf>,
 
+        /// Agent framework being benchmarked (default: "ironclaw").
+        #[arg(long, default_value = "ironclaw")]
+        framework: String,
+
+        /// Version of the agent framework (semver or git SHA).
+        #[arg(long, default_value = "")]
+        framework_version: String,
+
         /// Resume a previous run by ID.
         #[arg(long)]
         resume: Option<Uuid>,
@@ -138,6 +146,8 @@ async fn main() -> anyhow::Result<()> {
             tags,
             timeout_secs,
             results_dir,
+            framework,
+            framework_version,
             resume,
         } => {
             // Load or create config
@@ -156,6 +166,10 @@ async fn main() -> anyhow::Result<()> {
             }
             if let Some(ref dir) = results_dir {
                 bench_config.results_dir = dir.clone();
+            }
+            bench_config.framework = framework;
+            if !framework_version.is_empty() {
+                bench_config.framework_version = framework_version;
             }
 
             // If model override specified and we have matrix entries, update them

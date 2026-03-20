@@ -308,6 +308,8 @@ impl BenchRunner {
             total_tasks,
             &all_for_aggregate,
             started_at,
+            &self.config.framework,
+            &self.config.framework_version,
         );
 
         write_run_result(&json_path, &run_result)?;
