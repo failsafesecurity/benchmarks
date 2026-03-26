@@ -8,7 +8,7 @@ use crate::error::BenchError;
 /// Top-level bench configuration, loaded from TOML.
 #[derive(Debug, Clone, Deserialize)]
 pub struct BenchConfig {
-    /// Where to write results. Default: "./bench-results".
+    /// Where to write results. Default: "./results/ironclaw".
     #[serde(default = "default_results_dir")]
     pub results_dir: PathBuf,
 
@@ -22,6 +22,14 @@ pub struct BenchConfig {
     /// How many tasks to run in parallel. Default: 1.
     #[serde(default = "default_parallelism")]
     pub parallelism: usize,
+
+    /// The agent framework being benchmarked. Default: "ironclaw".
+    #[serde(default = "default_framework")]
+    pub framework: String,
+
+    /// Version of the agent framework (semver or git SHA).
+    #[serde(default)]
+    pub framework_version: String,
 
     /// Model/config matrix entries. At least one required.
     #[serde(default)]
@@ -69,6 +77,8 @@ impl BenchConfig {
             results_dir: default_results_dir(),
             task_timeout: default_task_timeout(),
             parallelism: default_parallelism(),
+            framework: default_framework(),
+            framework_version: String::new(),
             matrix: vec![MatrixEntry { label, model }],
             suite_config: toml::Value::Table(toml::map::Map::new()),
         }
@@ -93,6 +103,10 @@ impl BenchConfig {
 
 fn default_suite_config() -> toml::Value {
     toml::Value::Table(toml::map::Map::new())
+}
+
+fn default_framework() -> String {
+    "ironclaw".to_string()
 }
 
 fn default_results_dir() -> PathBuf {

@@ -1,0 +1,268 @@
+{
+  "generated_at": "2026-03-19T04:00:16.563Z",
+  "frameworks": [
+    {
+      "id": "ironclaw",
+      "name": "IronClaw",
+      "url": "https://github.com/nearai/ironclaw",
+      "versions": []
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "url": "https://github.com/openclawai/openclaw",
+      "versions": []
+    },
+    {
+      "id": "nanobot",
+      "name": "NanoBot",
+      "versions": []
+    }
+  ],
+  "models": [
+    {
+      "id": "openai/gpt-5.2",
+      "provider": "openai",
+      "name": "gpt-5.2"
+    }
+  ],
+  "suites": [
+    {
+      "id": "spot",
+      "name": "spot",
+      "task_count": 21,
+      "description": ""
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "8a48de1f-09ce-4c35-9ad1-dad98fb83a1a",
+      "framework_id": "ironclaw",
+      "framework_version": "",
+      "model_id": "openai/gpt-5.2",
+      "suite_id": "spot",
+      "pass_rate": 1,
+      "avg_score": 1,
+      "total_cost_usd": 0.307053,
+      "total_wall_time_ms": 111009,
+      "value_score": 3256.7667471088052,
+      "total_tasks": 21,
+      "completed_tasks": 21,
+      "started_at": "2026-02-17T22:02:08.206112Z",
+      "finished_at": "2026-02-17T22:03:59.270325Z",
+      "is_official": true,
+      "tasks": [
+        {
+          "task_id": "smoke-greeting",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.005052,
+          "wall_time_ms": 2037,
+          "tokens": 1424,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "smoke-math",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.004173,
+          "wall_time_ms": 2038,
+          "tokens": 1371,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "tool-echo",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.008718,
+          "wall_time_ms": 2646,
+          "tokens": 2810,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "tool-time",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.009687,
+          "wall_time_ms": 3460,
+          "tokens": 2917,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "tool-json-query",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.009162,
+          "wall_time_ms": 2751,
+          "tokens": 2882,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "tool-shell-echo",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.008808,
+          "wall_time_ms": 3460,
+          "tokens": 2836,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "tool-list-dir",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.033165,
+          "wall_time_ms": 19146,
+          "tokens": 5707,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "chain-write-read",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.014562,
+          "wall_time_ms": 5712,
+          "tokens": 4562,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "chain-shell-json",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.014709,
+          "wall_time_ms": 4582,
+          "tokens": 4527,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "chain-time-echo",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.014352,
+          "wall_time_ms": 4583,
+          "tokens": 4480,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "robust-no-tool",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.004173,
+          "wall_time_ms": 1020,
+          "tokens": 1371,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "robust-correct-tool",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.009225,
+          "wall_time_ms": 3980,
+          "tokens": 2875,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "robust-json-validate",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.009111,
+          "wall_time_ms": 2954,
+          "tokens": 2865,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-save-daily",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.015351,
+          "wall_time_ms": 4890,
+          "tokens": 4661,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-save-reminder",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.015018,
+          "wall_time_ms": 5607,
+          "tokens": 4626,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-save-meeting",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.01608,
+          "wall_time_ms": 6113,
+          "tokens": 4872,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-append-log",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.032943,
+          "wall_time_ms": 9880,
+          "tokens": 10149,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-recall-detail",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.015978,
+          "wall_time_ms": 4989,
+          "tokens": 4842,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-todo-priority",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.015678,
+          "wall_time_ms": 5916,
+          "tokens": 4786,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-multifile",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.022266,
+          "wall_time_ms": 6081,
+          "tokens": 6638,
+          "turns": 1,
+          "error": null
+        },
+        {
+          "task_id": "memory-update-context",
+          "score": 1,
+          "label": "pass",
+          "cost_usd": 0.028842,
+          "wall_time_ms": 9164,
+          "tokens": 8606,
+          "turns": 1,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

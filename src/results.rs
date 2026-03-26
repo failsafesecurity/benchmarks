@@ -12,6 +12,14 @@ fn default_harness() -> String {
     "ironclaw".to_string()
 }
 
+fn default_framework() -> String {
+    "ironclaw".to_string()
+}
+
+fn default_empty_string() -> String {
+    String::new()
+}
+
 /// Metrics from a single task run: LLM usage, timing, tool calls.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Trace {
@@ -61,6 +69,18 @@ pub struct RunResult {
     /// Which harness produced these results (e.g. "ironclaw", "python-harness").
     #[serde(default = "default_harness")]
     pub harness: String,
+    /// The agent framework being tested (e.g. "ironclaw", "openclaw", "nanobot").
+    #[serde(default = "default_framework")]
+    pub framework: String,
+    /// Version of the agent framework (semver or git SHA).
+    #[serde(default = "default_empty_string")]
+    pub framework_version: String,
+    /// Version of the benchmarking harness that produced these results.
+    #[serde(default = "default_empty_string")]
+    pub harness_version: String,
+    /// Version of the dataset used (e.g. "spot/v1", "trajectory/v1").
+    #[serde(default = "default_empty_string")]
+    pub dataset_version: String,
     pub pass_rate: f64,
     pub avg_score: f64,
     pub total_tasks: usize,
@@ -83,6 +103,8 @@ impl RunResult {
         total_tasks: usize,
         tasks: &[TaskResult],
         started_at: DateTime<Utc>,
+        framework: &str,
+        framework_version: &str,
     ) -> Self {
         let pass_count = tasks.iter().filter(|t| t.score.value >= 1.0).count();
         let pass_rate = if tasks.is_empty() {
@@ -105,6 +127,10 @@ impl RunResult {
             model: model.to_string(),
             commit_hash: commit_hash.to_string(),
             harness: default_harness(),
+            framework: framework.to_string(),
+            framework_version: framework_version.to_string(),
+            harness_version: env!("CARGO_PKG_VERSION").to_string(),
+            dataset_version: String::new(),
             pass_rate,
             avg_score,
             total_tasks,
@@ -239,9 +265,14 @@ pub fn print_results_table(tasks: &[TaskResult], run: &RunResult) {
     } else {
         format!(" | Commit: {}", run.commit_hash)
     };
+    let framework_suffix = if run.framework_version.is_empty() {
+        run.framework.clone()
+    } else {
+        format!("{} {}", run.framework, run.framework_version)
+    };
     println!(
-        "Run: {} | Suite: {} | Model: {} | Harness: {}{}",
-        run.run_id, run.suite_id, run.model, run.harness, commit_suffix
+        "Run: {} | Suite: {} | Model: {} | Framework: {}{}",
+        run.run_id, run.suite_id, run.model, framework_suffix, commit_suffix
     );
     println!(
         "Pass rate: {:.1}% | Avg score: {:.3} | Tasks: {}/{} | Cost: ${:.4} | Time: {:.1}s",
@@ -351,6 +382,8 @@ mod tests {
             2,
             &tasks,
             Utc::now(),
+            "ironclaw",
+            "0.1.0",
         );
 
         assert_eq!(run.pass_rate, 0.5);
