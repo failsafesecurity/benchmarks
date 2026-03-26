@@ -17,5 +17,5 @@ export function computeValueScore(
   passRate: number,
   costUsd: number,
 ): number {
-  return (passRate * 1000) / Math.max(costUsd, 0.001);
+  return (passRate * 1000) / Math.max(costUsd, 0.01);
 }

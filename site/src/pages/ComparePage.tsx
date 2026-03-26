@@ -61,7 +61,8 @@ export default function ComparePage() {
           label: "Time",
           left: formatMs(left.total_wall_time_ms),
           right: formatMs(right.total_wall_time_ms),
-          delta: formatMs(Math.abs(right.total_wall_time_ms - left.total_wall_time_ms)),
+          delta: (right.total_wall_time_ms >= left.total_wall_time_ms ? "+" : "-") +
+            formatMs(Math.abs(right.total_wall_time_ms - left.total_wall_time_ms)),
           better: right.total_wall_time_ms <= left.total_wall_time_ms,
         },
         {

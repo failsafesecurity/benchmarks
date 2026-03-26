@@ -255,7 +255,7 @@ function main() {
 
     const passRate = runJson.pass_rate;
     const costUsd = runJson.total_cost_usd;
-    const valueScore = (passRate * 1000) / Math.max(costUsd, 0.001);
+    const valueScore = (passRate * 1000) / Math.max(costUsd, 0.01);
 
     runs.push({
       run_id: runJson.run_id,
