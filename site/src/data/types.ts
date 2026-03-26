@@ -3,6 +3,7 @@ export interface LeaderboardData {
   frameworks: Framework[];
   models: Model[];
   suites: Suite[];
+  datasets: string[];
   runs: RunSummary[];
 }
 
@@ -32,6 +33,7 @@ export interface RunSummary {
   framework_version: string;
   model_id: string;
   suite_id: string;
+  dataset: string;
   pass_rate: number;
   avg_score: number;
   total_cost_usd: number;

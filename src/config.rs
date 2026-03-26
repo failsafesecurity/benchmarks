@@ -38,6 +38,26 @@ pub struct BenchConfig {
     /// Suite-specific configuration (passed through to adapter).
     #[serde(default = "default_suite_config")]
     pub suite_config: toml::Value,
+
+    /// OpenClaw-specific configuration (only used when framework = "openclaw").
+    #[serde(default)]
+    pub openclaw: Option<OpenClawConfig>,
+}
+
+/// Configuration for the OpenClaw framework runner.
+#[derive(Debug, Clone, Deserialize)]
+pub struct OpenClawConfig {
+    /// Docker image to use. Default: "openclaw:local".
+    #[serde(default = "default_openclaw_image")]
+    pub image: String,
+
+    /// Bearer token for the gateway API.
+    #[serde(default)]
+    pub gateway_token: Option<String>,
+}
+
+fn default_openclaw_image() -> String {
+    "openclaw:local".to_string()
 }
 
 /// A single model/config combination to benchmark.
@@ -81,6 +101,7 @@ impl BenchConfig {
             framework_version: String::new(),
             matrix: vec![MatrixEntry { label, model }],
             suite_config: toml::Value::Table(toml::map::Map::new()),
+            openclaw: None,
         }
     }
 

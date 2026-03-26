@@ -1,0 +1,8 @@
+task_timeout = "60s"
+parallelism = 1
+
+[[matrix]]
+label = "default"
+
+[suite_config]
+dataset_path = "datasets/zclaw-security-eng/v1"

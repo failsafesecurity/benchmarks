@@ -46,5 +46,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Scoring
 regex = "1"
 
+# HTTP client (for openclaw framework runner)
+reqwest = { version = "0.12", features = ["json"] }
+
 # Temp files (used for per-task in-memory workspace DBs)
 tempfile = "3"

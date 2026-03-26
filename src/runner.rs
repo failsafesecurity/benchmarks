@@ -42,16 +42,18 @@ struct TaskRunParams<'a> {
 pub struct BenchRunner {
     suite: Arc<dyn BenchSuite>,
     config: BenchConfig,
-    llm: Arc<dyn LlmProvider>,
-    safety: Arc<SafetyLayer>,
+    /// Ironclaw LLM provider. None when framework != "ironclaw".
+    llm: Option<Arc<dyn LlmProvider>>,
+    /// Ironclaw safety layer. None when framework != "ironclaw".
+    safety: Option<Arc<SafetyLayer>>,
 }
 
 impl BenchRunner {
     pub fn new(
         suite: Box<dyn BenchSuite>,
         config: BenchConfig,
-        llm: Arc<dyn LlmProvider>,
-        safety: Arc<SafetyLayer>,
+        llm: Option<Arc<dyn LlmProvider>>,
+        safety: Option<Arc<SafetyLayer>>,
     ) -> Self {
         Self {
             suite: Arc::from(suite),
@@ -124,7 +126,19 @@ impl BenchRunner {
         }
 
         let total_tasks = tasks.len() + completed.len();
-        let model_label = matrix.model.as_deref().unwrap_or(self.llm.model_name());
+        let is_openclaw = self.config.framework == "openclaw";
+        let openclaw_runner = if is_openclaw {
+            Some(Arc::new(
+                crate::openclaw::OpenClawRunner::new(&self.config, matrix.model.clone())?,
+            ))
+        } else {
+            None
+        };
+        let model_label = matrix
+            .model
+            .as_deref()
+            .or_else(|| self.llm.as_ref().map(|l| l.model_name()))
+            .unwrap_or("unknown");
         let commit_hash = git_short_hash();
         tracing::info!(
             "[{} @ {}] Running {} tasks for suite '{}' (run: {})",
@@ -162,16 +176,28 @@ impl BenchRunner {
                     all_results.lock().await.push(result);
                     continue;
                 }
-                let params = TaskRunParams {
-                    task,
-                    suite_id: self.suite.id(),
-                    config_label: &matrix.label,
-                    llm: Arc::clone(&self.llm),
-                    safety: Arc::clone(&self.safety),
-                    timeout: task.timeout.unwrap_or(self.config.task_timeout),
-                    additional_tools: &additional_tools,
+                let timeout = task.timeout.unwrap_or(self.config.task_timeout);
+                let result = if let Some(ref oc) = openclaw_runner {
+                    crate::openclaw::run_task_openclaw(
+                        task,
+                        self.suite.id(),
+                        &matrix.label,
+                        timeout,
+                        oc,
+                    )
+                    .await
+                } else {
+                    let params = TaskRunParams {
+                        task,
+                        suite_id: self.suite.id(),
+                        config_label: &matrix.label,
+                        llm: Arc::clone(self.llm.as_ref().unwrap()),
+                        safety: Arc::clone(self.safety.as_ref().unwrap()),
+                        timeout,
+                        additional_tools: &additional_tools,
+                    };
+                    run_task_isolated(params).await
                 };
-                let result = run_task_isolated(params).await;
                 if let Err(e) = self.suite.teardown_task(task).await {
                     tracing::warn!("teardown_task failed for {}: {}", task.id, e);
                 }
@@ -189,13 +215,14 @@ impl BenchRunner {
                 let sem = Arc::clone(&semaphore);
                 let suite = Arc::clone(&self.suite);
                 let config_label = matrix.label.clone();
-                let llm = Arc::clone(&self.llm);
-                let safety = Arc::clone(&self.safety);
+                let llm = self.llm.clone();
+                let safety = self.safety.clone();
                 let timeout = task.timeout.unwrap_or(self.config.task_timeout);
                 let results_ref = Arc::clone(&all_results);
                 let completed_count = completed.len();
                 let total = total_tasks;
                 let additional_tools = Arc::clone(&shared_tools);
+                let oc_runner = openclaw_runner.clone();
 
                 handles.push(tokio::spawn(async move {
                     let _permit = match sem.acquire().await {
@@ -224,16 +251,27 @@ impl BenchRunner {
                         return;
                     }
                     let suite_id = suite.id().to_string();
-                    let params = TaskRunParams {
-                        task: &task,
-                        suite_id: &suite_id,
-                        config_label: &config_label,
-                        llm,
-                        safety,
-                        timeout,
-                        additional_tools: &additional_tools,
+                    let result = if let Some(ref oc) = oc_runner {
+                        crate::openclaw::run_task_openclaw(
+                            &task,
+                            &suite_id,
+                            &config_label,
+                            timeout,
+                            oc,
+                        )
+                        .await
+                    } else {
+                        let params = TaskRunParams {
+                            task: &task,
+                            suite_id: &suite_id,
+                            config_label: &config_label,
+                            llm: llm.unwrap(),
+                            safety: safety.unwrap(),
+                            timeout,
+                            additional_tools: &additional_tools,
+                        };
+                        run_task_isolated(params).await
                     };
-                    let result = run_task_isolated(params).await;
                     if let Err(e) = suite.teardown_task(&task).await {
                         tracing::warn!("teardown_task failed for {}: {}", task.id, e);
                     }
@@ -255,10 +293,14 @@ impl BenchRunner {
             }
         }
 
-        // Score all results using the cached task index
+        // Skip scoring for tasks that already have an error (they were marked fail).
         let results = all_results.lock().await;
         let mut scored: Vec<TaskResult> = Vec::with_capacity(results.len());
         for result in results.iter() {
+            if result.error.is_some() {
+                scored.push(result.clone());
+                continue;
+            }
             if let Some(task) = task_index.get(&result.task_id) {
                 let submission = TaskSubmission {
                     response: result.response.clone(),
@@ -297,7 +339,19 @@ impl BenchRunner {
         // Rewrite JSONL with scored results so `results` command shows final scores
         write_task_results(&jsonl_path, &all_for_aggregate)?;
 
-        let model_name = matrix.model.as_deref().unwrap_or(self.llm.model_name());
+        let model_name = matrix
+            .model
+            .as_deref()
+            .or_else(|| self.llm.as_ref().map(|l| l.model_name()))
+            .unwrap_or("unknown");
+
+        let dataset_version = self
+            .config
+            .suite_config_map()
+            .get("dataset_path")
+            .and_then(|v| v.as_str())
+            .map(|p| p.strip_prefix("datasets/").unwrap_or(p).to_string())
+            .unwrap_or_default();
 
         let run_result = RunResult::from_tasks(
             run_id,
@@ -310,6 +364,7 @@ impl BenchRunner {
             started_at,
             &self.config.framework,
             &self.config.framework_version,
+            &dataset_version,
         );
 
         write_run_result(&json_path, &run_result)?;
@@ -518,7 +573,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     }
 }
 
-fn make_error_result(
+pub(crate) fn make_error_result(
     task: &BenchTask,
     suite_id: &str,
     config_label: &str,

@@ -10,6 +10,7 @@ import { loadLeaderboardData } from "../data";
 export interface Filters {
   modelId: string | null;
   suiteId: string | null;
+  datasetId: string | null;
   frameworkVersions: Record<string, string>; // framework_id -> version
   latestOnly: boolean;
   officialOnly: boolean;
@@ -24,6 +25,7 @@ export function useLeaderboardData() {
   const [filters, setFilters] = useState<Filters>({
     modelId: null,
     suiteId: null,
+    datasetId: null,
     frameworkVersions: {},
     latestOnly: true,
     officialOnly: false,
@@ -46,6 +48,9 @@ export function useLeaderboardData() {
     if (filters.suiteId) {
       runs = runs.filter((r) => r.suite_id === filters.suiteId);
     }
+    if (filters.datasetId) {
+      runs = runs.filter((r) => r.dataset === filters.datasetId);
+    }
     if (filters.officialOnly) {
       runs = runs.filter((r) => r.is_official);
     }
@@ -53,7 +58,7 @@ export function useLeaderboardData() {
       // Keep only the latest run per (framework, model, suite)
       const latest = new Map<string, RunSummary>();
       for (const run of runs) {
-        const key = `${run.framework_id}|${run.model_id}|${run.suite_id}`;
+        const key = `${run.framework_id}|${run.model_id}|${run.dataset}`;
         const existing = latest.get(key);
         if (!existing || run.started_at > existing.started_at) {
           latest.set(key, run);

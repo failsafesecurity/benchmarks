@@ -105,6 +105,7 @@ impl RunResult {
         started_at: DateTime<Utc>,
         framework: &str,
         framework_version: &str,
+        dataset_version: &str,
     ) -> Self {
         let pass_count = tasks.iter().filter(|t| t.score.value >= 1.0).count();
         let pass_rate = if tasks.is_empty() {
@@ -130,7 +131,7 @@ impl RunResult {
             framework: framework.to_string(),
             framework_version: framework_version.to_string(),
             harness_version: env!("CARGO_PKG_VERSION").to_string(),
-            dataset_version: String::new(),
+            dataset_version: dataset_version.to_string(),
             pass_rate,
             avg_score,
             total_tasks,
@@ -384,6 +385,7 @@ mod tests {
             Utc::now(),
             "ironclaw",
             "0.1.0",
+            "custom/v1",
         );
 
         assert_eq!(run.pass_rate, 0.5);

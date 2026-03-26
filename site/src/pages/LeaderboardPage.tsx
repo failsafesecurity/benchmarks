@@ -63,6 +63,18 @@ export default function LeaderboardPage() {
               setFilters((f) => ({ ...f, suiteId }))
             }
           />
+          <select
+            value={filters.datasetId ?? ""}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, datasetId: e.target.value || null }))
+            }
+            className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          >
+            <option value="">All Datasets</option>
+            {data.datasets.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
           <label className="flex items-center gap-1.5 text-sm text-gray-400">
             <input
               type="checkbox"

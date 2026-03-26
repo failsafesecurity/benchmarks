@@ -61,9 +61,16 @@ pub struct WorkspaceSetup {
 }
 
 /// A single turn in a trajectory scenario.
+///
+/// The user message can be provided inline via `user_input` or loaded from an
+/// external file via `user_input_file` (path relative to the scenario JSON).
+/// If both are present, `user_input` takes precedence.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScenarioTurn {
+    #[serde(default)]
     pub user_input: String,
+    #[serde(default)]
+    pub user_input_file: Option<String>,
     #[serde(default)]
     pub assertions: TurnAssertions,
 }
@@ -237,11 +244,32 @@ impl TrajectorySuite {
     }
 
     /// Load a single scenario from a JSON file.
+    ///
+    /// Resolves any `user_input_file` references relative to the scenario file's
+    /// parent directory.
     fn load_scenario(path: &Path) -> Result<TrajectoryScenario, BenchError> {
         let content = std::fs::read_to_string(path)?;
-        let scenario: TrajectoryScenario = serde_json::from_str(&content).map_err(|e| {
+        let mut scenario: TrajectoryScenario = serde_json::from_str(&content).map_err(|e| {
             BenchError::Config(format!("failed to parse {}: {}", path.display(), e))
         })?;
+
+        let base_dir = path.parent().unwrap_or(Path::new("."));
+        for turn in &mut scenario.turns {
+            if turn.user_input.is_empty() {
+                if let Some(ref file) = turn.user_input_file {
+                    let file_path = base_dir.join(file);
+                    turn.user_input =
+                        std::fs::read_to_string(&file_path).map_err(|e| {
+                            BenchError::Config(format!(
+                                "failed to read user_input_file {}: {}",
+                                file_path.display(),
+                                e
+                            ))
+                        })?;
+                }
+            }
+        }
+
         Ok(scenario)
     }
 }
@@ -702,6 +730,34 @@ mod tests {
         let suite = TrajectorySuite::new("/nonexistent/path", None);
         let err = suite.load_tasks().await.unwrap_err();
         assert!(err.to_string().contains("does not exist"));
+    }
+
+    #[tokio::test]
+    async fn test_user_input_file() {
+        let dir = tempfile::tempdir().unwrap();
+
+        std::fs::write(dir.path().join("prompt.md"), "What is the capital of France?").unwrap();
+
+        let path = dir.path().join("test.json");
+        let mut file = std::fs::File::create(&path).unwrap();
+        write!(
+            file,
+            r#"{{
+                "name": "file-input-test",
+                "turns": [{{
+                    "user_input_file": "prompt.md",
+                    "assertions": {{
+                        "response_contains": ["Paris"]
+                    }}
+                }}]
+            }}"#
+        )
+        .unwrap();
+
+        let suite = TrajectorySuite::new(dir.path(), None);
+        let tasks = suite.load_tasks().await.unwrap();
+        assert_eq!(tasks.len(), 1);
+        assert_eq!(tasks[0].prompt, "What is the capital of France?");
     }
 
     #[test]
