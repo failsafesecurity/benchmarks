@@ -254,7 +254,7 @@ impl TrajectorySuite {
         })?;
 
         let base_dir = path.parent().unwrap_or(Path::new("."));
-        for turn in &mut scenario.turns {
+        for (i, turn) in scenario.turns.iter_mut().enumerate() {
             if turn.user_input.is_empty() {
                 if let Some(ref file) = turn.user_input_file {
                     let file_path = base_dir.join(file);
@@ -266,6 +266,11 @@ impl TrajectorySuite {
                                 e
                             ))
                         })?;
+                } else {
+                    return Err(BenchError::Config(format!(
+                        "turn {} in {} has neither user_input nor user_input_file",
+                        i, path.display()
+                    )));
                 }
             }
         }

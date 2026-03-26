@@ -186,9 +186,9 @@ async fn main() -> anyhow::Result<()> {
             // Create suite
             let bench_suite = adapters::create_suite(&suite, &bench_config)?;
 
-            // Set up LLM provider and safety layer (only needed for ironclaw framework).
-            let (llm, safety) = if bench_config.framework == "openclaw" {
-                (None, None)
+            // Set up framework-specific dependencies.
+            let framework = if bench_config.framework == "openclaw" {
+                runner::FrameworkDeps::OpenClaw
             } else {
                 // Bridge common API key env vars to ironclaw's config format.
                 bridge_provider_env_vars();
@@ -222,11 +222,11 @@ async fn main() -> anyhow::Result<()> {
                 let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
                 let safety =
                     Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
-                (Some(llm), Some(safety))
+                runner::FrameworkDeps::Ironclaw { llm, safety }
             };
 
             let runner =
-                runner::BenchRunner::new(bench_suite, bench_config.clone(), llm, safety);
+                runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
 
             // Run for each matrix entry
             for matrix_entry in &bench_config.matrix {

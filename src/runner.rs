@@ -37,29 +37,35 @@ struct TaskRunParams<'a> {
     additional_tools: &'a [Arc<dyn ironclaw::tools::Tool>],
 }
 
+/// Framework-specific dependencies. Each variant carries exactly what
+/// that framework needs — no Options, no unwraps.
+#[derive(Clone)]
+pub enum FrameworkDeps {
+    Ironclaw {
+        llm: Arc<dyn LlmProvider>,
+        safety: Arc<SafetyLayer>,
+    },
+    OpenClaw,
+}
+
 /// Orchestrates benchmark execution: loads tasks, runs agent per task,
 /// scores results, writes JSONL output.
 pub struct BenchRunner {
     suite: Arc<dyn BenchSuite>,
     config: BenchConfig,
-    /// Ironclaw LLM provider. None when framework != "ironclaw".
-    llm: Option<Arc<dyn LlmProvider>>,
-    /// Ironclaw safety layer. None when framework != "ironclaw".
-    safety: Option<Arc<SafetyLayer>>,
+    framework: FrameworkDeps,
 }
 
 impl BenchRunner {
     pub fn new(
         suite: Box<dyn BenchSuite>,
         config: BenchConfig,
-        llm: Option<Arc<dyn LlmProvider>>,
-        safety: Option<Arc<SafetyLayer>>,
+        framework: FrameworkDeps,
     ) -> Self {
         Self {
             suite: Arc::from(suite),
             config,
-            llm,
-            safety,
+            framework,
         }
     }
 
@@ -126,19 +132,19 @@ impl BenchRunner {
         }
 
         let total_tasks = tasks.len() + completed.len();
-        let is_openclaw = self.config.framework == "openclaw";
-        let openclaw_runner = if is_openclaw {
+        let openclaw_runner = if matches!(self.framework, FrameworkDeps::OpenClaw) {
             Some(Arc::new(
                 crate::openclaw::OpenClawRunner::new(&self.config, matrix.model.clone())?,
             ))
         } else {
             None
         };
-        let model_label = matrix
-            .model
-            .as_deref()
-            .or_else(|| self.llm.as_ref().map(|l| l.model_name()))
-            .unwrap_or("unknown");
+        let model_label = match &self.framework {
+            FrameworkDeps::Ironclaw { llm, .. } => {
+                matrix.model.as_deref().unwrap_or(llm.model_name())
+            }
+            FrameworkDeps::OpenClaw => matrix.model.as_deref().unwrap_or("unknown"),
+        };
         let commit_hash = git_short_hash();
         tracing::info!(
             "[{} @ {}] Running {} tasks for suite '{}' (run: {})",
@@ -177,26 +183,29 @@ impl BenchRunner {
                     continue;
                 }
                 let timeout = task.timeout.unwrap_or(self.config.task_timeout);
-                let result = if let Some(ref oc) = openclaw_runner {
-                    crate::openclaw::run_task_openclaw(
-                        task,
-                        self.suite.id(),
-                        &matrix.label,
-                        timeout,
-                        oc,
-                    )
-                    .await
-                } else {
-                    let params = TaskRunParams {
-                        task,
-                        suite_id: self.suite.id(),
-                        config_label: &matrix.label,
-                        llm: Arc::clone(self.llm.as_ref().unwrap()),
-                        safety: Arc::clone(self.safety.as_ref().unwrap()),
-                        timeout,
-                        additional_tools: &additional_tools,
-                    };
-                    run_task_isolated(params).await
+                let result = match &self.framework {
+                    FrameworkDeps::Ironclaw { llm, safety } => {
+                        let params = TaskRunParams {
+                            task,
+                            suite_id: self.suite.id(),
+                            config_label: &matrix.label,
+                            llm: Arc::clone(llm),
+                            safety: Arc::clone(safety),
+                            timeout,
+                            additional_tools: &additional_tools,
+                        };
+                        run_task_isolated(params).await
+                    }
+                    FrameworkDeps::OpenClaw => {
+                        crate::openclaw::run_task_openclaw(
+                            task,
+                            self.suite.id(),
+                            &matrix.label,
+                            timeout,
+                            openclaw_runner.as_ref().unwrap(),
+                        )
+                        .await
+                    }
                 };
                 if let Err(e) = self.suite.teardown_task(task).await {
                     tracing::warn!("teardown_task failed for {}: {}", task.id, e);
@@ -215,8 +224,7 @@ impl BenchRunner {
                 let sem = Arc::clone(&semaphore);
                 let suite = Arc::clone(&self.suite);
                 let config_label = matrix.label.clone();
-                let llm = self.llm.clone();
-                let safety = self.safety.clone();
+                let framework = self.framework.clone();
                 let timeout = task.timeout.unwrap_or(self.config.task_timeout);
                 let results_ref = Arc::clone(&all_results);
                 let completed_count = completed.len();
@@ -251,26 +259,29 @@ impl BenchRunner {
                         return;
                     }
                     let suite_id = suite.id().to_string();
-                    let result = if let Some(ref oc) = oc_runner {
-                        crate::openclaw::run_task_openclaw(
-                            &task,
-                            &suite_id,
-                            &config_label,
-                            timeout,
-                            oc,
-                        )
-                        .await
-                    } else {
-                        let params = TaskRunParams {
-                            task: &task,
-                            suite_id: &suite_id,
-                            config_label: &config_label,
-                            llm: llm.unwrap(),
-                            safety: safety.unwrap(),
-                            timeout,
-                            additional_tools: &additional_tools,
-                        };
-                        run_task_isolated(params).await
+                    let result = match &framework {
+                        FrameworkDeps::Ironclaw { llm, safety } => {
+                            let params = TaskRunParams {
+                                task: &task,
+                                suite_id: &suite_id,
+                                config_label: &config_label,
+                                llm: Arc::clone(llm),
+                                safety: Arc::clone(safety),
+                                timeout,
+                                additional_tools: &additional_tools,
+                            };
+                            run_task_isolated(params).await
+                        }
+                        FrameworkDeps::OpenClaw => {
+                            crate::openclaw::run_task_openclaw(
+                                &task,
+                                &suite_id,
+                                &config_label,
+                                timeout,
+                                oc_runner.as_ref().unwrap(),
+                            )
+                            .await
+                        }
                     };
                     if let Err(e) = suite.teardown_task(&task).await {
                         tracing::warn!("teardown_task failed for {}: {}", task.id, e);
@@ -339,11 +350,12 @@ impl BenchRunner {
         // Rewrite JSONL with scored results so `results` command shows final scores
         write_task_results(&jsonl_path, &all_for_aggregate)?;
 
-        let model_name = matrix
-            .model
-            .as_deref()
-            .or_else(|| self.llm.as_ref().map(|l| l.model_name()))
-            .unwrap_or("unknown");
+        let model_name = match &self.framework {
+            FrameworkDeps::Ironclaw { llm, .. } => {
+                matrix.model.as_deref().unwrap_or(llm.model_name())
+            }
+            FrameworkDeps::OpenClaw => matrix.model.as_deref().unwrap_or("unknown"),
+        };
 
         let dataset_version = self
             .config

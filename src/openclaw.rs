@@ -218,6 +218,23 @@ impl OpenClawRunner {
                 ));
             }
 
+            let inspect = Command::new("docker")
+                .args(["inspect", "--format", "{{.State.Running}}", &handle.container_id])
+                .output();
+            if let Ok(out) = inspect {
+                let state = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                if state == "false" {
+                    let logs = Command::new("docker")
+                        .args(["logs", "--tail", "20", &handle.container_id])
+                        .output()
+                        .map(|o| String::from_utf8_lossy(&o.stderr).to_string())
+                        .unwrap_or_default();
+                    return Err(BenchError::OpenClaw(format!(
+                        "container exited before becoming healthy. Logs:\n{logs}"
+                    )));
+                }
+            }
+
             match self.http.get(&url).send().await {
                 Ok(resp) if resp.status().is_success() => break,
                 _ => tokio::time::sleep(Duration::from_millis(500)).await,
