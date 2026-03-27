@@ -3,6 +3,7 @@ mod channel;
 mod config;
 mod error;
 mod instrumented_llm;
+mod openclaw;
 mod results;
 mod runner;
 mod scoring;
@@ -164,12 +165,15 @@ async fn main() -> anyhow::Result<()> {
             if let Some(t) = timeout_secs {
                 bench_config.task_timeout = std::time::Duration::from_secs(t);
             }
-            if let Some(ref dir) = results_dir {
-                bench_config.results_dir = dir.clone();
-            }
             bench_config.framework = framework;
             if !framework_version.is_empty() {
                 bench_config.framework_version = framework_version;
+            }
+            if let Some(ref dir) = results_dir {
+                bench_config.results_dir = dir.clone();
+            } else {
+                bench_config.results_dir =
+                    PathBuf::from(format!("./results/{}", bench_config.framework));
             }
 
             // If model override specified and we have matrix entries, update them
@@ -182,41 +186,47 @@ async fn main() -> anyhow::Result<()> {
             // Create suite
             let bench_suite = adapters::create_suite(&suite, &bench_config)?;
 
-            // Bridge common API key env vars to ironclaw's config format.
-            // This lets users set OPENAI_API_KEY or ANTHROPIC_API_KEY directly
-            // instead of going through ironclaw's onboarding wizard.
-            bridge_provider_env_vars();
+            // Set up framework-specific dependencies.
+            let framework = if bench_config.framework == "openclaw" {
+                runner::FrameworkDeps::OpenClaw
+            } else {
+                // Bridge common API key env vars to ironclaw's config format.
+                bridge_provider_env_vars();
 
-            let ironclaw_config = ironclaw::Config::from_env().await.map_err(|e| {
-                anyhow::anyhow!(
-                    "Failed to load LLM config: {e}\n\n\
-                     Set one of:\n  \
-                       OPENAI_API_KEY=sk-...           (uses OpenAI)\n  \
-                       ANTHROPIC_API_KEY=sk-ant-...    (uses Anthropic via OpenRouter)\n  \
-                       LLM_BACKEND + LLM_BASE_URL + LLM_API_KEY  (any OpenAI-compatible provider)\n\n\
-                     See .env.example for details."
-                )
-            })?;
+                let ironclaw_config = ironclaw::Config::from_env().await.map_err(|e| {
+                    anyhow::anyhow!(
+                        "Failed to load LLM config: {e}\n\n\
+                         Set one of:\n  \
+                           OPENAI_API_KEY=sk-...           (uses OpenAI)\n  \
+                           ANTHROPIC_API_KEY=sk-ant-...    (uses Anthropic via OpenRouter)\n  \
+                           LLM_BACKEND + LLM_BASE_URL + LLM_API_KEY  (any OpenAI-compatible provider)\n\n\
+                         See .env.example for details."
+                    )
+                })?;
 
-            let session = ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
-                auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
-                session_path: ironclaw_config.llm.nearai.session_path.clone(),
-            })
-            .await;
+                let session =
+                    ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
+                        auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
+                        session_path: ironclaw_config.llm.nearai.session_path.clone(),
+                    })
+                    .await;
 
-            // Only require NEAR AI authentication when using the NEAR AI backend.
-            let is_nearai = matches!(
-                ironclaw_config.llm.backend,
-                ironclaw::config::LlmBackend::NearAi
-            );
-            if is_nearai {
-                session.ensure_authenticated().await?;
-            }
+                let is_nearai = matches!(
+                    ironclaw_config.llm.backend,
+                    ironclaw::config::LlmBackend::NearAi
+                );
+                if is_nearai {
+                    session.ensure_authenticated().await?;
+                }
 
-            let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
-            let safety = Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
+                let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
+                let safety =
+                    Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
+                runner::FrameworkDeps::Ironclaw { llm, safety }
+            };
 
-            let runner = runner::BenchRunner::new(bench_suite, bench_config.clone(), llm, safety);
+            let runner =
+                runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
 
             // Run for each matrix entry
             for matrix_entry in &bench_config.matrix {
@@ -237,7 +247,7 @@ async fn main() -> anyhow::Result<()> {
             format,
             results_dir,
         } => {
-            let base = results_dir.unwrap_or_else(|| PathBuf::from("./results/ironclaw"));
+            let base = results_dir.unwrap_or_else(|| find_results_base("./results"));
             let uuid = if run_id == "latest" {
                 results::find_latest_run(&base)?
                     .ok_or_else(|| anyhow::anyhow!("No runs found in {}", base.display()))?
@@ -284,7 +294,7 @@ async fn main() -> anyhow::Result<()> {
             comparison,
             results_dir,
         } => {
-            let base = results_dir.unwrap_or_else(|| PathBuf::from("./results/ironclaw"));
+            let base = results_dir.unwrap_or_else(|| find_results_base("./results"));
 
             let baseline_run = results::read_run_result(&results::run_json_path(&base, baseline))?;
             let comparison_run =
@@ -340,6 +350,39 @@ async fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+/// Find the results base directory containing the most recent run.
+///
+/// Scans all subdirectories of `root` (e.g. `./results/ironclaw/`,
+/// `./results/openclaw/`) and returns the one with the latest run.
+/// Falls back to `{root}/ironclaw` if nothing is found.
+fn find_results_base(root: &str) -> PathBuf {
+    let root_path = PathBuf::from(root);
+    if !root_path.is_dir() {
+        return root_path.join("ironclaw");
+    }
+    let mut best: Option<(PathBuf, std::time::SystemTime)> = None;
+    if let Ok(entries) = std::fs::read_dir(&root_path) {
+        for entry in entries.flatten() {
+            let fw_dir = entry.path();
+            if !fw_dir.is_dir() {
+                continue;
+            }
+            if let Some(uuid) = results::find_latest_run(&fw_dir).ok().flatten() {
+                let run_json = results::run_json_path(&fw_dir, uuid);
+                if let Ok(meta) = std::fs::metadata(&run_json) {
+                    if let Ok(modified) = meta.modified() {
+                        if best.as_ref().map_or(true, |(_, t)| modified > *t) {
+                            best = Some((fw_dir, modified));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    best.map(|(p, _)| p)
+        .unwrap_or_else(|| root_path.join("ironclaw"))
 }
 
 /// Bridge common provider env vars to ironclaw's config format.

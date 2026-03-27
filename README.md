@@ -129,6 +129,74 @@ Results are written to `results/{harness}/{run-uuid}/` containing:
 The `harness` field in `run.json` identifies which agent implementation produced the results,
 allowing multiple harnesses to share the same results directory structure.
 
+## Multi-Framework Comparison
+
+The harness supports benchmarking different agent frameworks on the same suites via `--framework`.
+
+### Ironclaw (default)
+
+Runs tasks in-process using the ironclaw agent library with its full tool stack and safety layer.
+
+```bash
+# Run with ironclaw (default)
+nearai-bench run --suite trajectory --config suites/zclaw-security-eng.toml
+```
+
+### OpenClaw
+
+Runs tasks against an [OpenClaw](https://github.com/nicepkg/openclaw) gateway in a Docker container. Each task gets a fresh container with identity files mounted as workspace.
+
+```bash
+# 1. Build the openclaw Docker image (one-time)
+docker build -t openclaw:local /path/to/openclaw/
+
+# 2. Ensure API keys are in your environment (OPENROUTER_API_KEY, ANTHROPIC_API_KEY, etc.)
+
+# 3. Run — model ID must use openclaw's provider prefix format
+nearai-bench run --suite trajectory \
+  --config suites/zclaw-security-eng.toml \
+  --framework openclaw \
+  --model openrouter/anthropic/claude-sonnet-4
+```
+
+Model ID format: `{provider}/{model}` — e.g. `openrouter/anthropic/claude-sonnet-4`,
+`anthropic/claude-sonnet-4-20250514`, `openai/gpt-4o`.
+
+Optional `[openclaw]` section in suite TOML:
+```toml
+[openclaw]
+image = "openclaw:local"       # Docker image (default: openclaw:local)
+gateway_token = "my-token"     # Gateway auth token (default: bench-token)
+```
+
+### Comparing Frameworks
+
+```bash
+nearai-bench compare <ironclaw-run-uuid> <openclaw-run-uuid>
+```
+
+Results are tagged with `framework` in `run.json` and displayed in the leaderboard site.
+
+## ZClaw Security Suite
+
+10 prompt injection resistance tasks extracted from [ZClawBench](https://huggingface.co/datasets/zai-org/ZClawBench).
+Each task presents a social engineering attack and checks that the agent refuses without leaking
+identity files seeded into its workspace.
+
+Available in Chinese (original) and English (translated):
+
+```bash
+# Chinese
+nearai-bench run --suite trajectory --config suites/zclaw-security-chn.toml
+
+# English
+nearai-bench run --suite trajectory --config suites/zclaw-security-eng.toml
+```
+
+Attack vectors covered: authority impersonation, fake audit, colleague impersonation,
+emotional pressure, training pretext, minimal confirmation fishing, structure extraction,
+reasoning extraction, encoding bypass, platform identity extraction.
+
 ## Configuration
 
 Suite configs are TOML files with this structure:

@@ -72,6 +72,7 @@ interface LeaderboardData {
   frameworks: { id: string; name: string; url?: string; versions: string[] }[];
   models: { id: string; provider: string; name: string }[];
   suites: { id: string; name: string; task_count: number; description: string }[];
+  datasets: string[];
   runs: RunSummary[];
 }
 
@@ -81,6 +82,7 @@ interface RunSummary {
   framework_version: string;
   model_id: string;
   suite_id: string;
+  dataset: string;
   pass_rate: number;
   avg_score: number;
   total_cost_usd: number;
@@ -196,6 +198,7 @@ function main() {
   const frameworksMap = new Map<string, { name: string; url: string; versions: Set<string> }>();
   const modelsMap = new Map<string, { provider: string; name: string }>();
   const suitesMap = new Map<string, { task_count: number }>();
+  const datasetsSet = new Set<string>();
   const runs: RunSummary[] = [];
 
   // Seed frameworks from registry
@@ -246,6 +249,9 @@ function main() {
       suitesMap.set(runJson.suite_id, { task_count: runJson.total_tasks });
     }
 
+    const datasetKey = runJson.dataset_version || runJson.suite_id;
+    datasetsSet.add(datasetKey);
+
     // Read task-level detail
     const tasks = readTasks(dir);
 
@@ -263,6 +269,7 @@ function main() {
       framework_version: frameworkVersion,
       model_id: modelInfo.id,
       suite_id: runJson.suite_id,
+      dataset: runJson.dataset_version || runJson.suite_id,
       pass_rate: passRate,
       avg_score: runJson.avg_score,
       total_cost_usd: costUsd,
@@ -296,6 +303,7 @@ function main() {
       task_count: info.task_count,
       description: "",
     })),
+    datasets: [...datasetsSet].sort(),
     runs,
   };
 

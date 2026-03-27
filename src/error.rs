@@ -28,4 +28,7 @@ pub enum BenchError {
 
     #[error("Agent error: {0}")]
     Agent(#[from] ironclaw::Error),
+
+    #[error("OpenClaw error: {0}")]
+    OpenClaw(String),
 }
