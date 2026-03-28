@@ -31,4 +31,7 @@ pub enum BenchError {
 
     #[error("OpenClaw error: {0}")]
     OpenClaw(String),
+
+    #[error("PinchBench error: {0}")]
+    PinchBench(String),
 }

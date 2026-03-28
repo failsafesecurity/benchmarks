@@ -341,6 +341,7 @@ mod tests {
             response: String::new(),
             conversation: vec![],
             tool_calls: vec![],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();

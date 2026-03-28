@@ -119,6 +119,9 @@ enum ResultsFormat {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Load .env file if present (before anything reads env vars).
+    dotenvy::dotenv().ok();
+
     let cli = Cli::parse();
 
     tracing_subscriber::registry()

@@ -49,6 +49,8 @@ pub struct TaskSubmission {
     pub response: String,
     pub conversation: Vec<ConversationTurn>,
     pub tool_calls: Vec<String>,
+    /// Rich tool call data with arguments and result previews (when available).
+    pub trace_tool_calls: Vec<crate::results::TraceToolCall>,
     pub error: Option<String>,
 }
 
@@ -141,6 +143,11 @@ pub trait BenchSuite: Send + Sync {
     fn additional_tools(&self) -> Vec<Arc<dyn ironclaw::tools::Tool>> {
         vec![]
     }
+
+    /// Set the workspace base directory for this run.
+    /// Called by the runner after the run_id is known, so workspaces
+    /// persist in the results directory rather than a temp dir.
+    fn set_run_workspace_base(&self, _path: std::path::PathBuf) {}
 
     /// Multi-turn: generate next simulated user message based on conversation so far.
     /// Return `None` to end the conversation.

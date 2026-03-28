@@ -39,6 +39,10 @@ pub struct TraceToolCall {
     pub name: String,
     pub duration_ms: u64,
     pub success: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub result_preview: Option<String>,
 }
 
 /// Result of running a single benchmark task.

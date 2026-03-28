@@ -1,5 +1,6 @@
 pub mod custom;
 pub mod gaia;
+pub mod pinchbench;
 pub mod spot;
 pub mod swe_bench;
 pub mod tau_bench;
@@ -13,6 +14,7 @@ use crate::suite::BenchSuite;
 pub const KNOWN_SUITES: &[(&str, &str)] = &[
     ("custom", "Custom JSONL tasks"),
     ("gaia", "GAIA benchmark (knowledge & reasoning)"),
+    ("pinchbench", "PinchBench (skill-based agent evaluation)"),
     ("spot", "Spot checks (end-to-end user workflows)"),
     ("tau_bench", "Tau-bench (multi-turn tool use)"),
     ("swe_bench", "SWE-bench Pro (software engineering)"),
@@ -52,6 +54,31 @@ pub fn create_suite(name: &str, config: &BenchConfig) -> Result<Box<dyn BenchSui
             Ok(Box::new(gaia::GaiaSuite::new(
                 dataset_path,
                 attachments_dir,
+            )))
+        }
+        "pinchbench" => {
+            let dataset_path = suite_map
+                .get("dataset_path")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .ok_or_else(|| {
+                    BenchError::Config(
+                        "suite_config.dataset_path is required for 'pinchbench' suite".to_string(),
+                    )
+                })?;
+            let judge_model = suite_map
+                .get("judge_model")
+                .and_then(|v| v.as_str())
+                .unwrap_or("openrouter/anthropic/claude-opus-4-6")
+                .to_string();
+            let hybrid_auto_weight = suite_map
+                .get("hybrid_auto_weight")
+                .and_then(|v| v.as_float())
+                .unwrap_or(0.6);
+            Ok(Box::new(pinchbench::PinchBenchSuite::new(
+                dataset_path,
+                judge_model,
+                hybrid_auto_weight,
             )))
         }
         "spot" => {
