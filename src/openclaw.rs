@@ -267,8 +267,7 @@ impl OpenClawRunner {
     ) -> Result<OpenClawResponse, BenchError> {
         let timeout_secs = timeout.as_secs().to_string();
 
-        // Wrap docker exec with a process-level timeout in case the openclaw
-        // agent command hangs (e.g. container dies mid-execution).
+        // Process-level timeout in case the agent command hangs.
         let exec_timeout = timeout + Duration::from_secs(30); // grace period
         let output = tokio::time::timeout(
             exec_timeout,
@@ -416,11 +415,7 @@ pub async fn run_task_openclaw(
         completion_tokens: 0,
     });
 
-    // Copy workspace files from the container to the host-side scoring directory.
-    // The container workspace is at /home/node/.openclaw/workspace (mounted from
-    // handle.workspace_dir). The Python grader expects files at the PinchBench
-    // workspace path. We docker cp the workspace contents before the container
-    // is destroyed.
+    // Copy workspace + session transcripts from container before it's destroyed.
     if let Some(scoring_dir) = task
         .metadata
         .get("meta")
@@ -430,7 +425,6 @@ pub async fn run_task_openclaw(
         let dest = format!("{}/{}", scoring_dir, task.id);
         let _ = std::fs::create_dir_all(&dest);
 
-        // Copy workspace files (agent-created output)
         let _ = Command::new("docker")
             .args([
                 "cp",
@@ -439,7 +433,6 @@ pub async fn run_task_openclaw(
             ])
             .output();
 
-        // Copy session transcripts for scoring (tool call details)
         let sessions_dest = format!("{dest}/.openclaw-sessions");
         let _ = std::fs::create_dir_all(&sessions_dest);
         let _ = Command::new("docker")
@@ -454,7 +447,6 @@ pub async fn run_task_openclaw(
             .output();
     }
 
-    // Parse tool calls from session transcripts for scoring fidelity.
     let tool_calls = parse_session_tool_calls(&handle.container_id);
 
     let wall_time = start.elapsed();
@@ -515,13 +507,8 @@ pub(crate) fn write_identity_files(
     Ok(written)
 }
 
-/// Parse tool calls from OpenClaw session transcripts inside the container.
-///
-/// Reads JSONL session files from `/home/node/.openclaw/agents/main/sessions/`
-/// and extracts toolCall entries with their arguments. This gives the Python
-/// grader the same tool-call visibility as IronClaw's BenchChannel.
+/// Extract tool calls (with arguments) from OpenClaw session JSONL inside the container.
 fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
-    // Find session JSONL files
     let find_output = Command::new("docker")
         .args([
             "exec",

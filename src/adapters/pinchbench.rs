@@ -9,10 +9,6 @@ use serde::{Deserialize, Serialize};
 use crate::error::BenchError;
 use crate::suite::{BenchScore, BenchSuite, BenchTask, ConversationTurn, TaskSubmission, TurnRole};
 
-// ---------------------------------------------------------------------------
-// Data structures parsed from task .md files
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PinchTaskMeta {
     id: String,
@@ -82,10 +78,6 @@ struct PinchTaskContent {
     #[serde(default)]
     llm_judge_rubric: Option<String>,
 }
-
-// ---------------------------------------------------------------------------
-// PinchBenchSuite
-// ---------------------------------------------------------------------------
 
 pub struct PinchBenchSuite {
     dataset_path: PathBuf,
@@ -160,7 +152,6 @@ impl PinchBenchSuite {
     ) -> Result<PathBuf, BenchError> {
         let ws_path = self.workspace_path_for(task_id);
 
-        // Clean and recreate
         if ws_path.exists() {
             std::fs::remove_dir_all(&ws_path).ok();
         }
@@ -168,14 +159,12 @@ impl PinchBenchSuite {
 
         for wf in workspace_files {
             if let (Some(path), Some(content)) = (&wf.path, &wf.content) {
-                // Inline content
                 let dest = ws_path.join(path);
                 if let Some(parent) = dest.parent() {
                     std::fs::create_dir_all(parent)?;
                 }
                 std::fs::write(&dest, content)?;
             } else if let (Some(source), Some(dest_name)) = (&wf.source, &wf.dest) {
-                // Asset reference
                 let src = self.dataset_path.join("assets").join(source);
                 let dest = ws_path.join(dest_name);
                 if let Some(parent) = dest.parent() {
@@ -203,10 +192,6 @@ impl PinchBenchSuite {
     }
 }
 
-// ---------------------------------------------------------------------------
-// BenchSuite implementation
-// ---------------------------------------------------------------------------
-
 #[async_trait]
 impl BenchSuite for PinchBenchSuite {
     fn name(&self) -> &str {
@@ -225,16 +210,14 @@ impl BenchSuite for PinchBenchSuite {
         for path in files {
             let (meta, content) = Self::parse_task_file(&path)?;
 
-            // For multi-session tasks, the prompt is the first session's prompt.
+            // Multi-session: use first session's prompt.
             let raw_prompt = if meta.multi_session && !meta.sessions.is_empty() {
                 meta.sessions[0].prompt.clone()
             } else {
                 content.prompt.clone()
             };
 
-            // Prepend workspace instructions with a placeholder that the runner
-            // substitutes at runtime: IronClaw → host temp dir, OpenClaw →
-            // container workspace path. See runner::WORKSPACE_PLACEHOLDER.
+            // {{WORKSPACE}} placeholder — resolved per-framework by the runner.
             let ws = crate::runner::WORKSPACE_PLACEHOLDER;
             let prompt = if meta.workspace_files.is_empty() {
                 format!(
@@ -322,8 +305,7 @@ impl BenchSuite for PinchBenchSuite {
     }
 
     async fn teardown_task(&self, _task: &BenchTask) -> Result<(), BenchError> {
-        // Don't clean up workspace here — scoring happens after teardown.
-        // Workspaces are cleaned and recreated in setup_task() on next run.
+        // Workspace cleanup happens in setup_task(); scoring needs the files.
         Ok(())
     }
 
@@ -353,9 +335,7 @@ impl BenchSuite for PinchBenchSuite {
         let transcript_json = normalize_transcript(submission);
         let transcript_str = serde_json::to_string(&transcript_json).unwrap_or_default();
 
-        // For judge-scored tasks, build an enriched transcript that includes
-        // workspace file contents so the judge can evaluate actual output.
-        // Keep the clean JSON for the Python grader (which needs valid JSON).
+        // Enrich transcript with workspace files for the judge (clean JSON for Python grader).
         let judge_transcript_str = if meta.grading_type == GradingType::LlmJudge
             || meta.grading_type == GradingType::Hybrid
         {
@@ -489,10 +469,6 @@ impl BenchSuite for PinchBenchSuite {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Frontmatter + markdown section parsing
-// ---------------------------------------------------------------------------
-
 /// Parse YAML frontmatter delimited by `---` lines.
 fn parse_frontmatter(raw: &str) -> Result<(PinchTaskMeta, String), String> {
     let trimmed = raw.trim_start_matches('\u{feff}'); // strip BOM
@@ -543,10 +519,6 @@ fn parse_sections(body: &str) -> PinchTaskContent {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Transcript normalization
-// ---------------------------------------------------------------------------
-
 /// Convert `TaskSubmission` into PinchBench's transcript format.
 ///
 /// PinchBench graders expect:
@@ -571,9 +543,7 @@ fn normalize_transcript(submission: &TaskSubmission) -> serde_json::Value {
         }));
     }
 
-    // Append tool calls as assistant messages with toolCall content items.
-    // Use trace_tool_calls (rich data with arguments) when available,
-    // falling back to plain tool_calls (names only).
+    // Tool calls: prefer trace_tool_calls (with args) over plain names.
     if !submission.trace_tool_calls.is_empty() {
         for tc in &submission.trace_tool_calls {
             let mut item = serde_json::json!({
@@ -590,7 +560,6 @@ fn normalize_transcript(submission: &TaskSubmission) -> serde_json::Value {
                     "content": [item],
                 }
             }));
-            // Append tool result if available
             if let Some(ref preview) = tc.result_preview {
                 entries.push(serde_json::json!({
                     "type": "message",
@@ -622,7 +591,7 @@ fn normalize_transcript(submission: &TaskSubmission) -> serde_json::Value {
         }));
     }
 
-    // If conversation is empty, synthesize from the response.
+    // Synthesize transcript from response if conversation is empty.
     if submission.conversation.is_empty() && !submission.response.is_empty() {
         entries.push(serde_json::json!({
             "type": "message",
@@ -636,16 +605,11 @@ fn normalize_transcript(submission: &TaskSubmission) -> serde_json::Value {
     serde_json::Value::Array(entries)
 }
 
-// ---------------------------------------------------------------------------
-// Python grading
-// ---------------------------------------------------------------------------
-
 /// Extract the Python code block from the Automated Checks section.
 fn extract_python_code(section: &Option<String>) -> String {
     let Some(text) = section else {
         return String::new();
     };
-    // Find ```python ... ``` block
     let start = text.find("```python");
     let Some(start) = start else {
         return String::new();
@@ -706,10 +670,6 @@ async fn run_python_grader(
 
     Ok(scores)
 }
-
-// ---------------------------------------------------------------------------
-// LLM judge
-// ---------------------------------------------------------------------------
 
 /// Run the LLM judge via a direct OpenAI-compatible API call.
 ///
@@ -880,10 +840,6 @@ fn parse_judge_response(content: &str) -> Result<HashMap<String, f64>, BenchErro
     Ok(scores)
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 /// Summarize text files in the workspace for the LLM judge.
 /// Reads all non-binary files, truncating large ones, so the judge can
 /// evaluate the agent's actual output rather than just its response text.
@@ -980,10 +936,6 @@ fn scores_to_bench_score(scores: &HashMap<String, f64>) -> BenchScore {
         BenchScore::partial(avg, detail)
     }
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

@@ -89,8 +89,7 @@ impl BenchRunner {
         let jsonl_path = tasks_jsonl_path(results_base, run_id);
         let json_path = run_json_path(results_base, run_id);
 
-        // Set workspace base inside the results dir so workspaces persist
-        // alongside run.json/tasks.jsonl and survive across resume.
+        // Workspaces persist in results dir to survive resume.
         let ws_base = dir.join("workspaces");
         std::fs::create_dir_all(&ws_base)?;
         self.suite.set_run_workspace_base(ws_base.clone());
@@ -505,7 +504,6 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         task.prompt.clone()
     };
 
-    // Resolve workspace placeholder for IronClaw (files on host filesystem).
     let full_prompt = resolve_workspace_placeholder(&full_prompt, task, &ws_base);
 
     // Inject the task prompt

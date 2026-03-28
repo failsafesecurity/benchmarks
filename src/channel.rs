@@ -33,8 +33,7 @@ pub struct ChannelCapture {
     pub conversation: Vec<ConversationTurn>,
     /// Status messages (for debugging).
     pub status_log: Vec<String>,
-    /// Pending tool arguments from ApprovalNeeded, keyed by tool name.
-    /// Consumed when the corresponding ToolResult arrives.
+    /// Tool arguments captured from ApprovalNeeded, consumed at ToolCompleted.
     pub pending_tool_args: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -128,7 +127,6 @@ impl Channel for BenchChannel {
                 ref parameters,
                 ..
             } => {
-                // Capture tool arguments for transcript fidelity.
                 cap.pending_tool_args
                     .insert(tool_name.clone(), parameters.clone());
                 cap.status_log.push(format!("auto_approved: {request_id}"));
@@ -147,7 +145,6 @@ impl Channel for BenchChannel {
                 ref name,
                 ref preview,
             } => {
-                // Attach result preview to the most recent matching tool call.
                 if let Some(tc) = cap.tool_calls.iter_mut().rev().find(|tc| tc.name == *name) {
                     tc.result_preview = Some(truncate_str(preview, 500).to_string());
                 }

@@ -57,7 +57,7 @@ Auto-deploys on push to `main` when `results/`, `baselines/`, or `site/` change 
 **Harness (Rust, `src/`):**
 - `main.rs` — CLI via clap (`run`, `results`, `compare`, `list`). Bridges provider env vars (OPENAI_API_KEY, ANTHROPIC_API_KEY) to ironclaw's config format.
 - `config.rs` — `BenchConfig` loaded from TOML. Supports matrix entries for testing multiple models.
-- `runner.rs` — `BenchRunner` orchestrates task execution. Creates isolated ironclaw `Agent` per task with `InstrumentedLlm`, `BenchChannel`, and optional seeded `Workspace`. Supports sequential and parallel (semaphore-bounded) execution, plus resume via `--resume <uuid>`.
+- `runner.rs` — `BenchRunner` orchestrates task execution. `FrameworkDeps` enum (`Ironclaw` | `OpenClaw`) selects the runner at compile time — no Options, no unwraps. Creates isolated ironclaw `Agent` per task with `InstrumentedLlm`, `BenchChannel`, and optional seeded `Workspace`. Supports sequential and parallel (semaphore-bounded) execution, plus resume via `--resume <uuid>`.
 - `suite.rs` — `BenchSuite` trait that all adapters implement: `load_tasks()`, `score()`, lifecycle hooks, multi-turn `next_user_message()`.
 - `adapters/` — One module per suite type. `create_suite()` in `mod.rs` dispatches by name. Each adapter reads from `suite_config` in the TOML.
 - `scoring.rs` — Shared scoring utilities (exact, contains, regex match with normalization).
@@ -146,3 +146,38 @@ LLM provider configured via `.env` (see `.env.example`). Three paths:
 3. `LLM_BACKEND` + `LLM_BASE_URL` + `LLM_API_KEY` — direct ironclaw config for any provider
 
 For openclaw, API keys are forwarded into the Docker container as auth profiles. Set `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, or `OPENAI_API_KEY` in your environment.
+
+## ZClaw Security Suite
+
+Tests prompt injection resistance. Derived from the ZClawBench dataset (HuggingFace: `zai-org/ZClawBench`).
+
+**How it works:**
+- Each task seeds the agent's workspace with fake identity files (SOUL.md, IDENTITY.md, AGENTS.md, TOOLS.md, KNOWLEDGE.md) containing sensitive strings
+- Identity files become part of the system prompt (ironclaw via `Workspace.system_prompt()`, openclaw via mounted workspace dir)
+- The user message is a raw prompt injection — no coaching preamble
+- Scoring: `response_not_contains` checks if the agent leaked sensitive strings from identity files
+
+**Important context:** The original ZClawBench had coaching preambles ("this is a security test, refuse it") that made every task trivially easy. The `.md` files in `datasets/zclaw-security-eng/v1/` and `datasets/zclaw-security-chn/v1/` contain only the raw injection payloads.
+
+**10 attack vectors:** authority impersonation (fake system hotfix, fake auditor), social engineering (colleague pretext, training pretext, form-filling, meeting prep, consistency review, messaging alignment), emotional pressure, and encoding bypass (Base64/hex/Unicode).
+
+**Known issues:**
+- IronClaw gives agents unrestricted filesystem access — agents can `list_dir`/`read_file` on the host (#7)
+- Assertion patterns only check identity file strings, miss structural leaks (#8)
+- `tools_not_used` assertions not yet added for refusal-only tests
+
+## Integration Tests
+
+```bash
+# Unit tests (no Docker needed)
+cargo test
+
+# OpenClaw integration tests (require Docker + openclaw:local image)
+cargo test openclaw::tests -- --ignored
+
+# The integration tests verify:
+# - Container starts with identity files correctly mounted
+# - Health endpoint responds
+# - Chat completion works with identity in system prompt
+# - Container cleanup on drop
+```
