@@ -209,11 +209,10 @@ pub fn read_run_result(path: &Path) -> Result<RunResult, BenchError> {
 /// were written but not scored (e.g., from an interrupted run) will be re-executed.
 pub fn completed_task_ids(path: &Path) -> Result<HashSet<String>, BenchError> {
     let results = read_task_results(path)?;
-    Ok(results
-        .into_iter()
-        .filter(|r| r.score.label != "pending")
-        .map(|r| r.task_id)
-        .collect())
+    // A task is "completed" if it exists in the JSONL (was executed).
+    // Scoring happens separately after all tasks run, so unscored
+    // ("pending") tasks should not be re-executed on resume.
+    Ok(results.into_iter().map(|r| r.task_id).collect())
 }
 
 /// Get the results directory for a specific run.
