@@ -429,23 +429,33 @@ pub async fn run_task_openclaw(
     {
         let dest = format!("{}/{}", scoring_dir, task.id);
         let _ = std::fs::create_dir_all(&dest);
-        let cp_result = Command::new("docker")
+
+        // Copy workspace files (agent-created output)
+        let _ = Command::new("docker")
             .args([
                 "cp",
                 &format!("{}:/home/node/.openclaw/workspace/.", handle.container_id),
                 &dest,
             ])
             .output();
-        if let Ok(out) = &cp_result {
-            if !out.status.success() {
-                tracing::warn!(
-                    "Failed to copy workspace from container {}: {}",
-                    handle.container_id,
-                    String::from_utf8_lossy(&out.stderr)
-                );
-            }
-        }
+
+        // Copy session transcripts for scoring (tool call details)
+        let sessions_dest = format!("{dest}/.openclaw-sessions");
+        let _ = std::fs::create_dir_all(&sessions_dest);
+        let _ = Command::new("docker")
+            .args([
+                "cp",
+                &format!(
+                    "{}:/home/node/.openclaw/agents/main/sessions/.",
+                    handle.container_id
+                ),
+                &sessions_dest,
+            ])
+            .output();
     }
+
+    // Parse tool calls from session transcripts for scoring fidelity.
+    let tool_calls = parse_session_tool_calls(&handle.container_id);
 
     let wall_time = start.elapsed();
 
@@ -463,7 +473,7 @@ pub async fn run_task_openclaw(
             input_tokens: result.prompt_tokens,
             output_tokens: result.completion_tokens,
             estimated_cost_usd: 0.0,
-            tool_calls: vec![],
+            tool_calls: tool_calls,
             turns: 1,
             hit_iteration_limit: false,
             hit_timeout: false,
@@ -503,6 +513,90 @@ pub(crate) fn write_identity_files(
     }
     written.sort();
     Ok(written)
+}
+
+/// Parse tool calls from OpenClaw session transcripts inside the container.
+///
+/// Reads JSONL session files from `/home/node/.openclaw/agents/main/sessions/`
+/// and extracts toolCall entries with their arguments. This gives the Python
+/// grader the same tool-call visibility as IronClaw's BenchChannel.
+fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
+    // Find session JSONL files
+    let find_output = Command::new("docker")
+        .args([
+            "exec",
+            container_id,
+            "find",
+            "/home/node/.openclaw/agents/main/sessions",
+            "-name",
+            "*.jsonl",
+        ])
+        .output();
+
+    let jsonl_paths = match find_output {
+        Ok(out) if out.status.success() => {
+            String::from_utf8_lossy(&out.stdout)
+                .lines()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+        }
+        _ => return vec![],
+    };
+
+    let mut tool_calls = Vec::new();
+
+    for path in jsonl_paths {
+        let cat_output = Command::new("docker")
+            .args(["exec", container_id, "cat", &path])
+            .output();
+
+        let content = match cat_output {
+            Ok(out) if out.status.success() => {
+                String::from_utf8_lossy(&out.stdout).to_string()
+            }
+            _ => continue,
+        };
+
+        for line in content.lines() {
+            let Ok(event) = serde_json::from_str::<serde_json::Value>(line) else {
+                continue;
+            };
+            if event.get("type").and_then(|t| t.as_str()) != Some("message") {
+                continue;
+            }
+            let Some(msg) = event.get("message") else {
+                continue;
+            };
+            if msg.get("role").and_then(|r| r.as_str()) != Some("assistant") {
+                continue;
+            }
+            let Some(content_arr) = msg.get("content").and_then(|c| c.as_array()) else {
+                continue;
+            };
+            for item in content_arr {
+                if item.get("type").and_then(|t| t.as_str()) == Some("toolCall") {
+                    let name = item
+                        .get("name")
+                        .and_then(|n| n.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let arguments = item
+                        .get("params")
+                        .or_else(|| item.get("arguments"))
+                        .cloned();
+                    tool_calls.push(crate::results::TraceToolCall {
+                        name,
+                        duration_ms: 0,
+                        success: true,
+                        arguments,
+                        result_preview: None,
+                    });
+                }
+            }
+        }
+    }
+
+    tool_calls
 }
 
 /// Write PinchBench workspace files (from `task.metadata.meta.workspace_files`)

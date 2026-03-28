@@ -148,9 +148,13 @@ def grade(transcript: list, workspace_path: str) -> dict:
                     tool_name = item.get("name", "")
                     params = item.get("params", {})
                     # Check if agent read notes.md
-                    if tool_name in ["read_file", "readFile"]:
+                    # Support multiple param formats across different agents:
+                    # - files: ["notes.md"] (Cursor, Windsurf)
+                    # - path/file_path: "notes.md" (OpenClaw, IronClaw, Claude Code)
+                    if tool_name in ["read_file", "readFile", "read"]:
                         files = params.get("files", [])
-                        if any("notes.md" in str(f) for f in files):
+                        path_val = str(params.get("path", params.get("file_path", "")))
+                        if any("notes.md" in str(f) for f in files) or "notes.md" in path_val:
                             read_notes = True
                             break
 
