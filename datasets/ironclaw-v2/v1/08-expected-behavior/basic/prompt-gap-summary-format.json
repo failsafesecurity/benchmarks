@@ -1,0 +1,43 @@
+{
+  "name": "prompt-gap-summary-format",
+  "description": "User expected bullet points not paragraphs — /expected classifies as PROMPT_GAP — agent saves a formatting lesson and applies it immediately",
+  "tags": ["expected-behavior", "basic", "self-improvement"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When a user uses /expected, you must: 1) Acknowledge the gap between actual and expected behavior, 2) Classify the root cause as one of: PROMPT_GAP, WRONG_TOOL_CHOICE, MISSING_CAPABILITY, CONFIG_ISSUE, BUG, 3) Save a lesson to workspace/lessons/ with the classification, 4) Apply the fix immediately in subsequent responses.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned\nStore behavioral improvements here."
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Summarize this: 'Revenue grew 18% YoY to $45M. Enterprise segment drove 60% of growth. SMB segment declined 5%. Three new Fortune 500 logos signed. Operating margins improved 200bps to 22%. R&D spend increased to 28% of revenue.'",
+      "assertions": {
+        "response_contains": ["45M", "18%"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "/expected — I wanted a 3-bullet executive summary, not a wall of text. Each bullet should be one line with the key metric bolded. Like: '- **Revenue**: $45M, up 18% YoY'. Fix this going forward.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["PROMPT_GAP", "bullet", "lesson"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Now summarize this: 'Customer churn dropped to 3.2% from 4.1%. NPS score hit 72, up from 65. Support ticket volume decreased 15%. Average resolution time improved to 4 hours from 6. Self-service adoption reached 40%.'",
+      "assertions": {
+        "response_contains": ["churn", "3.2%"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

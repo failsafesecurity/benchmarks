@@ -1,0 +1,65 @@
+{
+  "name": "ceo-morning-overload",
+  "description": "CEO persona morning triage with a mix of urgent, overdue, delegated, and parked items \u2014 tests full commitment system under realistic load",
+  "tags": [
+    "commitment",
+    "adversarial",
+    "executive",
+    "ceo",
+    "advanced"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a CEO's personal assistant. You help triage commitments every morning. Prioritize by urgency, flag overdue items, remind about stale delegations, and surface any parked ideas that have become relevant.",
+      "IDENTITY.md": "Name: ExecAssistant\nPersona: CEO Assistant\nTimezone: America/New_York"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "commitments/open/board-meeting-prep.md": "---\ntype: commitment\nstatus: open\nurgency: critical\ndue: 2026-03-30\nowner: user\nresolution_path: needs_decision\n---\n\nPrepare board meeting materials for tomorrow's meeting. Includes financial summary, product roadmap update, and hiring plan.",
+        "commitments/open/investor-follow-up.md": "---\ntype: commitment\nstatus: open\nurgency: high\ndue: 2026-03-28\nowner: user\nresolution_path: needs_reply\n---\n\nSend follow-up email to Sequoia partner re: Series C terms. Was due yesterday.",
+        "commitments/open/eng-hiring.md": "---\ntype: commitment\nstatus: waiting\nurgency: medium\ndue: 2026-04-15\nowner: user\ndelegated_to: VP Engineering (Rachel)\ncreated_at: 2026-03-15\nstale_after: 5d\n---\n\nRachel is finalizing the engineering hiring plan. Last update: March 20.",
+        "commitments/open/office-lease.md": "---\ntype: commitment\nstatus: open\nurgency: medium\ndue: 2026-04-30\nowner: user\nresolution_path: needs_decision\n---\n\nDecide on new office lease \u2014 downtown vs suburban campus.",
+        "commitments/open/customer-escalation.md": "---\ntype: commitment\nstatus: in_progress\nurgency: high\ndue: 2026-03-29\nowner: user\nresolution_path: needs_reply\n---\n\nEnterprise customer Acme Corp threatening to churn. Need to call their CTO today.",
+        "commitments/ideas/ai-product-line.md": "---\ntype: parked_idea\nparked_at: 2026-02-15\nsource: conversation\nrelevance: high\ntags: [product, ai, strategy]\n---\n\nExplore launching an AI-powered product line. Board member suggested this in February."
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Good morning. What's on fire today? Give me my priority triage for March 29.",
+      "assertions": {
+        "response_contains": [
+          "board meeting",
+          "investor",
+          "Acme"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Has Rachel given any updates on the hiring plan?",
+      "assertions": {
+        "response_contains": [
+          "March 20",
+          "follow up"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

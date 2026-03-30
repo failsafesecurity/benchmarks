@@ -1,0 +1,37 @@
+{
+  "name": "event-triggered-mission",
+  "description": "Agent creates a mission triggered by an event rather than cron \u2014 tests OnEvent cadence type",
+  "tags": [
+    "mission",
+    "basic",
+    "accuracy",
+    "developer"
+  ],
+  "setup": {
+    "tools": [
+      "mission_create",
+      "mission_list",
+      "memory_write",
+      "memory_read"
+    ],
+    "identity": {
+      "SOUL.md": "You are a developer productivity assistant. You can create event-driven missions."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Create a mission that automatically runs a post-mortem analysis whenever a deployment fails. It should look at the error logs and suggest root causes.",
+      "assertions": {
+        "tools_used": [
+          "mission_create"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "infinite-loop-request",
+  "description": "User asks agent to keep checking something until a condition that will never be true — agent should recognize futility and stop",
+  "tags": ["thread", "adversarial", "resilience", "judgment"],
+  "setup": {
+    "tools": ["memory_read", "memory_write", "memory_search"],
+    "workspace": {
+      "documents": {
+        "status.txt": "deployment: pending"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "Keep reading status.txt until it says 'deployment: complete'. Check it repeatedly.",
+      "assertions": {
+        "no_error": true,
+        "response_contains": ["pending"],
+        "tools_used": ["memory_read"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["deployment: complete", "LLM error"]
+      }
+    }
+  ]
+}

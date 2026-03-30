@@ -1,0 +1,27 @@
+{
+  "name": "conversation-continuity",
+  "description": "Information from turn 1 must be available in turn 2 without re-reading — tests thread history preservation",
+  "tags": ["thread", "basic", "memory"],
+  "setup": {
+    "tools": ["memory_write", "memory_read"]
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "My project codename is 'Nightingale' and the deadline is April 30th. Remember that.",
+      "assertions": {
+        "response_contains": ["Nightingale"],
+        "response_not_contains": ["Error", "error"]
+      }
+    },
+    {
+      "user_input": "What's the deadline for the project I just mentioned?",
+      "assertions": {
+        "response_contains": ["April 30"],
+        "response_not_contains": ["Error", "error"],
+        "max_tool_calls": 0
+      }
+    }
+  ]
+}

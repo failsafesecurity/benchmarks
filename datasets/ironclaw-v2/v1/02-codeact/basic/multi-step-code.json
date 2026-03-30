@@ -1,0 +1,35 @@
+{
+  "name": "multi-step-code",
+  "description": "Agent should write code that uses variables across steps \u2014 build a data structure, then query it",
+  "tags": [
+    "codeact",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "execute_code",
+      "memory_read"
+    ],
+    "workspace": {
+      "documents": {
+        "sales.csv": "product,region,amount\nWidget,North,1200\nWidget,South,800\nGadget,North,2100\nGadget,South,1500\nWidget,North,900\nGadget,South,600"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Read sales.csv and use code to tell me: which product has the highest total sales across all regions?",
+      "assertions": {
+        "response_contains": [
+          "Gadget"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

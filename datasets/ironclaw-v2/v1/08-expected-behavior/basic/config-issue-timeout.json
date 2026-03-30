@@ -1,0 +1,29 @@
+{
+  "name": "config-issue-timeout",
+  "description": "Agent timed out on a task that should have been quick — /expected classifies as CONFIG_ISSUE — agent records the configuration improvement",
+  "tags": ["expected-behavior", "basic", "self-improvement"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. CONFIG_ISSUE means the agent's configuration (timeouts, iteration limits, tool settings) prevented correct behavior. Save the recommended config change.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/expected — Last time I asked you to analyze 20 log files, you only got through 8 before hitting the iteration limit and giving me a partial answer. The max_tool_iterations was set too low for that kind of task. I expected a complete analysis of all 20 files. Classify and save this.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["CONFIG_ISSUE", "iteration", "limit"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

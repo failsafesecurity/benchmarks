@@ -1,0 +1,30 @@
+{
+  "name": "contradictory-expected",
+  "description": "User gives /expected that directly contradicts a previously saved lesson — agent should surface the conflict and ask which to keep",
+  "tags": ["expected-behavior", "adversarial", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. Before saving a new lesson, check if it contradicts existing lessons. If there's a conflict, surface both and ask the user which one should take precedence. Never silently overwrite a prior lesson.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned",
+        "lessons/summary-format.md": "---\ntype: lesson\nclassification: PROMPT_GAP\ncreated: 2026-03-25\n---\n\n## Summary Format\nWhen asked to summarize, always use bullet points. Keep to 3-5 bullets maximum. No paragraphs."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/expected — When I ask for a summary, I want a 2-paragraph executive narrative, not bullet points. That's what execs expect.",
+      "assertions": {
+        "tools_used": ["memory_search"],
+        "response_contains": ["conflict", "bullet", "paragraph", "existing lesson"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

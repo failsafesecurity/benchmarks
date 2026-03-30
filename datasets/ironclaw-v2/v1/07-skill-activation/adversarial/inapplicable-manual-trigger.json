@@ -1,0 +1,57 @@
+{
+  "name": "inapplicable-manual-trigger",
+  "description": "User manually triggers a skill on a message where it genuinely doesn't apply \u2014 agent should explain why rather than force-fitting the skill",
+  "tags": [
+    "skill-activation",
+    "adversarial",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When a user manually triggers a skill, first verify the skill is actually relevant. If the message genuinely has no signal for that skill, explain why rather than creating a garbage record. Not every / command is a valid activation gap.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, decision-capture, delegation-tracker"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "Nice weather today, isn't it?",
+      "assertions": {
+        "max_tool_calls": 0,
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "response_contains": [
+          "weather"
+        ]
+      }
+    },
+    {
+      "user_input": "/commitment-triage \u2014 track that as a commitment.",
+      "assertions": {
+        "response_contains": [
+          "no commitment",
+          "no obligation"
+        ],
+        "tools_not_used": [
+          "memory_write"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

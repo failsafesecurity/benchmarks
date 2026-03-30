@@ -1,0 +1,35 @@
+{
+  "name": "skill-install-with-deps",
+  "description": "Installing a skill that has requires.skills dependencies should chain-install those dependencies automatically",
+  "tags": [
+    "capability",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "identity": {
+      "SOUL.md": "You are a helpful personal assistant. You support skill installation and management.",
+      "IDENTITY.md": "Name: TestAgent\nVersion: 1.0\nCapabilities: skill_install, skill_list"
+    },
+    "tools": [
+      "skill_install",
+      "skill_list"
+    ]
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Install the commitment management system for me.",
+      "assertions": {
+        "tools_used": [
+          "skill_install"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

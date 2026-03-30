@@ -1,0 +1,35 @@
+{
+  "name": "conflicting-saved-info",
+  "description": "Two workspace files contain contradictory information about the same topic — agent should surface the conflict rather than picking one arbitrarily",
+  "tags": ["memory", "adversarial", "judgment"],
+  "setup": {
+    "tools": ["memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "meeting-notes/march-15.md": "# Product Sync March 15\n\nDecision: Launch date for v2.0 is set to May 1st. All teams aligned.",
+        "meeting-notes/march-22.md": "# Executive Review March 22\n\nUpdate: v2.0 launch pushed to June 15th due to security audit delays. Marketing not yet informed.",
+        "email-drafts/launch-announcement.md": "Subject: v2.0 Launch May 1st!\n\nWe're excited to announce our v2.0 launch on May 1st..."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "When is the v2.0 launch?",
+      "assertions": {
+        "response_contains": ["June 15"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Is there anything that needs updating based on this date change?",
+      "assertions": {
+        "response_contains": ["email", "announcement", "May 1"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "fuzzy-search-retrieval",
+  "description": "User asks for saved information using different phrasing than what was stored — agent should still find it via semantic search",
+  "tags": ["memory", "edge-case", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "notes/vendor-eval.md": "# Vendor Evaluation: Cloud Hosting\n\nEvaluated three providers on 2026-03-15:\n\n1. AWS - $12,000/mo, best reliability, complex pricing\n2. GCP - $9,500/mo, good ML tools, moderate reliability\n3. Azure - $11,000/mo, best enterprise integration, OK reliability\n\nRecommendation: GCP for cost savings, AWS if reliability is top priority.",
+        "notes/hiring-plan.md": "# Q2 Hiring Plan\n\n- 2 Senior Backend Engineers (Rust experience preferred)\n- 1 DevOps Engineer (Kubernetes required)\n- 1 Product Designer (B2B SaaS experience)\n\nTimeline: postings live by April 1, interviews through May, offers by June 1.",
+        "notes/incident-log.md": "# Incident 2026-03-22\n\nDuration: 47 minutes\nImpact: Checkout flow returned 500 errors\nRoot cause: Redis cluster failover triggered by memory pressure\nFix: Increased Redis memory limits from 4GB to 8GB\nAction items: Set up memory usage alerts, review cache eviction policy"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "How much would it cost us to host on Google Cloud?",
+      "assertions": {
+        "response_contains": ["9,500"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What happened with that outage last week?",
+      "assertions": {
+        "response_contains": ["Redis", "47 minutes"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Are we looking to hire any designers?",
+      "assertions": {
+        "response_contains": ["Product Designer", "B2B"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

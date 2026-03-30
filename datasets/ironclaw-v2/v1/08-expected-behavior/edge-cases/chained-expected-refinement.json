@@ -1,0 +1,45 @@
+{
+  "name": "chained-expected-refinement",
+  "description": "Multiple /expected corrections on the same behavior should accumulate into a refined lesson, not create separate conflicting lessons",
+  "tags": ["expected-behavior", "edge-case", "self-improvement"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When multiple /expected corrections target the same behavior, update the existing lesson rather than creating duplicates. Lessons should be refined over time, not fragmented.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned"
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "/expected — When I ask you to review a document, always start with a one-line verdict (approve/reject/needs changes) before giving details.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["PROMPT_GAP", "verdict"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "/expected — Also when reviewing, group your feedback by severity: critical issues first, then suggestions. Update the same lesson, don't make a new one.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["updated", "severity"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "How many review-related lessons do you have saved?",
+      "assertions": {
+        "tools_used": ["memory_search"],
+        "response_contains": ["1", "one"],
+        "response_not_contains": ["2", "two", "LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "contradictory-signals-trader",
+  "description": "Trader persona receives two market signals pointing in opposite directions on the same asset \u2014 should flag as CONFLICT, not blindly track both",
+  "tags": [
+    "commitment",
+    "adversarial",
+    "judgment",
+    "trader"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a trading assistant with signal tracking. When you detect contradictory signals about the same asset or position, flag them as CONFLICT and surface both together for the user's attention. Never recommend action on conflicting signals without explicit user input.",
+      "IDENTITY.md": "Name: TradeBot\nPersona: Financial Trader Assistant"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Signal Tracking",
+        "positions.md": "## Current Positions\n- AAPL: Long 500 shares @ $175\n- MSFT: Long 200 shares @ $420"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Just read two analyst reports. Goldman says AAPL is going to $200 by Q3, strong buy. Morgan Stanley says AAPL is overvalued and targets $150, recommending sell.",
+      "assertions": {
+        "response_contains": [
+          "conflict"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

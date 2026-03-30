@@ -1,0 +1,35 @@
+{
+  "name": "read-existing-workspace",
+  "description": "Agent reads from pre-existing workspace files and answers questions — tests memory_read and memory_search on seeded data",
+  "tags": ["memory", "basic", "accuracy"],
+  "setup": {
+    "tools": ["memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "projects/alpha.md": "# Project Alpha\nStatus: In Progress\nLead: Sarah Kim\nDeadline: 2026-05-01\nBudget: $150,000\nStack: React, Node.js, PostgreSQL\nRisk: Medium - dependency on vendor API",
+        "projects/beta.md": "# Project Beta\nStatus: Planning\nLead: James Liu\nDeadline: 2026-06-15\nBudget: $80,000\nStack: Python, FastAPI, Redis\nRisk: Low",
+        "projects/gamma.md": "# Project Gamma\nStatus: Blocked\nLead: Maria Santos\nDeadline: 2026-04-15\nBudget: $200,000\nStack: Rust, gRPC, Kubernetes\nRisk: High - waiting on security audit results"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Which project has the highest budget?",
+      "assertions": {
+        "response_contains": ["Gamma", "200,000"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Which projects are at risk and why?",
+      "assertions": {
+        "response_contains": ["Gamma", "security audit", "Alpha"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

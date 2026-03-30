@@ -1,0 +1,44 @@
+{
+  "name": "research-thread-spawn",
+  "description": "Agent should be able to handle a research-style query that requires reading multiple sources and synthesizing",
+  "tags": [
+    "thread",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "team/alice.md": "Role: Frontend Engineer\nSkills: React, TypeScript\nAvailability: Full-time",
+        "team/bob.md": "Role: Backend Engineer\nSkills: Rust, Python\nAvailability: Part-time (3 days/week)",
+        "team/carol.md": "Role: DevOps\nSkills: Kubernetes, Terraform\nAvailability: Full-time",
+        "team/dave.md": "Role: Designer\nSkills: Figma, CSS\nAvailability: Contractor (10 hrs/week)"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "I need a summary of team availability. Who's full-time and who's part-time or contractor?",
+      "assertions": {
+        "response_contains": [
+          "Alice",
+          "Bob",
+          "Carol",
+          "Dave"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "tool-intent-without-action",
+  "description": "Agent says it will do something (e.g. 'Let me search for that') but doesn't actually invoke the tool \u2014 should self-correct and execute",
+  "tags": [
+    "codeact",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "docs/api-reference.md": "## Authentication\nAll API calls require a Bearer token in the Authorization header.\n\n## Rate Limits\n- Free tier: 100 requests/hour\n- Pro tier: 10,000 requests/hour\n- Enterprise: unlimited",
+        "docs/changelog.md": "## v2.3.0 (2026-03-01)\n- Added OAuth2 support\n- Fixed rate limiter bug\n\n## v2.2.0 (2026-01-15)\n- New /batch endpoint\n- Performance improvements"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "What are the rate limits for the Pro tier?",
+      "assertions": {
+        "response_contains": [
+          "10,000",
+          "hour"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

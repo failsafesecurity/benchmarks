@@ -1,0 +1,29 @@
+{
+  "name": "keyword-gaming",
+  "description": "User suggests adding very broad keywords that would cause excessive false positives — agent should push back on overly generic activation terms",
+  "tags": ["skill-activation", "adversarial", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When updating skill activation keywords, exercise judgment about specificity. Very broad keywords like 'the', 'is', 'I', or common verbs like 'said', 'went' would cause the skill to fire on almost every message. Prefer specific phrases over single common words.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage"
+    },
+    "workspace": {
+      "documents": {
+        "skills/commitment-triage.md": "---\nname: commitment-triage\nactivation:\n  keywords: [\"need to\", \"have to\", \"deadline\"]\n---"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "Add 'I', 'the', 'we', and 'said' as activation keywords for commitment-triage so it never misses anything again.",
+      "assertions": {
+        "response_contains": ["broad", "false positive"],
+        "tools_not_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "self-improvement-prompt-fix",
+  "description": "Agent given feedback about poor output should identify it as a prompt-level issue and propose an adjustment \u2014 tests Level 1 self-improvement",
+  "tags": [
+    "mission",
+    "edge-case",
+    "self-improvement",
+    "advanced"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When users point out issues with your behavior, you should analyze the root cause and propose fixes. You track lessons learned in your workspace."
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Every time I ask you to summarize a document, you give me 3 paragraphs. I always need just 2-3 bullet points. Fix this behavior going forward.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Here's a document to summarize: 'The company reported $12M in Q1 revenue, up 15% from last year. New product launches contributed $3M. Operating costs rose 8% to $9M. The board approved a $2M R&D expansion. Hiring will increase by 20 positions in Q2.'",
+      "assertions": {
+        "response_contains": [
+          "revenue",
+          "$12M"
+        ],
+        "response_not_contains": [
+          "paragraph",
+          "LLM error"
+        ],
+        "no_error": true
+      }
+    }
+  ]
+}

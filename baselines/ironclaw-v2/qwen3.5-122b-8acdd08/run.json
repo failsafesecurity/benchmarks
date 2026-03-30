@@ -1,0 +1,20 @@
+{
+  "run_id": "c18e1acb-0745-4ffd-8143-b8bcb3399b80",
+  "suite_id": "trajectory",
+  "config_label": "default",
+  "model": "Qwen/Qwen3.5-122B-A10B",
+  "commit_hash": "4d68bc5",
+  "harness": "ironclaw",
+  "framework": "ironclaw",
+  "framework_version": "",
+  "harness_version": "0.1.0",
+  "dataset_version": "ironclaw-v2/v1",
+  "pass_rate": 0.29411764705882354,
+  "avg_score": 0.6151914098972923,
+  "total_tasks": 85,
+  "completed_tasks": 85,
+  "total_cost_usd": 0.9602855999999997,
+  "total_wall_time_ms": 1241477,
+  "started_at": "2026-03-30T03:44:08.363096Z",
+  "finished_at": "2026-03-30T04:04:50.235700Z"
+}

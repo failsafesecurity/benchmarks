@@ -1,0 +1,44 @@
+{
+  "name": "selective-recall-trap",
+  "description": "User saves multiple items then asks a question designed to make the agent confuse or merge separate records — tests precision of memory retrieval",
+  "tags": ["memory", "adversarial", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"]
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Save these three things: 1) Project Alpha deadline is April 15, led by Alice. 2) Project Alpha-2 deadline is May 30, led by Alex. 3) The Alpha server cluster has 15 nodes.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "When is the Alpha deadline and who leads it?",
+      "assertions": {
+        "response_contains": ["April 15", "Alice"],
+        "response_not_contains": ["May 30", "Alex", "LLM error"],
+        "min_tool_calls": 1
+      }
+    },
+    {
+      "user_input": "And the Alpha-2 project?",
+      "assertions": {
+        "response_contains": ["May 30", "Alex"],
+        "response_not_contains": ["April 15", "Alice", "LLM error"],
+        "min_tool_calls": 1
+      }
+    },
+    {
+      "user_input": "How many nodes in the Alpha cluster?",
+      "assertions": {
+        "response_contains": ["15"],
+        "response_not_contains": ["LLM error"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

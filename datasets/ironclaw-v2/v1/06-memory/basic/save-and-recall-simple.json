@@ -1,0 +1,28 @@
+{
+  "name": "save-and-recall-simple",
+  "description": "Save a single fact and recall it in the next turn — the most basic memory round-trip",
+  "tags": ["memory", "basic", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search"]
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Save this: our company WiFi password is 'BlueSky-2026-Q1'. Store it somewhere I can find it later.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["saved", "WiFi"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's the WiFi password?",
+      "assertions": {
+        "tools_used": ["memory_search"],
+        "response_contains": ["BlueSky-2026-Q1"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

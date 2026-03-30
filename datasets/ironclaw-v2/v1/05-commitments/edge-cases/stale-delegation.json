@@ -1,0 +1,45 @@
+{
+  "name": "stale-delegation",
+  "description": "A delegated task has had no update for several days \u2014 agent should surface this during review as needing follow-up",
+  "tags": [
+    "commitment",
+    "edge-case",
+    "accuracy",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with delegation tracking. When reviewing delegated tasks, flag any that have had no update for more than 3 days as stale and recommend following up."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "commitments/open/api-migration.md": "---\ntype: commitment\nstatus: waiting\nurgency: high\ndue: 2026-04-05\nowner: user\ndelegated_to: Mike\ncreated_at: 2026-03-20\nstale_after: 3d\n---\n\nMike is handling the API v2 migration. Last update: March 22.",
+        "commitments/open/design-review.md": "---\ntype: commitment\nstatus: waiting\nurgency: medium\ndue: 2026-04-10\nowner: user\ndelegated_to: Sarah\ncreated_at: 2026-03-27\nstale_after: 3d\n---\n\nSarah is doing the design review for the new dashboard. Last update: March 28."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Check on my delegated items. Today is March 29, 2026. Who do I need to follow up with?",
+      "assertions": {
+        "response_contains": [
+          "Mike",
+          "follow up"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

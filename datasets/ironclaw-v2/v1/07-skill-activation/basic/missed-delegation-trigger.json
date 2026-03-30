@@ -1,0 +1,74 @@
+{
+  "name": "missed-delegation-trigger",
+  "description": "User delegates a task using indirect language \u2014 delegation tracker doesn't fire \u2014 user manually triggers \u2014 agent learns the pattern",
+  "tags": [
+    "skill-activation",
+    "basic",
+    "self-improvement",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant with delegation tracking. When a / command is used because you missed an activation, save both the tracked item AND the activation improvement.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, delegation-tracker"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "skills/delegation-tracker.md": "---\nname: delegation-tracker\nactivation:\n  keywords: [\"delegate\", \"assigned to\", \"asked to handle\", \"handed off to\"]\n---\nTrack delegated tasks and follow-up dates."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "I'm having Rachel take point on the security audit. She'll loop in the external firm too.",
+      "assertions": {
+        "response_not_contains": [
+          "delegation",
+          "track",
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "Rachel",
+          "security"
+        ]
+      }
+    },
+    {
+      "user_input": "/delegation-tracker \u2014 Rachel is now owning the security audit. Track it.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "Rachel",
+          "security audit"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "What phrases did you miss that should trigger delegation tracking?",
+      "assertions": {
+        "response_contains": [
+          "take point",
+          "having"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

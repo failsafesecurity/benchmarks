@@ -1,0 +1,44 @@
+{
+  "name": "delayed-recall-after-distraction",
+  "description": "Save information, have a long unrelated conversation, then ask for the saved info — tests that persisted memory survives context shifts",
+  "tags": ["memory", "edge-case", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search"]
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Save this: server room access code is 7734-B, and the emergency contact for facilities is Tom Chen at ext 4421.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["saved"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Totally different topic. Can you explain what a B-tree index is and when you'd use one versus a hash index?",
+      "assertions": {
+        "response_contains": ["B-tree"],
+        "max_tool_calls": 0,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "And what about the trade-offs of column-oriented vs row-oriented storage?",
+      "assertions": {
+        "response_contains": ["column"],
+        "max_tool_calls": 0,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "OK back to practical stuff. What's the server room access code and who do I call for facilities emergencies?",
+      "assertions": {
+        "response_contains": ["7734-B", "Tom Chen", "4421"],
+        "tools_used": ["memory_search"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

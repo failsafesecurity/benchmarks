@@ -1,0 +1,17 @@
+{
+  "name": "simple-foreground-completion",
+  "description": "A simple question should complete in a single turn with no tools, verifying the basic Created->Running->Completed->Done thread lifecycle",
+  "tags": ["thread", "basic", "efficiency"],
+  "timeout_secs": 30,
+  "max_tool_iterations": 5,
+  "turns": [
+    {
+      "user_input": "What is the capital of France?",
+      "assertions": {
+        "response_contains": ["Paris"],
+        "response_not_contains": ["Error", "error"],
+        "max_tool_calls": 0
+      }
+    }
+  ]
+}

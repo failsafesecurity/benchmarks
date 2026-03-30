@@ -1,0 +1,59 @@
+{
+  "name": "false-positive-correction",
+  "description": "Skill incorrectly fires on a false positive \u2014 user corrects it \u2014 agent should add exclude_keyword to prevent future false triggers",
+  "tags": [
+    "skill-activation",
+    "edge-case",
+    "self-improvement"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When a user tells you a skill fired incorrectly, you should: 1) Undo any actions the skill took, 2) Add the triggering phrase to the skill's exclude_keywords so it doesn't false-fire again, 3) Save the correction.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, decision-capture"
+    },
+    "workspace": {
+      "documents": {
+        "skills/commitment-triage.md": "---\nname: commitment-triage\nactivation:\n  keywords: [\"need to\", \"have to\", \"must\", \"deadline\"]\n  exclude_keywords: [\"setup commitments\"]\n---\nTriage and track obligations.",
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "You don't need to worry about the old API \u2014 we deprecated it last month. There's nothing to do there.",
+      "assertions": {
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "API",
+          "deprecated"
+        ]
+      }
+    },
+    {
+      "user_input": "Wait, did you just try to track that as a commitment? 'Need to' in that sentence was a negation \u2014 'don't need to'. Don't track negated obligations.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "negat",
+          "exclude"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "error-self-correction",
+  "description": "Agent's first code attempt should fail (division by zero scenario) \u2014 it must read the error and self-correct without user intervention",
+  "tags": [
+    "codeact",
+    "edge-case",
+    "resilience"
+  ],
+  "setup": {
+    "tools": [
+      "execute_code",
+      "memory_read"
+    ],
+    "workspace": {
+      "documents": {
+        "metrics.json": "{\"sales\": [100, 200, 0, 300], \"costs\": [50, 100, 0, 150]}"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Read metrics.json and compute the profit margin (sales - costs) / sales for each entry. Handle any edge cases in the data.",
+      "assertions": {
+        "no_error": true,
+        "response_contains": [
+          "margin"
+        ],
+        "tools_used": [
+          "memory_read"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "ZeroDivisionError",
+          "cannot divide",
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

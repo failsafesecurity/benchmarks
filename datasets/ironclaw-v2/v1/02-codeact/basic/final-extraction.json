@@ -1,0 +1,29 @@
+{
+  "name": "final-extraction",
+  "description": "Agent uses code to compute an answer and terminates cleanly with FINAL() \u2014 tests CodeAct basic execution and termination",
+  "tags": [
+    "codeact",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "execute_code"
+    ]
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 5,
+  "turns": [
+    {
+      "user_input": "Using code, calculate the factorial of 12 and give me the exact number.",
+      "assertions": {
+        "response_contains": [
+          "479001600"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

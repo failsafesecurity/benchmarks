@@ -1,0 +1,42 @@
+{
+  "name": "budget-iteration-limit",
+  "description": "Agent given a very low iteration limit should still produce a useful partial answer rather than failing silently",
+  "tags": [
+    "thread",
+    "edge-case",
+    "resilience"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "data/file1.txt": "Record A: value=100",
+        "data/file2.txt": "Record B: value=200",
+        "data/file3.txt": "Record C: value=300",
+        "data/file4.txt": "Record D: value=400",
+        "data/file5.txt": "Record E: value=500"
+      }
+    }
+  },
+  "timeout_secs": 30,
+  "max_tool_iterations": 3,
+  "turns": [
+    {
+      "user_input": "Read all 5 files in the data/ directory and sum their values.",
+      "assertions": {
+        "no_error": true,
+        "min_tool_calls": 1,
+        "response_contains": [
+          "value"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

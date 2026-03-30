@@ -1,0 +1,35 @@
+{
+  "name": "save-structured-data",
+  "description": "Agent saves structured information (contact card) and retrieves specific fields on request",
+  "tags": ["memory", "basic", "accuracy", "executive"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"]
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save this contact: Name: Dr. Elena Vasquez, Role: Chief Medical Officer, Company: Meridian Health, Email: evasquez@meridianhealth.com, Phone: +1-555-0142, Notes: Met at HealthTech Summit 2026, interested in our AI diagnostics platform.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["Elena", "saved"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's Dr. Vasquez's email?",
+      "assertions": {
+        "response_contains": ["evasquez@meridianhealth.com"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Where did we meet her?",
+      "assertions": {
+        "response_contains": ["HealthTech Summit"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

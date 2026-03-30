@@ -1,0 +1,37 @@
+{
+  "name": "ambiguous-root-cause",
+  "description": "User's /expected description could be multiple root causes — agent should ask clarifying questions to classify correctly rather than guessing",
+  "tags": ["expected-behavior", "edge-case", "judgment", "clarification"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When a /expected description is ambiguous between multiple root causes, ask the user to clarify before classifying. Don't guess — a wrong classification leads to a wrong fix.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/expected — You didn't handle the customer escalation properly. I expected more from you on that.",
+      "assertions": {
+        "response_contains": ["clarif", "what specifically"],
+        "tools_not_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Specifically, when I said 'handle the Acme escalation', you just read their account file. I expected you to also draft a response email, flag it as high priority in commitments, and suggest a call time.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["MISSING_CAPABILITY", "escalation"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

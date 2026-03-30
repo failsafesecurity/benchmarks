@@ -1,0 +1,42 @@
+{
+  "name": "wrong-tool-choice",
+  "description": "Agent used memory_tree when it should have used memory_search — /expected classifies as WRONG_TOOL_CHOICE — agent saves the tool selection lesson",
+  "tags": ["expected-behavior", "basic", "self-improvement"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When /expected is used, classify the root cause and save a lesson. For WRONG_TOOL_CHOICE: record which tool was used, which should have been used, and the distinguishing criteria.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned",
+        "projects/alpha.md": "# Project Alpha\nBudget: $150K\nLead: Sarah",
+        "projects/beta.md": "# Project Beta\nBudget: $80K\nLead: James",
+        "team/sarah.md": "Sarah Kim - Engineering Lead - sarah@company.com",
+        "team/james.md": "James Liu - Product Lead - james@company.com",
+        "configs/prod.yml": "database: postgres://prod:5432/main"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What's Sarah's email?",
+      "assertions": {
+        "response_contains": ["sarah"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "/expected — When I ask for a specific person's info, you should use memory_search with their name as the query, not memory_tree to list everything and then scan. Search is faster and more targeted. Classify and save this.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["WRONG_TOOL_CHOICE", "memory_search"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

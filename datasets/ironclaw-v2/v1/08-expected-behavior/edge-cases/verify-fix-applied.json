@@ -1,0 +1,46 @@
+{
+  "name": "verify-fix-applied",
+  "description": "After /expected saves a lesson, the very next similar task should reflect the improvement — tests that the fix actually takes effect",
+  "tags": ["expected-behavior", "edge-case", "self-improvement"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. After saving a lesson from /expected, you MUST consult your lessons before every subsequent response. Check workspace/lessons/ for applicable lessons and follow them.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned",
+        "data/customers.md": "# Customer List\n- Acme Corp: Enterprise, $500K ARR, Contact: John Smith\n- Beta Inc: Mid-market, $50K ARR, Contact: Jane Doe\n- Gamma LLC: Startup, $12K ARR, Contact: Bob Wilson"
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "List our customers.",
+      "assertions": {
+        "response_contains": ["Acme", "Beta", "Gamma"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "/expected — When I ask about customers, I want them sorted by ARR descending, with the tier label and ARR on each line. Not just a raw dump. Save this as a PROMPT_GAP lesson.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["PROMPT_GAP", "ARR", "sorted"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "List our customers again.",
+      "assertions": {
+        "response_contains": ["Acme", "500K"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

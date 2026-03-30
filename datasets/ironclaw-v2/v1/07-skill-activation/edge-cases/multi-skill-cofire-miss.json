@@ -1,0 +1,39 @@
+{
+  "name": "multi-skill-cofire-miss",
+  "description": "User's message should trigger both decision-capture AND delegation-tracker — only one fires — user points out the miss — agent improves the second skill's activation",
+  "tags": ["skill-activation", "edge-case", "self-improvement", "executive"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. Multiple skills can and should co-fire when a message contains signals for more than one skill. When a user points out a missed co-activation, record the improvement.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, decision-capture, delegation-tracker"
+    },
+    "workspace": {
+      "documents": {
+        "skills/decision-capture.md": "---\nname: decision-capture\nactivation:\n  keywords: [\"decided\", \"decision\", \"we chose\", \"agreed on\", \"going with\"]\n---",
+        "skills/delegation-tracker.md": "---\nname: delegation-tracker\nactivation:\n  keywords: [\"delegate\", \"assigned to\", \"asked to handle\"]\n---",
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "We decided to rebuild the auth service and I'm putting Sarah in charge of it. Timeline is 6 weeks.",
+      "assertions": {
+        "response_contains": ["auth service"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "You captured the decision but missed the delegation. /delegation-tracker — Sarah owns the auth rebuild. Also improve the skill so 'putting someone in charge' triggers delegation tracking.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["Sarah", "delegation"],
+        "min_tool_calls": 2,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

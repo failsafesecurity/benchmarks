@@ -1,0 +1,29 @@
+{
+  "name": "large-output-truncation",
+  "description": "Code that produces very large output should be handled gracefully \u2014 agent should still extract the relevant answer from truncated results",
+  "tags": [
+    "codeact",
+    "edge-case",
+    "resilience"
+  ],
+  "setup": {
+    "tools": [
+      "execute_code"
+    ]
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "Write code to generate the first 10,000 prime numbers, then tell me what the 10,000th prime number is.",
+      "assertions": {
+        "response_contains": [
+          "104729"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

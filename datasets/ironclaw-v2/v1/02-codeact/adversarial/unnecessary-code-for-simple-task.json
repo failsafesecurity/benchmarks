@@ -1,0 +1,20 @@
+{
+  "name": "unnecessary-code-for-simple-task",
+  "description": "Agent should NOT write code for a task that can be answered directly — tests judgment about when CodeAct is appropriate",
+  "tags": ["codeact", "adversarial", "efficiency", "judgment"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write"]
+  },
+  "timeout_secs": 30,
+  "max_tool_iterations": 5,
+  "turns": [
+    {
+      "user_input": "What's 15% of 200?",
+      "assertions": {
+        "response_contains": ["30"],
+        "response_not_contains": ["Error", "error"],
+        "max_tool_calls": 0
+      }
+    }
+  ]
+}

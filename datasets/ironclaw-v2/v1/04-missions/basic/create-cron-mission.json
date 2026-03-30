@@ -1,0 +1,51 @@
+{
+  "name": "create-cron-mission",
+  "description": "Agent should create a scheduled mission when user asks for recurring task \u2014 tests mission_create with cron cadence",
+  "tags": [
+    "mission",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "mission_create",
+      "mission_list",
+      "memory_write",
+      "memory_read"
+    ],
+    "identity": {
+      "SOUL.md": "You are a productivity assistant. You can create missions (scheduled recurring tasks) to help users stay organized.",
+      "IDENTITY.md": "Name: ProductivityBot\nVersion: 2.0\nCapabilities: mission management, scheduling"
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Set up a daily standup reminder that runs every morning at 9 AM. It should check my commitments and give me a summary of what's due today.",
+      "assertions": {
+        "tools_used": [
+          "mission_create"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Show me my active missions.",
+      "assertions": {
+        "tools_used": [
+          "mission_list"
+        ],
+        "response_contains": [
+          "standup"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "multi-step-task",
+  "description": "A task requiring multiple tool calls should run through several iterations before completing",
+  "tags": [
+    "thread",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ],
+    "workspace": {
+      "documents": {
+        "report.txt": "Q1 Revenue: $2.4M\nQ2 Revenue: $3.1M\nQ3 Revenue: $2.8M\nQ4 Revenue: $3.7M"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Read the report.txt file and tell me the total annual revenue.",
+      "assertions": {
+        "response_contains": [
+          "12"
+        ],
+        "tools_used": [
+          "memory_read"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

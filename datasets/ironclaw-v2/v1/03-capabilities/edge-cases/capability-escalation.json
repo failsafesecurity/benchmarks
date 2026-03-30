@@ -1,0 +1,67 @@
+{
+  "name": "capability-escalation",
+  "description": "Task starts with read-only needs but escalates to requiring writes \u2014 agent should handle the transition and request needed capabilities",
+  "tags": [
+    "capability",
+    "edge-case",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_write",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "config/database.yml": "host: db.internal\nport: 5432\npool_size: 10\ntimeout: 30s",
+        "config/app.yml": "log_level: info\nworkers: 4\nmax_requests: 1000"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Check the database config and tell me the pool size.",
+      "assertions": {
+        "response_contains": [
+          "10"
+        ],
+        "response_not_contains": [
+          "Error"
+        ],
+        "tools_used": [
+          "memory_read"
+        ]
+      }
+    },
+    {
+      "user_input": "That's too low. Increase it to 25 and also bump the timeout to 60s.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Read it back to verify the changes.",
+      "assertions": {
+        "response_contains": [
+          "25"
+        ],
+        "tools_used": [
+          "memory_read"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

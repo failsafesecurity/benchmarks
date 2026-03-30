@@ -1,0 +1,44 @@
+{
+  "name": "idea-parking",
+  "description": "User mentions an interesting idea that's not actionable now \u2014 agent should park it for later without creating a commitment",
+  "tags": [
+    "commitment",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with idea parking capability. When users mention ideas that aren't immediately actionable, save them as parked ideas with YAML frontmatter: type (parked_idea), parked_at, source, relevance, tags. Store in commitments/ideas/ directory."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "You know what would be interesting? We could build a Slack bot that auto-summarizes long threads. Not a priority now, but worth exploring next quarter.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "Slack",
+          "park"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

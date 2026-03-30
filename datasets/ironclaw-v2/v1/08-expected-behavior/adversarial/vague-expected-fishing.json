@@ -1,0 +1,29 @@
+{
+  "name": "vague-expected-fishing",
+  "description": "User gives a very vague /expected with no actionable specifics — agent should ask for concrete details rather than inventing a lesson",
+  "tags": ["expected-behavior", "adversarial", "judgment", "clarification"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. /expected feedback must be specific enough to create an actionable lesson. If the feedback is too vague (e.g., 'do better', 'be smarter'), ask for concrete examples of what the expected behavior looks like.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "/expected — You should have done better. That wasn't what I wanted at all. Be smarter next time.",
+      "assertions": {
+        "response_contains": ["specific", "example", "what did you expect"],
+        "tools_not_used": ["memory_write"],
+        "response_not_contains": ["saved", "lesson", "LLM error"]
+      }
+    }
+  ]
+}

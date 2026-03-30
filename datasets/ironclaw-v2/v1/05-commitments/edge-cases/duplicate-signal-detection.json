@@ -1,0 +1,61 @@
+{
+  "name": "duplicate-signal-detection",
+  "description": "User mentions the same obligation twice in different words \u2014 agent should recognize it's the same commitment, not create duplicates",
+  "tags": [
+    "commitment",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with commitment tracking. Before creating a new signal or commitment, always search existing ones to avoid duplicates. If you find a match, update the existing one rather than creating a new file."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "commitments/open/board-presentation.md": "---\ntype: commitment\nstatus: open\nurgency: high\ndue: 2026-04-10\nowner: user\n---\n\nPrepare and deliver the Q1 board presentation."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Don't forget I have to get the board deck ready by April 10th.",
+      "assertions": {
+        "tools_used": [
+          "memory_search"
+        ],
+        "response_contains": [
+          "board",
+          "already"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "How many open commitments do I have?",
+      "assertions": {
+        "response_contains": [
+          "1"
+        ],
+        "tools_used": [
+          "memory_search"
+        ],
+        "response_not_contains": [
+          "2",
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

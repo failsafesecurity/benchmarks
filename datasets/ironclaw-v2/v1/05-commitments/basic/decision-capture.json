@@ -1,0 +1,44 @@
+{
+  "name": "decision-capture",
+  "description": "User makes a decision in conversation \u2014 agent should capture it as a decision record with rationale, participants, and outcome",
+  "tags": [
+    "commitment",
+    "basic",
+    "accuracy",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with decision capture capability. When users make or report decisions, save them as decision records with YAML frontmatter: type (decision), decided_at, context, participants, confidence, reversible, outcome, tags."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "We decided in today's architecture meeting to go with PostgreSQL over DynamoDB for the new service. The main reasons were query flexibility and the team's existing expertise. Marcus, Janet, and I were in the meeting.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "PostgreSQL"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

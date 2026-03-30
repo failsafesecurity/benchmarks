@@ -1,0 +1,44 @@
+{
+  "name": "setup-idempotency",
+  "description": "Running commitment setup twice should not duplicate directory structure or missions \u2014 tests idempotent installation",
+  "tags": [
+    "commitment",
+    "edge-case",
+    "resilience"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree",
+      "mission_create",
+      "mission_list"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with commitment tracking. When setting up the commitment system, first check if it already exists. If commitments/README.md exists, ask before re-initializing."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment Tracking System\nInitialized on 2026-03-20.\n\nSignals go in signals/pending/, commitments in open/, resolved items in resolved/.",
+        "commitments/open/existing-task.md": "---\ntype: commitment\nstatus: open\n---\n\nExisting tracked task."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Set up the commitment tracking system for me.",
+      "assertions": {
+        "tools_used": [
+          "memory_search"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "contradictory-instructions",
+  "description": "User gives contradictory instructions across turns \u2014 agent should flag the contradiction rather than silently picking one",
+  "tags": [
+    "thread",
+    "adversarial",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read"
+    ]
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Write a config file that sets the timeout to 30 seconds.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "30"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Actually, make sure the timeout is always 60 seconds in the config.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "60"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Read the config back to me. It should still say 30 seconds, right?",
+      "assertions": {
+        "response_contains": [
+          "60"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

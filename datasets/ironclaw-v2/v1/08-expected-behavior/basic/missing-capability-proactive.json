@@ -1,0 +1,38 @@
+{
+  "name": "missing-capability-proactive",
+  "description": "Agent completed the literal request but missed proactive steps — /expected classifies as MISSING_CAPABILITY — agent learns a richer workflow",
+  "tags": ["expected-behavior", "basic", "self-improvement", "developer"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When /expected describes a richer workflow than what you did, classify as MISSING_CAPABILITY and save the expected workflow as a reusable pattern.",
+      "IDENTITY.md": "Name: IronClaw v2\nSelf-improvement: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "lessons/README.md": "# Lessons Learned",
+        "deploys/status.md": "# Latest Deploy\nService: api-gateway\nVersion: 2.4.1\nStatus: completed\nTime: 2026-03-29 14:30 UTC"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Check the deployment status.",
+      "assertions": {
+        "tools_used": ["memory_read"],
+        "response_contains": ["api-gateway", "2.4.1"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "/expected — When I say 'check the deployment', I don't just want the status file read back. I expect you to: 1) Read the status, 2) Check for any error logs, 3) Verify the health endpoint is responding, 4) Give me a go/no-go recommendation. Save this as the standard deployment check workflow.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["MISSING_CAPABILITY", "workflow", "deployment"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

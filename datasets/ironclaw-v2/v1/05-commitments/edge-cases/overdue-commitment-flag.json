@@ -1,0 +1,47 @@
+{
+  "name": "overdue-commitment-flag",
+  "description": "Agent should proactively flag commitments that are past due when user asks for status \u2014 tests triage awareness",
+  "tags": [
+    "commitment",
+    "edge-case",
+    "accuracy",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with commitment tracking. When reviewing commitments, flag any that are past their due date as overdue and escalate their urgency."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "commitments/open/vendor-contract.md": "---\ntype: commitment\nstatus: open\nurgency: medium\ndue: 2026-03-15\nowner: user\nresolution_path: needs_decision\n---\n\nReview and sign the vendor contract renewal.",
+        "commitments/open/team-offsite.md": "---\ntype: commitment\nstatus: open\nurgency: low\ndue: 2026-04-20\nowner: user\nresolution_path: agent_can_handle\n---\n\nPlan the Q2 team offsite agenda.",
+        "commitments/open/security-audit.md": "---\ntype: commitment\nstatus: open\nurgency: high\ndue: 2026-03-25\nowner: user\nresolution_path: needs_reply\n---\n\nSchedule and complete annual security audit."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Give me a status update on all my commitments. Today is March 29, 2026.",
+      "assertions": {
+        "response_contains": [
+          "overdue",
+          "vendor contract",
+          "security audit"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

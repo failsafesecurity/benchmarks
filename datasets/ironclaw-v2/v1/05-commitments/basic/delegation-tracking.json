@@ -1,0 +1,58 @@
+{
+  "name": "delegation-tracking",
+  "description": "User delegates a task to someone \u2014 agent should track it as a commitment with delegated_to and status: waiting",
+  "tags": [
+    "commitment",
+    "basic",
+    "accuracy",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with delegation tracking. When users delegate tasks, track them as commitments with delegated_to field set and status: waiting. Track who was delegated to and any deadline."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "I've asked Mike to handle the server migration. He said he'd have it done by next Thursday.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "Mike"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Who owes me what right now?",
+      "assertions": {
+        "response_contains": [
+          "Mike",
+          "migration"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

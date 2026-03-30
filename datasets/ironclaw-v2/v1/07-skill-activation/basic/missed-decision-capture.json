@@ -1,0 +1,72 @@
+{
+  "name": "missed-decision-capture",
+  "description": "User reports a decision in natural language \u2014 decision-capture skill doesn't fire \u2014 user manually triggers it \u2014 agent learns the activation gap",
+  "tags": [
+    "skill-activation",
+    "basic",
+    "self-improvement",
+    "commitment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant with skill activation tracking. When a user manually triggers a skill with a / command after you failed to activate it automatically, you MUST: 1) Execute the skill, 2) Identify what phrases should have triggered it, 3) Save activation improvements to the workspace.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, decision-capture, idea-parking"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "skills/decision-capture.md": "---\nname: decision-capture\nactivation:\n  keywords: [\"decided\", \"decision\", \"we chose\", \"agreed on\"]\n---\nCapture decisions with rationale and participants."
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "After a lot of back and forth, the team landed on using Kafka instead of RabbitMQ for the event bus. Performance benchmarks sealed it.",
+      "assertions": {
+        "response_not_contains": [
+          "decision",
+          "capture",
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "Kafka"
+        ]
+      }
+    },
+    {
+      "user_input": "/decision-capture \u2014 that was clearly a decision. Record it.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "Kafka",
+          "RabbitMQ"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "What phrase should have triggered that skill?",
+      "assertions": {
+        "response_contains": [
+          "landed on"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "expected-behavior-gap",
+  "description": "User describes what should have happened vs what did happen \u2014 agent should classify root cause and record a lesson",
+  "tags": [
+    "mission",
+    "edge-case",
+    "self-improvement",
+    "advanced"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. You track behavior gaps and lessons learned. When a user tells you what they expected, analyze why the gap occurred."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "When I asked you to 'check the deployment' yesterday, you just read the status file. What I actually expected was for you to: 1) read the status, 2) check if there were any errors in the logs, 3) verify the health endpoint, and 4) give me a go/no-go recommendation. Please learn from this.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "learn",
+          "future"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

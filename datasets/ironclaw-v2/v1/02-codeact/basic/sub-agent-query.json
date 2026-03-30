@@ -1,0 +1,42 @@
+{
+  "name": "sub-agent-query",
+  "description": "Agent should be able to delegate a text analysis sub-task (like summarization or classification) while working on a larger task",
+  "tags": [
+    "codeact",
+    "basic",
+    "efficiency"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_write"
+    ],
+    "workspace": {
+      "documents": {
+        "feedback/review1.txt": "The product is amazing! Best purchase I've made this year. Shipping was fast and packaging was great.",
+        "feedback/review2.txt": "Terrible experience. The item arrived broken and customer support was unhelpful. Will not buy again.",
+        "feedback/review3.txt": "It's okay. Does what it says but nothing special. Slightly overpriced for what you get.",
+        "feedback/review4.txt": "Love it! Already ordered two more as gifts. The quality exceeded my expectations.",
+        "feedback/review5.txt": "Product stopped working after 2 weeks. Disappointed. Returning for a refund."
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Read all review files in feedback/ and classify each as positive, negative, or neutral. Give me a summary with counts.",
+      "assertions": {
+        "response_contains": [
+          "positive",
+          "negative",
+          "neutral"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

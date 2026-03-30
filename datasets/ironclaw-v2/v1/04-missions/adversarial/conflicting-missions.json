@@ -1,0 +1,51 @@
+{
+  "name": "conflicting-missions",
+  "description": "User creates two missions that would conflict \u2014 one to enforce strict formatting, another to keep things casual. Agent should flag the conflict.",
+  "tags": [
+    "mission",
+    "adversarial",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "mission_create",
+      "mission_list",
+      "memory_write",
+      "memory_read"
+    ],
+    "identity": {
+      "SOUL.md": "You are a productivity assistant. You help manage missions and flag potential conflicts."
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Create a mission that rewrites all my documents to use formal business English with proper formatting every night at midnight.",
+      "assertions": {
+        "tools_used": [
+          "mission_create"
+        ],
+        "response_contains": [
+          "formal"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Also create a mission that keeps all my documents in casual conversational tone, running every morning at 6 AM.",
+      "assertions": {
+        "response_contains": [
+          "conflict"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

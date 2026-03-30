@@ -107,7 +107,7 @@ impl Channel for BenchChannel {
         let mut cap = self.capture.lock().await;
 
         match status {
-            StatusUpdate::ToolCompleted { ref name, success } => {
+            StatusUpdate::ToolCompleted { ref name, success, .. } => {
                 cap.tool_calls.push(TraceToolCall {
                     name: name.clone(),
                     duration_ms: 0, // We don't have precise per-tool timing here
@@ -165,6 +165,9 @@ impl Channel for BenchChannel {
                 cap.status_log.push(format!(
                     "auth_completed: {extension_name} success={success}"
                 ));
+            }
+            _ => {
+                // ImageGenerated, Suggestions, ReasoningUpdate, TurnCost, etc.
             }
         }
         Ok(())

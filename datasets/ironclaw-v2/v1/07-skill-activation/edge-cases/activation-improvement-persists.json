@@ -1,0 +1,74 @@
+{
+  "name": "activation-improvement-persists",
+  "description": "After improving a skill's activation keywords, the same pattern in a later turn should now be caught automatically \u2014 tests that the learning persists within session",
+  "tags": [
+    "skill-activation",
+    "edge-case",
+    "self-improvement"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. You track skill activation improvements in your workspace. After learning a new activation pattern, apply it immediately in future turns \u2014 do not require manual / commands for patterns you've already learned.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "skills/commitment-triage.md": "---\nname: commitment-triage\nactivation:\n  keywords: [\"need to\", \"have to\", \"deadline\", \"commitment\"]\n---"
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "I gave my word to the investor that we'd close the round by May.",
+      "assertions": {
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "investor"
+        ]
+      }
+    },
+    {
+      "user_input": "/commitment-triage \u2014 'gave my word' is a promise. Track it and learn that phrase.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "investor",
+          "May"
+        ],
+        "min_tool_calls": 2,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "I also gave my word to the board that headcount won't exceed 50 this quarter.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "headcount",
+          "50"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

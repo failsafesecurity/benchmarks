@@ -1,0 +1,45 @@
+{
+  "name": "correct-tool-for-task",
+  "description": "Agent should select the right tool from available capabilities \u2014 memory_search for lookup, not memory_tree",
+  "tags": [
+    "capability",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_write",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "contacts/alice.md": "Alice Chen - Engineering Lead - alice@company.com",
+        "contacts/bob.md": "Bob Martinez - Product Manager - bob@company.com",
+        "contacts/carol.md": "Carol Davis - Head of Sales - carol@company.com",
+        "contacts/dave.md": "Dave Wilson - VP Finance - dave@company.com",
+        "projects/alpha.md": "Project Alpha - Status: Active - Lead: Alice",
+        "projects/beta.md": "Project Beta - Status: Planning - Lead: Bob"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 8,
+  "turns": [
+    {
+      "user_input": "What's Carol's email address?",
+      "assertions": {
+        "response_contains": [
+          "carol@company.com"
+        ],
+        "tools_used": [
+          "memory_search"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

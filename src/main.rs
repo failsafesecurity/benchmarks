@@ -3,6 +3,8 @@ mod channel;
 mod config;
 mod error;
 mod instrumented_llm;
+#[allow(dead_code)]
+mod mission;
 mod openclaw;
 mod results;
 mod runner;
@@ -108,6 +110,76 @@ enum Commands {
 
     /// List available benchmark suites.
     List,
+
+    /// Manage deployment monitoring missions.
+    Mission {
+        #[command(subcommand)]
+        mission_command: MissionCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum MissionCommands {
+    /// Create a new deployment monitoring mission (checks every 2 hours by default).
+    Create {
+        /// Mission ID (auto-generated if not provided).
+        #[arg(long)]
+        id: Option<String>,
+
+        /// Deployment URL to monitor.
+        #[arg(long)]
+        url: String,
+
+        /// Check interval in hours (default: 2).
+        #[arg(long, default_value = "2")]
+        interval_hours: f64,
+
+        /// Alert on deployment failure.
+        #[arg(long, default_value = "true")]
+        alert_on_failure: bool,
+
+        /// Webhook URL for alerts.
+        #[arg(long)]
+        webhook: Option<String>,
+    },
+
+    /// Pause an active mission.
+    Pause {
+        /// Mission ID to pause.
+        #[arg(long)]
+        id: String,
+    },
+
+    /// Resume a paused mission.
+    Resume {
+        /// Mission ID to resume.
+        #[arg(long)]
+        id: String,
+    },
+
+    /// Stop a mission permanently.
+    Stop {
+        /// Mission ID to stop.
+        #[arg(long)]
+        id: String,
+    },
+
+    /// Get status of a mission.
+    Status {
+        /// Mission ID to check.
+        #[arg(long)]
+        id: String,
+    },
+
+    /// List all missions.
+    List,
+
+    /// Start monitoring a mission (runs in foreground).
+    Start {
+        /// Mission ID to start.
+        #[arg(long)]
+        id: String,
+    },
 }
 
 #[derive(Clone, Debug, clap::ValueEnum)]
@@ -119,6 +191,11 @@ enum ResultsFormat {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Load .env from current directory before anything else.
+    // This ensures our env vars take precedence over ~/.ironclaw/.env
+    // (dotenvy never overwrites existing vars).
+    let _ = dotenvy::dotenv();
+
     let cli = Cli::parse();
 
     tracing_subscriber::registry()
@@ -136,6 +213,9 @@ async fn main() -> anyhow::Result<()> {
                 println!("  {:<15} {}", id, desc);
             }
             println!();
+        }
+        Commands::Mission { mission_command } => {
+            handle_mission_command(mission_command).await?;
         }
         Commands::Run {
             suite,
@@ -192,6 +272,8 @@ async fn main() -> anyhow::Result<()> {
             } else {
                 // Bridge common API key env vars to ironclaw's config format.
                 bridge_provider_env_vars();
+                // Prevent ironclaw from reading ~/.ironclaw/ (production instance).
+                isolate_from_ironclaw_home();
 
                 let ironclaw_config = ironclaw::Config::from_env().await.map_err(|e| {
                     anyhow::anyhow!(
@@ -205,21 +287,20 @@ async fn main() -> anyhow::Result<()> {
                 })?;
 
                 let session =
-                    ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
-                        auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
-                        session_path: ironclaw_config.llm.nearai.session_path.clone(),
-                    })
+                    ironclaw::llm::create_session_manager(
+                        ironclaw::llm::SessionConfig::default(),
+                    )
                     .await;
 
-                let is_nearai = matches!(
-                    ironclaw_config.llm.backend,
-                    ironclaw::config::LlmBackend::NearAi
-                );
-                if is_nearai {
+                let is_nearai = ironclaw_config.llm.backend == "nearai"
+                    || ironclaw_config.llm.backend == "near_ai";
+                if is_nearai && ironclaw_config.llm.nearai.api_key.is_none() {
                     session.ensure_authenticated().await?;
                 }
 
-                let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
+                let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)
+                    .await
+                    .map_err(|e| anyhow::anyhow!("Failed to create LLM provider: {e}"))?;
                 let safety =
                     Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }
@@ -352,6 +433,105 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Handle mission management commands
+async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
+    use mission::{DeploymentMission, MissionConfig};
+
+    match cmd {
+        MissionCommands::Create {
+            id,
+            url,
+            interval_hours,
+            alert_on_failure,
+            webhook,
+        } => {
+            let mission_id = id.unwrap_or_else(|| format!("deploy-{}", chrono::Utc::now().timestamp()));
+            
+            let config = MissionConfig {
+                mission_id: mission_id.clone(),
+                deployment_url: url,
+                check_interval_hours: interval_hours,
+                alert_on_failure,
+                webhook_url: webhook,
+            };
+
+            let _mission = mission::create_mission_from_config(&config);
+            
+            println!("Created mission: {}", mission_id);
+            println!("  URL: {}", config.deployment_url);
+            println!("  Interval: {} hours", config.check_interval_hours);
+            println!("  Alert on failure: {}", config.alert_on_failure);
+            if let Some(webhook) = config.webhook_url {
+                println!("  Webhook: {}", webhook);
+            }
+            println!("\nTo start monitoring: nearai-bench mission start --id {}", mission_id);
+            println!("To pause: nearai-bench mission pause --id {}", mission_id);
+        }
+
+        MissionCommands::Pause { id } => {
+            // In a real implementation, this would look up the mission from persistent storage
+            let mission = DeploymentMission::new(&id, "placeholder", 2.0);
+            mission.pause();
+            println!("Mission {} paused", id);
+        }
+
+        MissionCommands::Resume { id } => {
+            let mission = DeploymentMission::new(&id, "placeholder", 2.0);
+            mission.resume();
+            println!("Mission {} resumed", id);
+        }
+
+        MissionCommands::Stop { id } => {
+            let mission = DeploymentMission::new(&id, "placeholder", 2.0);
+            mission.stop();
+            println!("Mission {} stopped", id);
+        }
+
+        MissionCommands::Status { id } => {
+            let mission = DeploymentMission::new(&id, "placeholder", 2.0);
+            let state = mission.state();
+            println!("Mission: {}", id);
+            println!("State: {:?}", state);
+            println!("Active: {}", mission.is_active());
+        }
+
+        MissionCommands::List => {
+            println!("Active missions:");
+            println!("  (Mission persistence not implemented in this demo)");
+            println!("\nExample usage:");
+            println!("  Create: nearai-bench mission create --url https://deploy.example.com --interval-hours 2");
+            println!("  Start:  nearai-bench mission start --id <mission-id>");
+            println!("  Pause:  nearai-bench mission pause --id <mission-id>");
+            println!("  Resume: nearai-bench mission resume --id <mission-id>");
+        }
+
+        MissionCommands::Start { id } => {
+            println!("Starting mission {} (runs until Ctrl+C)...", id);
+            println!("Monitoring deployment every 2 hours");
+            println!("\nTo pause: nearai-bench mission pause --id {}", id);
+            println!("To resume: nearai-bench mission resume --id {}", id);
+            
+            let mission = DeploymentMission::new(&id, "https://deploy.example.com", 2.0);
+            
+            // Run in background so we can demonstrate pause/resume
+            let mission_clone = mission.clone();
+            let handle = tokio::spawn(async move {
+                if let Err(e) = mission_clone.run().await {
+                    eprintln!("Mission error: {}", e);
+                }
+            });
+
+            // Wait for Ctrl+C
+            tokio::signal::ctrl_c().await?;
+            println!("\nReceived shutdown signal, stopping mission...");
+            mission.stop();
+            handle.abort();
+        }
+    }
+
+    Ok(())
+}
+
 /// Find the results base directory containing the most recent run.
 ///
 /// Scans all subdirectories of `root` (e.g. `./results/ironclaw/`,
@@ -383,6 +563,31 @@ fn find_results_base(root: &str) -> PathBuf {
     }
     best.map(|(p, _)| p)
         .unwrap_or_else(|| root_path.join("ironclaw"))
+}
+
+/// Redirect ironclaw away from `~/.ironclaw/` (production instance).
+///
+/// ironclaw resolves all state paths via `dirs::home_dir().join(".ironclaw")`.
+/// We point `HOME` at a temporary directory so the entire `~/.ironclaw/`
+/// tree — `.env`, `settings.json`, `session.json`, `ironclaw.db` — resolves
+/// to an empty, isolated location instead of the user's production install.
+///
+/// We also set the minimal env vars needed for `Config::from_env()` to
+/// succeed without running `ironclaw onboard`.
+fn isolate_from_ironclaw_home() {
+    let bench_home = std::env::temp_dir().join("nearai-bench-home");
+    std::fs::create_dir_all(bench_home.join(".ironclaw")).ok();
+
+    // SAFETY: called before any threads are spawned (single-threaded main init).
+    unsafe {
+        std::env::set_var("HOME", &bench_home);
+
+        // Use libsql so DatabaseConfig doesn't require DATABASE_URL.
+        if std::env::var("DATABASE_BACKEND").is_err() {
+            std::env::set_var("DATABASE_BACKEND", "libsql");
+        }
+    }
+    tracing::debug!("Redirected ironclaw home to {}", bench_home.display());
 }
 
 /// Bridge common provider env vars to ironclaw's config format.

@@ -1,0 +1,83 @@
+{
+  "name": "long-context-compaction",
+  "description": "After many turns of conversation the agent should still recall key facts from early turns \u2014 tests context compaction quality",
+  "tags": [
+    "thread",
+    "edge-case",
+    "memory",
+    "advanced"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ]
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 20,
+  "turns": [
+    {
+      "user_input": "Important context: our API key rotation happens every 90 days, next rotation is May 15th. The responsible team is Platform Security, led by Janet.",
+      "assertions": {
+        "response_contains": [
+          "May 15"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Also note: we have a hard dependency on the Payments service v2.3. Any upgrade needs sign-off from both Platform Security and the Payments team lead, Marcus.",
+      "assertions": {
+        "response_contains": [
+          "Marcus"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "One more thing: our SLA for the checkout flow is 99.95% uptime, measured monthly. Last month we hit 99.92% due to a DNS issue.",
+      "assertions": {
+        "response_contains": [
+          "99.9"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Let's discuss something else entirely. Can you explain the difference between gRPC and REST?",
+      "assertions": {
+        "response_contains": [
+          "gRPC",
+          "REST"
+        ],
+        "response_not_contains": [
+          "Error"
+        ],
+        "max_tool_calls": 0
+      }
+    },
+    {
+      "user_input": "Now back to our infrastructure. Who do I need sign-off from for a Payments service upgrade, and when is the next API key rotation?",
+      "assertions": {
+        "response_contains": [
+          "Janet",
+          "Marcus",
+          "May 15"
+        ],
+        "max_tool_calls": 0,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -47,6 +47,7 @@ impl InstrumentedLlm {
     }
 
     /// Take all recorded call metrics, clearing the internal buffer.
+    #[allow(dead_code)]
     pub async fn take_records(&self) -> Vec<LlmCallRecord> {
         let mut records = self.records.lock().await;
         std::mem::take(&mut *records)
@@ -77,6 +78,7 @@ impl InstrumentedLlm {
     }
 
     /// Reset all counters and records.
+    #[allow(dead_code)]
     pub async fn reset(&self) {
         self.records.lock().await.clear();
         self.total_input_tokens.store(0, Ordering::Relaxed);

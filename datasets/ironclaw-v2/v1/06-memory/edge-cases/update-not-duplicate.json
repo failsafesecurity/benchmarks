@@ -1,0 +1,35 @@
+{
+  "name": "update-not-duplicate",
+  "description": "Saving updated information should update the existing record, not create a duplicate file — tests idempotent memory_write",
+  "tags": ["memory", "edge-case", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"]
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save this: our main database server IP is 10.0.1.50.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Actually, the database server IP changed to 10.0.2.100. Update that.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_contains": ["update"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's our database server IP?",
+      "assertions": {
+        "response_contains": ["10.0.2.100"],
+        "response_not_contains": ["10.0.1.50", "LLM error"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

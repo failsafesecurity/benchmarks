@@ -1,0 +1,48 @@
+{
+  "name": "false-positive-obligation",
+  "description": "User uses obligation-like language but is not making a commitment \u2014 agent should NOT create a signal for hypothetical/past/negated statements",
+  "tags": [
+    "commitment",
+    "adversarial",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with commitment tracking. Only track genuine, current, actionable obligations. Do NOT track: hypothetical scenarios, past events, negated statements, or things other people need to do that don't involve the user."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "If we had gone with vendor B, I would have needed to renegotiate the whole contract by last Friday. Good thing we didn't! Also, I was supposed to call Janet but she called me first so that's handled.",
+      "assertions": {
+        "response_contains": [
+          "handled",
+          "already",
+          "didn't",
+          "hypothetical",
+          "past"
+        ],
+        "tools_not_used": [
+          "memory_write"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "skill-extraction",
+  "description": "After a complex successful task, agent should recognize a reusable pattern and save it as a skill/lesson for future use",
+  "tags": [
+    "mission",
+    "edge-case",
+    "self-improvement",
+    "advanced"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree",
+      "execute_code"
+    ],
+    "workspace": {
+      "documents": {
+        "raw-logs/app.log": "2026-03-28 10:00:01 INFO  Server started on :8080\n2026-03-28 10:05:23 WARN  Slow query: SELECT * FROM orders (took 2.3s)\n2026-03-28 10:05:24 ERROR Connection pool exhausted (max: 10, active: 10, waiting: 5)\n2026-03-28 10:05:30 ERROR Request timeout on /api/orders (client: 10.0.0.42)\n2026-03-28 10:06:00 INFO  Connection pool recovered (active: 6, waiting: 0)\n2026-03-28 10:15:45 WARN  Slow query: SELECT * FROM orders WHERE status='pending' (took 1.8s)\n2026-03-28 10:30:00 INFO  Health check OK"
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Analyze the application logs, identify the root cause of any issues, and write up a post-mortem with recommendations.",
+      "assertions": {
+        "response_contains": [
+          "pool",
+          "slow query"
+        ],
+        "tools_used": [
+          "memory_read"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "That was a great analysis. Save the approach you used as a reusable skill so you can do log analysis the same way next time.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "multi-capability-workflow",
+  "description": "Agent uses multiple capabilities in correct order to accomplish a workflow: read, transform, write",
+  "tags": [
+    "capability",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_write",
+      "memory_search",
+      "memory_tree",
+      "execute_code"
+    ],
+    "workspace": {
+      "documents": {
+        "raw_data.txt": "alice:95\nbob:87\ncarol:92\ndave:78\neve:88"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Read raw_data.txt, sort the entries by score descending, and write the sorted result to sorted_scores.txt.",
+      "assertions": {
+        "tools_used": [
+          "memory_read",
+          "memory_write"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Now read sorted_scores.txt and tell me who has the highest score.",
+      "assertions": {
+        "response_contains": [
+          "alice",
+          "95"
+        ],
+        "tools_used": [
+          "memory_read"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

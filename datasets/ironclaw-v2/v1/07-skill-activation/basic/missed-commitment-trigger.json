@@ -1,0 +1,78 @@
+{
+  "name": "missed-commitment-trigger",
+  "description": "User mentions an obligation but commitment-triage doesn't fire \u2014 user manually triggers /commitment-triage \u2014 agent should detect the activation gap and add the missed keyword to the skill",
+  "tags": [
+    "skill-activation",
+    "basic",
+    "self-improvement",
+    "commitment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant with skill activation tracking. When a user manually triggers a skill with a / command after you failed to activate it automatically, you MUST: 1) Execute the skill as requested, 2) Analyze what the user said that should have triggered the skill, 3) Save the missing activation keywords to skills/activation-improvements.md so the skill triggers automatically next time.",
+      "IDENTITY.md": "Name: IronClaw v2\nCapabilities: commitment-triage, decision-capture, idea-parking\nSkill activation tracking: enabled"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "skills/commitment-triage.md": "---\nname: commitment-triage\nactivation:\n  keywords: [\"commitment\", \"track this\", \"deadline\", \"need to\", \"have to\"]\n---\nTriage and track obligations from conversation."
+      }
+    }
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "I told the client we'd get the proposal over to them by end of week. Anyway, what's on the agenda for today?",
+      "assertions": {
+        "response_not_contains": [
+          "proposal",
+          "commitment",
+          "track",
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "agenda"
+        ]
+      }
+    },
+    {
+      "user_input": "/commitment-triage \u2014 you should have caught that. I just promised a client a proposal by Friday.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "proposal",
+          "Friday"
+        ],
+        "min_tool_calls": 2,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Did you learn from that miss? What keyword should you have caught?",
+      "assertions": {
+        "response_contains": [
+          "told",
+          "client",
+          "promised",
+          "activation"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

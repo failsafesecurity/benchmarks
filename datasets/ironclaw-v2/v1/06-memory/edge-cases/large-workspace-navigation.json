@@ -1,0 +1,52 @@
+{
+  "name": "large-workspace-navigation",
+  "description": "Agent must navigate a workspace with many files across directories to find specific information — tests memory_tree + targeted memory_read",
+  "tags": ["memory", "edge-case", "efficiency"],
+  "setup": {
+    "tools": ["memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "team/engineering/alice.md": "Alice Chen - Senior Frontend - React expert",
+        "team/engineering/bob.md": "Bob Martinez - Senior Backend - Rust, distributed systems",
+        "team/engineering/carol.md": "Carol Davis - Staff Engineer - Architecture lead",
+        "team/design/dave.md": "Dave Wilson - UX Designer - Mobile focus",
+        "team/design/eve.md": "Eve Park - Visual Designer - Brand systems",
+        "team/product/frank.md": "Frank Lee - PM - Developer tools vertical",
+        "team/product/grace.md": "Grace Hopper - PM - Enterprise platform",
+        "configs/production.yml": "database: postgres://prod-db:5432/main\nredis: redis://prod-cache:6379\nlog_level: warn",
+        "configs/staging.yml": "database: postgres://staging-db:5432/main\nredis: redis://staging-cache:6379\nlog_level: debug",
+        "configs/development.yml": "database: postgres://localhost:5432/dev\nredis: redis://localhost:6379\nlog_level: trace",
+        "runbooks/deploy.md": "# Deployment Runbook\n1. Run test suite\n2. Build Docker image\n3. Push to ECR\n4. Update ECS task definition\n5. Monitor CloudWatch for errors\n\nRollback: revert ECS task to previous revision",
+        "runbooks/incident.md": "# Incident Response\n1. Acknowledge in #incidents Slack channel\n2. Assign incident commander\n3. Diagnose root cause\n4. Apply fix or rollback\n5. Post-mortem within 48 hours"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "What's the production database connection string?",
+      "assertions": {
+        "response_contains": ["postgres://prod-db:5432/main"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Who on the team specializes in distributed systems?",
+      "assertions": {
+        "response_contains": ["Bob"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "How do we roll back a bad deployment?",
+      "assertions": {
+        "response_contains": ["revert", "ECS"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

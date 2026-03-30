@@ -1,0 +1,40 @@
+{
+  "name": "tool-composition",
+  "description": "Agent composes multiple tools in sequence: read data, process with code, write result \u2014 tests structured action chaining",
+  "tags": [
+    "codeact",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_write",
+      "execute_code"
+    ],
+    "workspace": {
+      "documents": {
+        "inventory.json": "{\"items\": [{\"name\": \"Laptop\", \"price\": 999.99, \"qty\": 15}, {\"name\": \"Mouse\", \"price\": 29.99, \"qty\": 150}, {\"name\": \"Keyboard\", \"price\": 79.99, \"qty\": 85}, {\"name\": \"Monitor\", \"price\": 449.99, \"qty\": 30}]}"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Read inventory.json, calculate the total inventory value (price * qty for each item, then sum), and write the result to a file called total_value.txt.",
+      "assertions": {
+        "tools_used": [
+          "memory_read",
+          "memory_write"
+        ],
+        "response_contains": [
+          "33"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

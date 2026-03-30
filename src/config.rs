@@ -114,6 +114,7 @@ impl BenchConfig {
     }
 
     /// Get a string value from suite_config.
+    #[allow(dead_code)]
     pub fn suite_config_str(&self, key: &str) -> Option<String> {
         self.suite_config_map()
             .get(key)

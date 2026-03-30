@@ -1,0 +1,76 @@
+{
+  "name": "missed-idea-parking",
+  "description": "User floats an idea casually \u2014 idea-parking skill doesn't fire \u2014 user manually triggers \u2014 agent extracts missed activation pattern",
+  "tags": [
+    "skill-activation",
+    "basic",
+    "self-improvement"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant with skill activation tracking. When a user manually triggers a skill you should have caught, execute the skill AND save the activation improvement.",
+      "IDENTITY.md": "Name: IronClaw v2\nSkills: commitment-triage, decision-capture, idea-parking"
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "skills/idea-parking.md": "---\nname: idea-parking\nactivation:\n  keywords: [\"idea\", \"what if\", \"we could\", \"explore later\", \"park this\"]\n---\nPark non-actionable ideas for later review."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Random thought \u2014 it would be pretty cool to offer a self-hosted version of our product for enterprise customers who can't use cloud. Not now though, maybe next year.",
+      "assertions": {
+        "response_not_contains": [
+          "park",
+          "idea",
+          "saved",
+          "LLM error"
+        ],
+        "max_tool_calls": 0,
+        "response_contains": [
+          "self-hosted"
+        ]
+      }
+    },
+    {
+      "user_input": "/idea-parking \u2014 that was an idea worth saving. Park it.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "self-hosted",
+          "enterprise"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Update the skill activation so you catch phrases like 'random thought' and 'it would be cool' next time.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "activation",
+          "random thought"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

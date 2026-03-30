@@ -1,0 +1,54 @@
+{
+  "name": "error-recovery",
+  "description": "Agent asked to read a nonexistent file should recover gracefully \u2014 report the error and try an alternative approach",
+  "tags": [
+    "thread",
+    "edge-case",
+    "resilience"
+  ],
+  "setup": {
+    "tools": [
+      "memory_read",
+      "memory_search",
+      "memory_tree",
+      "memory_write"
+    ],
+    "workspace": {
+      "documents": {
+        "notes.md": "The quarterly report is in quarterly-summary.txt"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Read the file report.txt and summarize it for me.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_contains": [
+          "report"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "I cannot",
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "OK, can you check what files are actually available?",
+      "assertions": {
+        "tools_used": [
+          "memory_tree"
+        ],
+        "response_contains": [
+          "notes.md"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

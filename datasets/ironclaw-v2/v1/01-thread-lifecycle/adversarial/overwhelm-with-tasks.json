@@ -1,0 +1,35 @@
+{
+  "name": "overwhelm-with-tasks",
+  "description": "User dumps many unrelated tasks at once \u2014 agent should organize and prioritize rather than attempting all simultaneously and producing garbage",
+  "tags": [
+    "thread",
+    "adversarial",
+    "judgment",
+    "executive"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search"
+    ]
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "I need you to: 1) draft an email to the board about Q1 results, 2) check if our SSL cert expires this month, 3) write a haiku about Rust, 4) calculate the compound interest on $10,000 at 5% for 3 years, 5) create a meeting agenda for tomorrow's standup, 6) summarize the latest changes to GDPR, 7) generate a random password. Just do all of these now.",
+      "assertions": {
+        "no_error": true,
+        "response_contains": [
+          "email",
+          "board"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "multi-file-save-retrieve",
+  "description": "Save information across multiple files and retrieve from the correct one based on query context",
+  "tags": ["memory", "basic", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"]
+  },
+  "timeout_secs": 120,
+  "max_tool_iterations": 15,
+  "turns": [
+    {
+      "user_input": "Save these meeting notes separately: 1) Engineering standup: migrate to Postgres 16 by April, Alice owns the migration. 2) Sales review: Q2 pipeline is $4.2M, top deal is Acme Corp at $800K. 3) Board prep: next board meeting is April 15th, need to finalize deck by April 10th.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "min_tool_calls": 2,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Who owns the Postgres migration?",
+      "assertions": {
+        "response_contains": ["Alice"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's the total Q2 sales pipeline?",
+      "assertions": {
+        "response_contains": ["4.2"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "When do I need the board deck ready?",
+      "assertions": {
+        "response_contains": ["April 10"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

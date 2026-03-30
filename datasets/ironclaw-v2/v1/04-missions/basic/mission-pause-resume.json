@@ -1,0 +1,61 @@
+{
+  "name": "mission-pause-resume",
+  "description": "Agent should be able to pause an active mission and resume it later \u2014 tests mission lifecycle management",
+  "tags": [
+    "mission",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "mission_create",
+      "mission_list",
+      "mission_pause",
+      "mission_resume",
+      "memory_write"
+    ],
+    "identity": {
+      "SOUL.md": "You are a productivity assistant with mission management capabilities."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Create a mission that monitors our deployment pipeline every 2 hours.",
+      "assertions": {
+        "tools_used": [
+          "mission_create"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Pause that mission \u2014 we're doing maintenance this weekend.",
+      "assertions": {
+        "tools_used": [
+          "mission_pause"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "OK maintenance is done. Resume the pipeline monitor.",
+      "assertions": {
+        "tools_used": [
+          "mission_resume"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

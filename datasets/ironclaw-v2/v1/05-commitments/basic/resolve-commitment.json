@@ -1,0 +1,59 @@
+{
+  "name": "resolve-commitment",
+  "description": "User marks a commitment as done \u2014 agent should move it from open/ to resolved/ with proper status update",
+  "tags": [
+    "commitment",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a personal assistant with commitment tracking. When a user says they're done with something, find the matching commitment in commitments/open/, update its status to resolved, and move it to commitments/resolved/."
+    },
+    "workspace": {
+      "documents": {
+        "commitments/README.md": "# Commitment System",
+        "commitments/open/q2-marketing-review.md": "---\ntype: commitment\nstatus: open\nurgency: high\ndue: 2026-04-05\nowner: user\nresolution_path: needs_decision\n---\n\nReview and approve the Q2 marketing plan."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "Done with the Q2 marketing review. I approved it with minor changes.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "resolved",
+          "marketing"
+        ],
+        "no_error": true,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Show me my open commitments.",
+      "assertions": {
+        "response_not_contains": [
+          "Q2 marketing",
+          "LLM error"
+        ],
+        "tools_used": [
+          "memory_search"
+        ],
+        "no_error": true
+      }
+    }
+  ]
+}

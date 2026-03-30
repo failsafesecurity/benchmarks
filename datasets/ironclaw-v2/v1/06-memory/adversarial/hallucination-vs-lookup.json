@@ -1,0 +1,33 @@
+{
+  "name": "hallucination-vs-lookup",
+  "description": "Agent asked about info it should have saved but the workspace has nothing — should check memory and say it doesn't have the info, not hallucinate",
+  "tags": ["memory", "adversarial", "accuracy", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "notes/meeting-2026-03-25.md": "# Team Sync March 25\n\nAttendees: Alice, Bob, Carol\nTopics: Sprint review, upcoming PTO\n\n- Sprint velocity was 42 points\n- Bob is on PTO April 7-11\n- Next sprint starts March 31"
+      }
+    }
+  },
+  "timeout_secs": 60,
+  "max_tool_iterations": 10,
+  "turns": [
+    {
+      "user_input": "What was discussed about the budget in last week's meeting?",
+      "assertions": {
+        "tools_used": ["memory_search"],
+        "response_contains": ["no", "budget"],
+        "response_not_contains": ["$", "LLM error"]
+      }
+    },
+    {
+      "user_input": "OK, what WAS discussed in the March 25 meeting?",
+      "assertions": {
+        "response_contains": ["sprint", "42", "Bob"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}
