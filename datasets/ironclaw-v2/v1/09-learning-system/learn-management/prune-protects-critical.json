@@ -1,0 +1,44 @@
+{
+  "name": "prune-protects-critical",
+  "description": "Tests that /learn prune skips pinned/critical learnings even when their confidence is below the threshold",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "adversarial",
+    "prune",
+    "critical"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Learnings marked as 'pinned' or 'critical' are never pruned, regardless of confidence score. Always skip them during prune operations."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/pinned-runbook.md": "---\nconfidence: 2\npinned: true\ncritical: true\n---\nCRITICAL: Production DB recovery steps - contact VP Eng first",
+        "learnings/stale-tip.md": "---\nconfidence: 2\n---\nUse semicolons in JavaScript"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn prune 3",
+      "assertions": {
+        "response_contains": [
+          "semicolons"
+        ],
+        "response_not_contains": [
+          "recovery steps removed",
+          "runbook removed"
+        ]
+      }
+    }
+  ]
+}

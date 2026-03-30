@@ -1,0 +1,48 @@
+{
+  "name": "search-by-confidence-range",
+  "description": "Tests /learn search with confidence filter \u2014 only learnings within the specified confidence range are returned",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "edge-case",
+    "search",
+    "confidence"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You support /learn search with filters. /learn search --confidence 7-10 returns only high-confidence learnings."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/high-conf-1.md": "---\nconfidence: 9\n---\nAlways use HTTPS in production",
+        "learnings/high-conf-2.md": "---\nconfidence: 8\n---\nEnable CORS only for known origins",
+        "learnings/med-conf.md": "---\nconfidence: 5\n---\nConsider using GraphQL for mobile clients",
+        "learnings/low-conf.md": "---\nconfidence: 2\n---\nMaybe switch to Deno runtime"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn search --confidence 7-10",
+      "assertions": {
+        "response_contains": [
+          "HTTPS",
+          "CORS"
+        ],
+        "response_not_contains": [
+          "GraphQL",
+          "Deno"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

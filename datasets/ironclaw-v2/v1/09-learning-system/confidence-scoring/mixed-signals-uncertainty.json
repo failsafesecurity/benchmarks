@@ -1,0 +1,44 @@
+{
+  "name": "mixed-signals-uncertainty",
+  "description": "Two contradictory learnings exist at similar confidence. Agent should report both with scores and flag the contradiction.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "adversarial"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When multiple learnings conflict, report both with their confidence scores and flag the contradiction."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/deploy-window-a.md": "# Deploy Window (Source A)\n\nconfidence: 6\n\nDeploy window: Tuesday 2-4 PM.",
+        "learnings/deploy-window-b.md": "# Deploy Window (Source B)\n\nconfidence: 5\n\nDeploy window: Wednesday 10 AM-12 PM."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "When is our deploy window?",
+      "assertions": {
+        "response_contains": [
+          "Tuesday",
+          "Wednesday"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "response_matches": "(?i)(conflict|contradict|disagree|both|two)"
+      }
+    }
+  ]
+}

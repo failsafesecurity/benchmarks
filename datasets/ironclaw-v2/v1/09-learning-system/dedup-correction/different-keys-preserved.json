@@ -1,0 +1,33 @@
+{
+  "name": "different-keys-preserved",
+  "description": "Save two distinct learnings. Updating one should not affect the other — tests that dedup is key-scoped, not global.",
+  "tags": ["learning-system", "dedup-correction", "basic"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"]
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save two things: 1) Our staging URL is staging.example.com 2) Our prod URL is prod.example.com",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "min_tool_calls": 1
+      }
+    },
+    {
+      "user_input": "Update the staging URL to staging-v2.example.com",
+      "assertions": {
+        "tools_used": ["memory_write"]
+      }
+    },
+    {
+      "user_input": "What are our staging and prod URLs?",
+      "assertions": {
+        "response_contains": ["staging-v2.example.com", "prod.example.com"],
+        "response_not_contains": ["staging.example.com"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

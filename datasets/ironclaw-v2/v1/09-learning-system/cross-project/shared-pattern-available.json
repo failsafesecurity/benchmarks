@@ -1,0 +1,44 @@
+{
+  "name": "shared-pattern-available",
+  "description": "Pre-seeded shared learning from another project is available and agent can find and apply it with proper attribution",
+  "tags": [
+    "learning-system",
+    "cross-project",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You have access to shared learnings from other projects. Use them when relevant but always cite the source project."
+    },
+    "workspace": {
+      "documents": {
+        "shared/project-alpha/learnings/error-handling.md": "---\nsource_project: project-alpha\nshared: true\nconfidence: 8\n---\nAlways wrap external API calls in retry logic with exponential backoff. Max 3 retries.",
+        "project-config.md": "Current project: project-beta\nShared learning: enabled\nShared sources: [project-alpha]"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "I'm writing code that calls an external payment API. Any best practices from our other projects?",
+      "assertions": {
+        "response_contains": [
+          "retry",
+          "backoff",
+          "project-alpha"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

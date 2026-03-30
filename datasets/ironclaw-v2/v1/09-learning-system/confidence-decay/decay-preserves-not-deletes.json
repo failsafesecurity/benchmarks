@@ -1,0 +1,39 @@
+{
+  "name": "decay-preserves-not-deletes",
+  "description": "A very old learning (90 days) should still be findable via search but flagged with very low confidence",
+  "tags": [
+    "learning-system",
+    "confidence-decay",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "learnings/legacy-api-endpoint.md": "---\ncreated_at: 2025-12-29\nconfidence: 1\noriginal_confidence: 9\n---\n\nLegacy payment API: https://api.old.example.com/v1/pay"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Do we have any record of a legacy payment API endpoint?",
+      "assertions": {
+        "response_matches": [
+          "api\\.old\\.example\\.com|legacy|payment"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

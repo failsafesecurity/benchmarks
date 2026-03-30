@@ -1,0 +1,52 @@
+{
+  "name": "high-confidence-repeated",
+  "description": "User confirms the same fact multiple times. Confidence should increase with each confirmation.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. Track confidence scores 1-10. Each independent confirmation of a learning should increase its confidence by 1-2 points, up to 10."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/deploy-day.md": "# Deploy Day\n\nconfidence: 5\n\nDeploy day is Tuesday."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Just confirming: our deploy day is indeed Tuesday.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "confidence"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Yes, definitely Tuesday. The whole team knows this.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_matches": "[7-9]|10|increas|rais|boost"
+      }
+    }
+  ]
+}

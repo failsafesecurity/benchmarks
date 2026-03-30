@@ -1,0 +1,36 @@
+{
+  "name": "save-with-confidence",
+  "description": "User tells agent a fact. Agent saves it as a learning with an explicit confidence score and reports it.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When saving learnings, always assign a confidence score from 1-10 based on the source reliability and specificity. Report the score to the user."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Learn this: our production database runs PostgreSQL 16.2 on AWS RDS.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_matches": "confidence.*[0-9]|[0-9].*confidence|score.*[0-9]",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

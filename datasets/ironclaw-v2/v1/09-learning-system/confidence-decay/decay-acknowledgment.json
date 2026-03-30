@@ -1,0 +1,45 @@
+{
+  "name": "decay-acknowledgment",
+  "description": "A 45-day-old learning should be retrieved but flagged as potentially outdated",
+  "tags": [
+    "learning-system",
+    "confidence-decay",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When recalling learnings older than 30 days, always flag them as potentially outdated and suggest verification."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/api-rate-limits.md": "---\ncreated_at: 2026-02-12\nconfidence: 4\ndecay_note: 45 days old, confidence reduced from 8\n---\n\nStripe API rate limit is 100 req/sec for our tier"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What's our Stripe API rate limit?",
+      "assertions": {
+        "response_contains": [
+          "100"
+        ],
+        "response_matches": [
+          "verify|outdated|stale|confirm|old"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

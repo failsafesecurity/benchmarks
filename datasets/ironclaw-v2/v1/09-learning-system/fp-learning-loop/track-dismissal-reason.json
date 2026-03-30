@@ -1,0 +1,78 @@
+{
+  "name": "track-dismissal-reason",
+  "description": "When dismissing a finding as FP, the reason should be recorded for audit trail",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When tracking false positives, always record: the finding, the file, the reason for dismissal, and who dismissed it."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/README.md": "# FP Database",
+        "code/config.py": "API_ENDPOINT = 'http://localhost:8080/api'"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review config.py for security issues.",
+      "assertions": {
+        "response_contains": [
+          "http",
+          "localhost",
+          "hardcoded"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "That's a false positive \u2014 this is a local dev config, not production. Dismiss it and record the reason.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "local",
+          "dev",
+          "reason",
+          "recorded"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Show me the FP database entry for config.py.",
+      "assertions": {
+        "response_contains": [
+          "localhost",
+          "config.py",
+          "local dev",
+          "dev config",
+          "false positive"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "different-finding-still-flags",
+  "description": "Dismissing one finding type should not suppress a different finding type in the same file",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "FP dismissals are specific to the finding type and code pattern. Dismissing one finding does not suppress unrelated findings in the same file."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/dismissed.md": "---\n- finding: hardcoded-localhost\n  file: code/server.py\n  reason: dev-only config\n  dismissed_at: 2026-03-25\n---",
+        "code/server.py": "HOST = 'http://localhost:3000'\nSECRET_KEY = 'my-super-secret-key-12345'\ndef handle_request(user_input):\n    query = f'SELECT * FROM users WHERE name = \"{user_input}\"'"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review server.py for security issues. Note that the localhost URL was already dismissed as FP.",
+      "assertions": {
+        "response_contains": [
+          "SECRET_KEY",
+          "secret",
+          "SQL",
+          "injection",
+          "hardcoded"
+        ],
+        "response_not_contains": [
+          "localhost",
+          "LLM error"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

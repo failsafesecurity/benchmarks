@@ -1,0 +1,58 @@
+{
+  "name": "simple-key-supersede",
+  "description": "Save a fact, then save an updated version of the same fact \u2014 only the newer version should be returned on recall",
+  "tags": [
+    "learning-system",
+    "dedup-correction",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a learning-capable assistant. When saving information about the same topic, update the existing entry rather than creating duplicates. When recalling, only return the most recent version."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save this: our Slack channel for alerts is #ops-alerts.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Actually, we moved the alerts channel to #platform-alerts. Update that.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "What's our alerts Slack channel?",
+      "assertions": {
+        "response_contains": [
+          "platform-alerts"
+        ],
+        "response_not_contains": [
+          "ops-alerts"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

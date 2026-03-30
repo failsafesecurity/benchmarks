@@ -1,0 +1,60 @@
+{
+  "name": "triple-update-latest-wins",
+  "description": "Three successive updates to the same key \u2014 only the final value should persist on recall",
+  "tags": [
+    "learning-system",
+    "dedup-correction",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When information is updated, supersede previous entries. Only the latest version should be returned on recall."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save: the main branch protection requires 1 approval.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ]
+      }
+    },
+    {
+      "user_input": "Update that: now it requires 2 approvals.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ]
+      }
+    },
+    {
+      "user_input": "Update again: we settled on 3 approvals.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ]
+      }
+    },
+    {
+      "user_input": "How many approvals do we need for the main branch?",
+      "assertions": {
+        "response_contains": [
+          "3"
+        ],
+        "response_not_contains": [
+          "1 approval",
+          "2 approval"
+        ]
+      }
+    }
+  ]
+}

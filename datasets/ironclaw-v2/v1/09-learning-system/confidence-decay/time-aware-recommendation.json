@@ -1,0 +1,25 @@
+{
+  "name": "time-aware-recommendation",
+  "description": "A very stale best practice and a fresh contradicting one — agent should clearly pick the fresh one, not average them",
+  "tags": ["learning-system", "confidence-decay", "adversarial", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/testing-old.md": "---\ncreated_at: 2025-11-01\nconfidence: 1\n---\n\nUnit test coverage target: 60%",
+        "learnings/testing-new.md": "---\ncreated_at: 2026-03-25\nconfidence: 9\n---\n\nUnit test coverage target: 90% (updated policy from engineering)"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What's our unit test coverage target?",
+      "assertions": {
+        "response_contains": ["90%"],
+        "response_not_contains": ["60%", "LLM error"]
+      }
+    }
+  ]
+}

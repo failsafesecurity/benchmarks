@@ -1,0 +1,32 @@
+{
+  "name": "partial-key-no-false-dedup",
+  "description": "Two learnings with similar but distinct keys should NOT be deduped — updating one must not affect the other",
+  "tags": ["learning-system", "dedup-correction", "edge-case"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/api-timeout.md": "API gateway timeout: 30s",
+        "learnings/api-rate-limit.md": "API gateway rate limit: 1000 req/min"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Update the API rate limit to 2000 req/min.",
+      "assertions": {
+        "tools_used": ["memory_write"]
+      }
+    },
+    {
+      "user_input": "What's our API timeout and rate limit?",
+      "assertions": {
+        "response_contains": ["30", "2000"],
+        "response_not_contains": ["1000 req"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

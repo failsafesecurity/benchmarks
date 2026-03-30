@@ -1,0 +1,51 @@
+{
+  "name": "fp-pattern-generalization",
+  "description": "Dismissing a specific FP pattern should generalize to identical patterns in other files but not to different patterns",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When a false positive pattern is dismissed, apply the dismissal to identical patterns in other files. But only generalize when the pattern and context match exactly."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/dismissed.md": "---\n- finding: http-url\n  pattern: 'http://localhost'\n  context: local development configuration\n  generalize: true\n---",
+        "code/service-a.py": "DEV_URL = 'http://localhost:8080'",
+        "code/service-b.py": "DEV_URL = 'http://localhost:9090'",
+        "code/service-c.py": "WEBHOOK_URL = 'http://external-partner.com/callback'"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review service-a.py, service-b.py, and service-c.py for security issues. Apply FP generalizations.",
+      "assertions": {
+        "response_contains": [
+          "external-partner",
+          "service-c",
+          "http://",
+          "not localhost"
+        ],
+        "response_not_contains": [
+          "service-a",
+          "service-b",
+          "localhost:8080",
+          "localhost:9090"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

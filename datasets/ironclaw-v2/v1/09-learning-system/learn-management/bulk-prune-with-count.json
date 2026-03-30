@@ -1,0 +1,45 @@
+{
+  "name": "bulk-prune-with-count",
+  "description": "Tests /learn prune with threshold \u2014 reports exact count of removed and remaining entries",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "edge-case",
+    "prune",
+    "counting"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "On /learn prune, report the exact count of entries removed and entries remaining."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/keep-1.md": "---\nconfidence: 8\n---\nUse ESLint with Airbnb config",
+        "learnings/keep-2.md": "---\nconfidence: 7\n---\nPrettier for formatting",
+        "learnings/remove-1.md": "---\nconfidence: 3\n---\nUse tabs for indentation",
+        "learnings/remove-2.md": "---\nconfidence: 2\n---\nSemicolons optional",
+        "learnings/remove-3.md": "---\nconfidence: 1\n---\nGlobal variables are fine"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn prune 3",
+      "assertions": {
+        "response_contains": [
+          "3",
+          "2"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

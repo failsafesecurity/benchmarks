@@ -1,0 +1,50 @@
+{
+  "name": "confidence-boost-on-reconfirm",
+  "description": "Pre-seed learning at confidence 4. User reconfirms the fact. Score should increase.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "edge-case"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Track confidence 1-10. When a user confirms a learning, boost confidence by 2 points. Always report old and new scores."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/standup-time.md": "# Standup Time\n\nconfidence: 4\n\nDaily standup at 9:30 AM EST."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Is our standup at 9:30 AM?",
+      "assertions": {
+        "response_contains": [
+          "9:30"
+        ],
+        "min_tool_calls": 1
+      }
+    },
+    {
+      "user_input": "Yes, correct. 9:30 AM sharp every day. Please boost the confidence.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_matches": "[56789]|boost|increas|updated",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

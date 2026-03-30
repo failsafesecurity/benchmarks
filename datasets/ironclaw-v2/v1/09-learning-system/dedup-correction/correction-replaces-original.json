@@ -1,0 +1,32 @@
+{
+  "name": "correction-replaces-original",
+  "description": "Pre-seed an incorrect learning. User corrects it. The old info should be gone from search results.",
+  "tags": ["learning-system", "dedup-correction", "basic"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/ci-timeout.md": "CI pipeline timeout: 30 minutes"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "The CI timeout was changed to 45 minutes last week. Correct that learning.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's the CI pipeline timeout?",
+      "assertions": {
+        "response_contains": ["45"],
+        "response_not_contains": ["30 minute"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

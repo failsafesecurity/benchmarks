@@ -1,0 +1,49 @@
+{
+  "name": "project-scoped-default",
+  "description": "Learning saved in current project should NOT be visible to other projects by default \u2014 verifies project-scoped isolation",
+  "tags": [
+    "learning-system",
+    "cross-project",
+    "basic",
+    "isolation"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Learnings are project-scoped by default. When saving a learning, it is only visible within the current project unless explicitly marked as shared."
+    },
+    "workspace": {
+      "documents": {
+        "project-config.md": "Current project: project-beta\nDefault sharing: private"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save this: our API uses JWT tokens with RS256 signing. Keep it to this project only.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_matches": "project|private|local",
+        "response_not_contains": [
+          "shared",
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Confirm this learning won't be visible to other projects.",
+      "assertions": {
+        "response_matches": "private|project-beta only|not shared|scoped|local"
+      }
+    }
+  ]
+}

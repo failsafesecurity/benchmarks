@@ -1,0 +1,33 @@
+{
+  "name": "concurrent-conflict-resolution",
+  "description": "Two conflicting pieces of info given in the same message \u2014 agent should flag the contradiction and ask for clarification",
+  "tags": [
+    "learning-system",
+    "dedup-correction",
+    "adversarial"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When given contradictory information in the same message, flag the contradiction and ask for clarification. Do not silently pick one."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Save this: our database is MySQL. Also save this: our database is PostgreSQL.",
+      "assertions": {
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "response_matches": "(?i)(contradict|conflict|which|clarif|both)"
+      }
+    }
+  ]
+}

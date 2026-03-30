@@ -1,0 +1,46 @@
+{
+  "name": "prune-stale",
+  "description": "Tests /learn prune \u2014 removes learnings at or below the given confidence threshold and reports what was removed",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "basic",
+    "prune"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You support /learn prune <threshold>. This removes all learnings with confidence at or below the threshold. Report what was removed."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/fresh-pattern.md": "---\nconfidence: 9\n---\nUse TypeScript strict mode",
+        "learnings/stale-pattern.md": "---\nconfidence: 2\n---\nUse var instead of let/const",
+        "learnings/old-practice.md": "---\nconfidence: 1\n---\njQuery for DOM manipulation"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn prune 2",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "2"
+        ],
+        "response_not_contains": [
+          "TypeScript"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "report-confidence-on-recall",
+  "description": "When recalling a learning, the confidence score should be visible to the user alongside the information.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When recalling learnings, always display the confidence score alongside the information."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/oncall-rotation.md": "# On-Call Rotation\n\nconfidence: 7\n\nOn-call rotation: Alice (Mon-Wed), Bob (Thu-Sun)."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Who's on call this week?",
+      "assertions": {
+        "response_contains": [
+          "Alice",
+          "Bob"
+        ],
+        "response_matches": "confidence.*7|7.*confidence|score.*7",
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

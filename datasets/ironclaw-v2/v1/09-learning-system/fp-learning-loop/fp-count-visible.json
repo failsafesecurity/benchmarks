@@ -1,0 +1,43 @@
+{
+  "name": "fp-count-visible",
+  "description": "User can see how many false positives have been dismissed and view recent dismissals",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You track false positives. When asked for FP stats, report the count and list recent dismissals."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/entries.md": "---\nentries:\n  - id: FP-001\n    finding: hardcoded-url\n    file: config.py\n    dismissed: 2026-03-10\n  - id: FP-002\n    finding: weak-random\n    file: utils.py\n    dismissed: 2026-03-15\n  - id: FP-003\n    finding: http-not-https\n    file: dev-proxy.py\n    dismissed: 2026-03-20\n---"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "How many false positives have we dismissed so far?",
+      "assertions": {
+        "response_contains": [
+          "3",
+          "three"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

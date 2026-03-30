@@ -1,0 +1,45 @@
+{
+  "name": "export-preserves-metadata",
+  "description": "Tests /learn export with metadata \u2014 exported document includes confidence scores, dates, and source info",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "edge-case",
+    "export",
+    "metadata"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "On /learn export, include metadata: confidence score, creation date, and source for each entry."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/api-auth.md": "---\nconfidence: 9\ncreated_at: 2026-03-20\nsource: security-review\n---\nUse OAuth2 with PKCE for SPAs",
+        "learnings/rate-limit.md": "---\nconfidence: 7\ncreated_at: 2026-03-15\nsource: incident-postmortem\n---\nRate limit: 100 req/s per API key"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn export",
+      "assertions": {
+        "response_contains": [
+          "OAuth2",
+          "100"
+        ],
+        "response_matches": [
+          "confidence|score|[0-9]"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

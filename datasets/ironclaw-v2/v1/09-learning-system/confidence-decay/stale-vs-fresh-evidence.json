@@ -1,0 +1,31 @@
+{
+  "name": "stale-vs-fresh-evidence",
+  "description": "When a stale learning contradicts fresh user input, agent should trust the user and update the learning",
+  "tags": ["learning-system", "confidence-decay", "adversarial", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/team-lead.md": "---\ncreated_at: 2026-01-10\nconfidence: 2\n---\n\nTeam lead for backend: Alice Chen"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Bob Park is now leading the backend team as of this week.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["Alice", "LLM error"]
+      }
+    },
+    {
+      "user_input": "Who's leading the backend team?",
+      "assertions": {
+        "response_contains": ["Bob"],
+        "response_not_contains": ["Alice", "LLM error"]
+      }
+    }
+  ]
+}

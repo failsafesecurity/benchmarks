@@ -1,0 +1,38 @@
+{
+  "name": "confidence-threshold-action",
+  "description": "Pre-seed a low-confidence learning (2/10). Agent should not act on it automatically and should flag uncertainty.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "edge-case"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Never take automated actions based on learnings with confidence below 5. Instead, ask the user to confirm first."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/auto-merge.md": "# Auto-Merge Policy\n\nconfidence: 2\n\nAuto-merge is enabled for dependabot PRs."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "A dependabot PR just came in. Should I set it to auto-merge?",
+      "assertions": {
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "response_matches": "(?i)(confirm|verify|sure|check|low\\ confidence|not\\ certain)"
+      }
+    }
+  ]
+}

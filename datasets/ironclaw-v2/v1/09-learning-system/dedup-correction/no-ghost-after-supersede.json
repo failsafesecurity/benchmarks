@@ -1,0 +1,44 @@
+{
+  "name": "no-ghost-after-supersede",
+  "description": "After superseding a learning, searching for the old value should not return it as current \u2014 tests that ghost entries do not persist",
+  "tags": [
+    "learning-system",
+    "dedup-correction",
+    "adversarial"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "workspace": {
+      "documents": {
+        "learnings/team-channel.md": "Team standup channel: #eng-standup"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "We moved standups to #daily-sync. Update the learning.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ]
+      }
+    },
+    {
+      "user_input": "Search for anything about eng-standup.",
+      "assertions": {
+        "response_not_contains": [
+          "channel: #eng-standup",
+          "#eng-standup is our"
+        ],
+        "response_matches": "(?i)(daily\\-sync|moved|superseded|no\\ longer|updated|changed|not\\ found|no\\ results)"
+      }
+    }
+  ]
+}

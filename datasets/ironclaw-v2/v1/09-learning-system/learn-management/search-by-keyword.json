@@ -1,0 +1,48 @@
+{
+  "name": "search-by-keyword",
+  "description": "Tests /learn search by keyword \u2014 only matching learnings are returned from the store",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "basic",
+    "search"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You support a /learn management interface. /learn search <query> finds learnings matching the query. /learn stats shows summary statistics. /learn prune removes stale entries."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/docker-compose.md": "Use docker-compose for local dev environment",
+        "learnings/k8s-deploy.md": "Production deploys use Kubernetes with Helm charts",
+        "learnings/testing-strategy.md": "Integration tests run against Docker containers",
+        "learnings/code-review.md": "All PRs need 2 approvals before merge"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn search docker",
+      "assertions": {
+        "response_contains": [
+          "docker-compose",
+          "Docker containers"
+        ],
+        "response_not_contains": [
+          "Helm",
+          "code review",
+          "approval"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

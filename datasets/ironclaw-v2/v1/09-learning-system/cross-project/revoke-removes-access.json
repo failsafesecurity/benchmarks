@@ -1,0 +1,40 @@
+{
+  "name": "revoke-removes-access",
+  "description": "When a project has been revoked from shared sources, agent should no longer use its learnings",
+  "tags": [
+    "learning-system",
+    "cross-project",
+    "edge-case",
+    "revocation"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Respect the shared sources list strictly. If a project has been revoked from shared sources, do not use its learnings."
+    },
+    "workspace": {
+      "documents": {
+        "shared/project-alpha/learnings/ci-pipeline.md": "---\nsource_project: project-alpha\nshared: true\nconfidence: 8\n---\nUse GitHub Actions with reusable workflows",
+        "project-config.md": "Current project: project-beta\nShared learning: enabled\nShared sources: []\nRevoked: [project-alpha (revoked 2026-03-20)]"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What CI pipeline setup does project-alpha recommend?",
+      "assertions": {
+        "response_matches": "revoked|no longer shared|access removed|not available|not authorized",
+        "response_not_contains": [
+          "GitHub Actions with reusable"
+        ]
+      }
+    }
+  ]
+}

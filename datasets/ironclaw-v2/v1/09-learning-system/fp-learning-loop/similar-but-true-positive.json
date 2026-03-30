@@ -1,0 +1,49 @@
+{
+  "name": "similar-but-true-positive",
+  "description": "A finding looks similar to a dismissed FP but is actually a true positive \u2014 it should still be flagged",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "FP dismissals are precise: they match on finding type + specific code pattern. A similar-looking but different vulnerability is still a true positive."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/dismissed.md": "---\n- finding: hardcoded-string\n  pattern: 'http://localhost'\n  file: dev-config.py\n  reason: local dev URL, not a secret\n---",
+        "code/prod-config.py": "DATABASE_URL = 'postgres://admin:realpassword@prod-db.company.com:5432/main'"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review prod-config.py for security issues. Check the FP database first.",
+      "assertions": {
+        "response_contains": [
+          "password",
+          "credential",
+          "hardcoded",
+          "prod",
+          "secret"
+        ],
+        "response_not_contains": [
+          "false positive",
+          "dismissed",
+          "already tracked"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "refresh-stale-learning",
+  "description": "A stale learning is confirmed by the user — agent should refresh its confidence",
+  "tags": ["learning-system", "confidence-decay", "basic", "accuracy"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/db-connection-pool.md": "---\ncreated_at: 2026-01-15\nconfidence: 2\n---\n\nMax DB connection pool size is 50"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What's our DB connection pool max size?",
+      "assertions": {
+        "response_contains": ["50"],
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Yes, that's still correct. 50 connections is right. Please update the confidence on that.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_matches": ["updated|refreshed|confirmed"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

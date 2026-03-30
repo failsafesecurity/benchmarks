@@ -1,0 +1,46 @@
+{
+  "name": "export-to-doc",
+  "description": "Tests /learn export \u2014 compiles all learnings into a structured markdown document suitable for CLAUDE.md",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "basic",
+    "export"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You support /learn export. This compiles all learnings into a structured markdown document suitable for CLAUDE.md or project documentation."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/deploy-process.md": "---\nconfidence: 8\n---\nDeploy via GitHub Actions on merge to main",
+        "learnings/review-policy.md": "---\nconfidence: 7\n---\n2 approvals required for PRs",
+        "learnings/testing.md": "---\nconfidence: 9\n---\nRun unit + integration tests before deploy"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn export",
+      "assertions": {
+        "response_contains": [
+          "deploy",
+          "approval",
+          "test"
+        ],
+        "response_matches": [
+          "#{1,3}|\\*|\\-"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

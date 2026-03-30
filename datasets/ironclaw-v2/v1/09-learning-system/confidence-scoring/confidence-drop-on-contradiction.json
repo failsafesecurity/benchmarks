@@ -1,0 +1,44 @@
+{
+  "name": "confidence-drop-on-contradiction",
+  "description": "Pre-seed a high-confidence learning. User provides contradicting info. Score should decrease or entry should be superseded.",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "edge-case"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When a user contradicts a stored learning, reduce its confidence or create a superseding entry. Report the change."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/sprint-length.md": "# Sprint Length\n\nconfidence: 9\n\nSprint length is 2 weeks."
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "We actually switched to 1-week sprints last month. Update that.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "1"
+        ],
+        "response_matches": "(?i)(updated|changed|corrected|supersed|1.week|1-week)",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "fp-expiry-reevaluate",
+  "description": "Very old FP dismissals (older than 90 days) should be flagged for re-evaluation as security standards evolve",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "edge-case",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "FP dismissals older than 90 days should be flagged for re-evaluation. Security standards evolve, and old dismissals may no longer be valid."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/dismissed.md": "---\n- finding: md5-usage\n  file: legacy/checksum.py\n  reason: used for file integrity, not security\n  dismissed_at: 2025-11-15\n  age_days: 135\n---",
+        "legacy/checksum.py": "import hashlib\ndef file_checksum(path):\n    return hashlib.md5(open(path,'rb').read()).hexdigest()"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review legacy/checksum.py. Check the FP database.",
+      "assertions": {
+        "response_contains": [
+          "re-evaluat",
+          "expired",
+          "90 day",
+          "old dismissal",
+          "review",
+          "reconsider"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "attribution-on-shared",
+  "description": "When using a shared learning, agent should cite the origin project and who shared it",
+  "tags": [
+    "learning-system",
+    "cross-project",
+    "edge-case",
+    "attribution"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "When applying shared learnings, always cite the source project and who shared it."
+    },
+    "workspace": {
+      "documents": {
+        "shared/project-alpha/learnings/logging-format.md": "---\nsource_project: project-alpha\nshared: true\nconfidence: 7\nshared_by: Alice Chen\nshared_at: 2026-03-01\n---\nUse structured JSON logging with fields: timestamp, level, service, trace_id, message",
+        "project-config.md": "Current project: project-beta\nShared sources: [project-alpha]"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What logging format should I use?",
+      "assertions": {
+        "response_contains": [
+          "JSON",
+          "project-alpha"
+        ],
+        "response_matches": "structured|trace_id",
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

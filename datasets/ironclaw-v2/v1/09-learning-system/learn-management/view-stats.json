@@ -1,0 +1,46 @@
+{
+  "name": "view-stats",
+  "description": "Tests /learn stats \u2014 displays total count, average confidence, breakdown by confidence range, oldest/newest entries",
+  "tags": [
+    "learning-system",
+    "learn-management",
+    "basic",
+    "stats"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You support a /learn interface. /learn stats shows: total count, average confidence, count by confidence range (high 7-10, medium 4-6, low 1-3), oldest and newest entries."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/api-versioning.md": "---\nconfidence: 8\ncreated_at: 2026-03-25\n---\nUse semantic versioning for APIs",
+        "learnings/error-codes.md": "---\nconfidence: 6\ncreated_at: 2026-03-10\n---\nUse RFC 7807 for error responses",
+        "learnings/caching.md": "---\nconfidence: 3\ncreated_at: 2026-01-15\n---\nRedis TTL: 1 hour for sessions",
+        "learnings/logging.md": "---\nconfidence: 9\ncreated_at: 2026-03-28\n---\nUse structured JSON logging",
+        "learnings/old-pattern.md": "---\nconfidence: 1\ncreated_at: 2025-12-01\n---\nUse XML for data exchange"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "/learn stats",
+      "assertions": {
+        "response_contains": [
+          "5"
+        ],
+        "response_matches": [
+          "high.*[0-9]|low.*[0-9]|average|total"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

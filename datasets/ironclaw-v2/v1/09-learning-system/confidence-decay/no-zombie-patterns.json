@@ -1,0 +1,43 @@
+{
+  "name": "no-zombie-patterns",
+  "description": "Multiple very old learnings should not be automatically applied without flagging their age and low confidence",
+  "tags": [
+    "learning-system",
+    "confidence-decay",
+    "adversarial",
+    "judgment"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a coding assistant. Do not automatically apply learnings with confidence below 3 without explicitly flagging them as low-confidence."
+    },
+    "workspace": {
+      "documents": {
+        "learnings/code-style.md": "---\ncreated_at: 2025-12-01\nconfidence: 1\n---\n\nUse tabs for indentation",
+        "learnings/branch-naming.md": "---\ncreated_at: 2025-12-01\nconfidence: 1\n---\n\nBranches must start with JIRA-",
+        "learnings/review-policy.md": "---\ncreated_at: 2025-12-01\nconfidence: 1\n---\n\nAll PRs need 3 approvals"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "I'm about to submit a PR. Any guidelines I should follow?",
+      "assertions": {
+        "response_matches": [
+          "low confidence|outdated|stale|verify|old"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

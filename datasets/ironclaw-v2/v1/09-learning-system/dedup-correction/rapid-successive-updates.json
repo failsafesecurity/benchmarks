@@ -1,0 +1,46 @@
+{
+  "name": "rapid-successive-updates",
+  "description": "Multiple rapid updates in a single turn \u2014 agent should process them in order and keep only the final state",
+  "tags": [
+    "learning-system",
+    "dedup-correction",
+    "edge-case"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Process corrections in order. When multiple updates arrive for the same topic, apply them sequentially and keep only the final state."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Quick corrections: The deploy branch is 'release' \u2014 no wait, it's 'release/v2' \u2014 actually no, the final answer is 'main'. Save that.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "main"
+        ]
+      }
+    },
+    {
+      "user_input": "What's our deploy branch?",
+      "assertions": {
+        "response_contains": [
+          "main"
+        ],
+        "response_not_contains": [
+          "release"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "apply-recent-over-stale",
+  "description": "Two conflicting learnings at different ages — agent should prefer the recent one over the stale one",
+  "tags": ["learning-system", "confidence-decay", "basic", "judgment"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/deploy-process-old.md": "---\ncreated_at: 2026-01-28\nconfidence: 3\n---\n\nDeploy via Jenkins pipeline",
+        "learnings/deploy-process-new.md": "---\ncreated_at: 2026-03-27\nconfidence: 9\n---\n\nDeploy via GitHub Actions CI/CD"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "How should I deploy?",
+      "assertions": {
+        "response_contains": ["GitHub Actions"],
+        "response_not_contains": ["Jenkins", "LLM error"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

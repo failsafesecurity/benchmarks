@@ -1,0 +1,76 @@
+{
+  "name": "dismiss-not-reflagged",
+  "description": "Agent flags a security finding, user dismisses it as FP, and on next review of the same code the finding should not reappear",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a security review assistant. Track dismissed findings in your FP database. Never re-flag a dismissed finding for the same code pattern unless the user explicitly requests re-evaluation."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/README.md": "# False Positive Database\nTrack dismissed findings to prevent re-flagging.",
+        "code/auth.py": "import hashlib\ndef hash_password(password):\n    return hashlib.sha256(password.encode()).hexdigest()"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Review auth.py for security issues.",
+      "assertions": {
+        "response_contains": [
+          "sha256",
+          "hash",
+          "weak",
+          "security"
+        ],
+        "min_tool_calls": 1,
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Dismiss the SHA-256 finding \u2014 we use it for non-security checksums only, not actual password storage. Track this as a false positive.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "dismissed",
+          "false positive",
+          "tracked"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Review auth.py again.",
+      "assertions": {
+        "response_not_contains": [
+          "LLM error"
+        ],
+        "response_contains": [
+          "no",
+          "clean",
+          "dismissed",
+          "previously"
+        ]
+      }
+    }
+  ]
+}

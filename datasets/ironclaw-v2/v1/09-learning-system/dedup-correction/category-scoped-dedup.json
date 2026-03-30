@@ -1,0 +1,31 @@
+{
+  "name": "category-scoped-dedup",
+  "description": "Same key name in different contexts (frontend vs backend) should remain separate — dedup must be path-scoped",
+  "tags": ["learning-system", "dedup-correction", "edge-case"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/frontend/build-tool.md": "Frontend build tool: Vite",
+        "learnings/backend/build-tool.md": "Backend build tool: Gradle"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Update the frontend build tool to Turbopack.",
+      "assertions": {
+        "tools_used": ["memory_write"]
+      }
+    },
+    {
+      "user_input": "What build tools do we use for frontend and backend?",
+      "assertions": {
+        "response_contains": ["Turbopack", "Gradle"],
+        "response_not_contains": ["Vite"]
+      }
+    }
+  ]
+}

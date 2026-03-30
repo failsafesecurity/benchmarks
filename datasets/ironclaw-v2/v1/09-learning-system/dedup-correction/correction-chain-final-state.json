@@ -1,0 +1,25 @@
+{
+  "name": "correction-chain-final-state",
+  "description": "Pre-seed a learning with a version history chain of corrections — only the final correction should be the canonical answer",
+  "tags": ["learning-system", "dedup-correction", "adversarial"],
+  "setup": {
+    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "workspace": {
+      "documents": {
+        "learnings/kubernetes-version.md": "---\nversion_history:\n  - v1.25 (2025-06)\n  - v1.27 (2025-10)\n  - v1.28 (2026-01)\ncurrent: v1.29\nupdated_at: 2026-03-15\n---\nKubernetes cluster version: v1.29"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What Kubernetes version are we running?",
+      "assertions": {
+        "response_contains": ["1.29"],
+        "response_not_contains": ["1.25", "1.27", "1.28"],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

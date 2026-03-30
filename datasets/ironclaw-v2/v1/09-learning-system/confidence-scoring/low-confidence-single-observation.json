@@ -1,0 +1,36 @@
+{
+  "name": "low-confidence-single-observation",
+  "description": "Agent observes a pattern from a single uncertain data point. Should assign low confidence (1-4).",
+  "tags": [
+    "learning-system",
+    "confidence-scoring",
+    "basic"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. Single observations or unverified claims should receive low confidence (1-4). Only verified, repeated patterns earn high confidence (7-10)."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "I think the API might have a rate limit around 500 req/min, but I'm not sure. Save that.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_matches": "[1-4].*confidence|confidence.*[1-4]|low confidence|uncertain",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

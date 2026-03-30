@@ -1,0 +1,54 @@
+{
+  "name": "fresh-learning-high-weight",
+  "description": "Agent saves a learning and recalls it immediately \u2014 should apply with full confidence and no staleness caveats",
+  "tags": [
+    "learning-system",
+    "confidence-decay",
+    "basic",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a self-improving assistant. When recalling learnings, always indicate their age and confidence level. Fresh learnings (< 7 days) should be applied with full confidence."
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Remember this: when deploying to prod, always run the smoke tests first. This is critical.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "saved",
+          "noted"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "I'm about to deploy to production. Any tips?",
+      "assertions": {
+        "response_contains": [
+          "smoke test"
+        ],
+        "response_not_contains": [
+          "stale",
+          "outdated",
+          "old",
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

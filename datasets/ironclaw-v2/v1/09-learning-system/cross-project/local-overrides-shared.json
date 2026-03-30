@@ -1,0 +1,44 @@
+{
+  "name": "local-overrides-shared",
+  "description": "Local project learning should override a conflicting shared learning when both exist",
+  "tags": [
+    "learning-system",
+    "cross-project",
+    "edge-case",
+    "precedence"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "Local project learnings take precedence over shared learnings. If a local and shared learning conflict, apply the local one but mention the override."
+    },
+    "workspace": {
+      "documents": {
+        "shared/project-alpha/learnings/test-framework.md": "---\nsource_project: project-alpha\nshared: true\nconfidence: 7\n---\nUse Jest for all JavaScript testing",
+        "learnings/test-framework.md": "---\nconfidence: 9\n---\nUse Vitest for all JavaScript testing (faster, native ESM support)",
+        "project-config.md": "Current project: project-beta\nShared sources: [project-alpha]"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "What test framework should I use for this project?",
+      "assertions": {
+        "response_contains": [
+          "Vitest"
+        ],
+        "response_not_contains": [
+          "Use Jest"
+        ],
+        "min_tool_calls": 1
+      }
+    }
+  ]
+}

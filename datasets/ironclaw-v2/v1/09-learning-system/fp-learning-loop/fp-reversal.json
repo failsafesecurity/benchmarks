@@ -1,0 +1,51 @@
+{
+  "name": "fp-reversal",
+  "description": "A previously dismissed FP should be re-flaggable when the user requests re-evaluation",
+  "tags": [
+    "learning-system",
+    "fp-learning-loop",
+    "adversarial",
+    "accuracy"
+  ],
+  "setup": {
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "FP dismissals can be reversed. If a user asks to re-evaluate a dismissed finding, remove it from the FP database and flag it again."
+    },
+    "workspace": {
+      "documents": {
+        "fp-database/dismissed.md": "---\n- id: FP-042\n  finding: eval-usage\n  file: code/template.py\n  reason: trusted internal templates only\n  dismissed_at: 2026-02-01\n---",
+        "code/template.py": "def render(template_str, context):\n    return eval(f'f\"\"\"{template_str}\"\"\"', {'context': context})"
+      }
+    }
+  },
+  "timeout_secs": 90,
+  "max_tool_iterations": 12,
+  "turns": [
+    {
+      "user_input": "Re-evaluate FP-042. We now accept user-provided templates, so the eval might actually be dangerous.",
+      "assertions": {
+        "tools_used": [
+          "memory_write"
+        ],
+        "response_contains": [
+          "eval",
+          "dangerous",
+          "vulnerability",
+          "risk",
+          "re-flag",
+          "reversed",
+          "removed from FP"
+        ],
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}
