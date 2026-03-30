@@ -1,0 +1,62 @@
+{
+  "name": "expense-anomaly-detection",
+  "description": "Multi-turn expense anomaly detection with statistical outliers, duplicate detection, pattern analysis, exception handling, and report generation",
+  "tags": ["financial-analysis", "edge-case", "accuracy", "multi-turn", "code-execution", "anomaly-detection"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a forensic accounting assistant. Use statistical methods and pattern matching to detect anomalies in expense data. Always quantify findings with specific dollar amounts and explain why each anomaly is suspicious."
+    },
+    "workspace": {
+      "documents": {
+        "data/expenses.csv": "id,date,category,amount,employee,description,department\nEXP-001,2025-10-01,Travel,1250.00,Sarah Chen,Flight to NYC client meeting,Sales\nEXP-002,2025-10-01,Office Supplies,89.50,Mike Johnson,Printer cartridges,Engineering\nEXP-003,2025-10-02,Meals,45.80,Sarah Chen,Client dinner - NYC,Sales\nEXP-004,2025-10-02,Software,299.99,James Wilson,JetBrains IDE license,Engineering\nEXP-005,2025-10-03,Travel,3200.00,David Park,Conference registration + hotel,Marketing\nEXP-006,2025-10-03,Office Supplies,12500.00,Robert Lee,Office furniture (ANOMALY: unusually high for category),Operations\nEXP-007,2025-10-04,Meals,32.10,Lisa Wang,Team lunch,Engineering\nEXP-008,2025-10-05,Travel,890.00,Sarah Chen,Return flight from NYC,Sales\nEXP-009,2025-10-05,Software,149.00,Anna Kim,Figma annual subscription,Design\nEXP-010,2025-10-06,Meals,178.50,David Park,Conference networking dinner,Marketing\nEXP-011,2025-10-06,Office Supplies,89.50,Mike Johnson,Printer cartridges,Engineering\nEXP-012,2025-10-07,Travel,450.00,John Smith,Weekend hotel for Monday meeting,Sales\nEXP-013,2025-10-07,Meals,5000.00,Robert Lee,Team building event (ANOMALY: round number spike),Operations\nEXP-014,2025-10-08,Software,1200.00,James Wilson,AWS monthly bill,Engineering\nEXP-015,2025-10-08,Travel,675.00,Lisa Wang,Flight to SF office,Engineering\nEXP-016,2025-10-09,Office Supplies,234.00,Anna Kim,Design supplies and materials,Design\nEXP-017,2025-10-10,Meals,67.20,Sarah Chen,Client lunch meeting,Sales\nEXP-018,2025-10-11,Travel,450.00,John Smith,Weekend car rental,Sales\nEXP-019,2025-10-11,Office Supplies,89.50,Mike Johnson,Printer cartridges (ANOMALY: duplicate of EXP-011),Engineering\nEXP-020,2025-10-12,Travel,1100.00,David Park,Flight to Chicago trade show,Marketing\nEXP-021,2025-10-13,Meals,42.30,James Wilson,Working lunch,Engineering\nEXP-022,2025-10-13,Software,5000.00,Robert Lee,Enterprise license (ANOMALY: category mismatch - usually Operations),Operations\nEXP-023,2025-10-14,Travel,320.00,Lisa Wang,Uber receipts - SF trip,Engineering\nEXP-024,2025-10-14,Office Supplies,156.80,Sarah Chen,Office supplies for road kit,Sales\nEXP-025,2025-10-15,Meals,89.00,David Park,Chicago client dinner,Marketing\nEXP-026,2025-10-15,Travel,2800.00,John Smith,Weekend conference attendance,Sales\nEXP-027,2025-10-16,Software,79.99,Mike Johnson,GitHub Copilot,Engineering\nEXP-028,2025-10-16,Meals,1250.00,Sarah Chen,Flight to NYC client meeting (ANOMALY: duplicate description of EXP-001 in wrong category),Sales\nEXP-029,2025-10-17,Office Supplies,45.00,Anna Kim,Sketch pads,Design\nEXP-030,2025-10-17,Travel,780.00,James Wilson,Flight to Austin office,Engineering\nEXP-031,2025-10-18,Meals,55.60,Lisa Wang,Team outing lunch,Engineering\nEXP-032,2025-10-18,Travel,10000.00,Robert Lee,International first class flight (ANOMALY: excessive amount),Operations\nEXP-033,2025-10-19,Software,399.00,David Park,Marketing analytics tool,Marketing\nEXP-034,2025-10-19,Office Supplies,67.30,Mike Johnson,Cable organizers,Engineering\nEXP-035,2025-10-20,Meals,38.90,Sarah Chen,Working lunch,Sales\nEXP-036,2025-10-20,Travel,540.00,Anna Kim,Flight to design conference,Design\nEXP-037,2025-10-21,Software,199.00,James Wilson,Docker Desktop license,Engineering\nEXP-038,2025-10-21,Meals,72.40,John Smith,Client meeting lunch,Sales\nEXP-039,2025-10-22,Office Supplies,890.00,Lisa Wang,Ergonomic keyboard + monitor arm,Engineering\nEXP-040,2025-10-22,Travel,425.00,David Park,Return from Chicago,Marketing\nEXP-041,2025-10-23,Meals,48.50,Mike Johnson,Team lunch,Engineering\nEXP-042,2025-10-23,Software,2400.00,Robert Lee,CRM annual renewal,Operations\nEXP-043,2025-10-24,Travel,310.00,Sarah Chen,Car service to airport,Sales\nEXP-044,2025-10-24,Office Supplies,123.45,James Wilson,USB hubs and adapters,Engineering\nEXP-045,2025-10-25,Meals,95.00,Anna Kim,Design team dinner,Design\nEXP-046,2025-10-25,Travel,1650.00,John Smith,Weekend multi-city trip,Sales\nEXP-047,2025-10-26,Software,59.99,Lisa Wang,Notion subscription,Engineering\nEXP-048,2025-10-26,Meals,41.20,David Park,Quick lunch,Marketing\nEXP-049,2025-10-27,Office Supplies,78.90,Sarah Chen,Notebooks and pens,Sales\nEXP-050,2025-10-27,Travel,920.00,Mike Johnson,Flight to vendor site,Engineering\nEXP-051,2025-10-28,Meals,62.30,James Wilson,Client meeting,Engineering\nEXP-052,2025-10-28,Software,349.00,Anna Kim,Adobe Creative Cloud,Design\nEXP-053,2025-10-29,Travel,285.00,Lisa Wang,Uber receipts weekly,Engineering\nEXP-054,2025-10-29,Office Supplies,445.00,Robert Lee,Standing desk converter,Operations\nEXP-055,2025-10-30,Meals,88.70,David Park,Team celebration dinner,Marketing\nEXP-056,2025-10-30,Travel,1890.00,Sarah Chen,Multi-client road trip,Sales\nEXP-057,2025-10-31,Software,129.00,Mike Johnson,Postman Pro,Engineering\nEXP-058,2025-10-31,Office Supplies,56.20,James Wilson,Mouse pad and wrist rest,Engineering\nEXP-059,2025-10-31,Meals,150.00,John Smith,Halloween team event,Sales\nEXP-060,2025-10-31,Travel,2100.00,Robert Lee,Last-minute flight change fee (ANOMALY: suspicious timing),Operations"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the expense data from data/expenses.csv and give me basic stats: total spend, average per category, and top spenders by employee.",
+      "assertions": {
+        "tools_used": ["memory_read", "execute_code"],
+        "response_matches": "\\$[\\d,]+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Run anomaly detection on this data. Look for statistical outliers within each category, duplicate submissions, suspicious patterns like weekend purchases, round-number spikes, and category mismatches.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(anomal|outlier|duplicate|suspicious)"
+      }
+    },
+    {
+      "user_input": "I see you flagged some entries from John Smith on weekends. Those are actually fine - he regularly works weekends and travels on Sundays for Monday meetings. Remove those from the anomaly list.",
+      "assertions": {
+        "response_matches": "(?i)(John Smith|weekend|remov|exclud|understood)"
+      }
+    },
+    {
+      "user_input": "What about the duplicate entries? Show me the exact pairs that look like duplicate submissions with their IDs, amounts, and descriptions.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "EXP-\\d{3}"
+      }
+    },
+    {
+      "user_input": "Calculate the total dollar amount of all confirmed anomalies (excluding the John Smith weekend entries we cleared).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\$[\\d,]+\\.?\\d*"
+      }
+    },
+    {
+      "user_input": "Generate a formal anomaly report I can send to the finance team. Include a summary, categorized findings, recommended actions, and the total financial exposure.",
+      "assertions": {
+        "response_matches": "(?i)(report|finding|recommend|action)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

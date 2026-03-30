@@ -1,0 +1,59 @@
+{
+  "name": "smart-contract-audit-prep",
+  "description": "Multi-turn smart contract audit scenario requiring vulnerability review against a checklist, reentrancy analysis, timestamp manipulation assessment, access control review, centralization risk evaluation, and severity-ranked audit report generation",
+  "tags": ["blockchain-ops", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a smart contract security auditor. Always be thorough and systematic. Reference specific line numbers and code patterns when identifying vulnerabilities. Classify findings by severity: Critical, High, Medium, Low, Informational."
+    },
+    "workspace": {
+      "documents": {
+        "contracts/StakingToken.sol": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\nimport \"@openzeppelin/contracts/token/ERC20/ERC20.sol\";\n\ncontract StakingToken is ERC20 {\n    address public owner;\n    uint256 public rewardRate = 100; // basis points per year\n    uint256 public totalStaked;\n    \n    struct StakeInfo {\n        uint256 amount;\n        uint256 startTime;\n        uint256 lastClaim;\n    }\n    \n    mapping(address => StakeInfo) public stakes;\n    mapping(address => bool) public blacklisted;\n    \n    constructor() ERC20(\"StakingToken\", \"STK\") {\n        owner = msg.sender;\n        _mint(msg.sender, 10_000_000 * 1e18);\n    }\n    \n    modifier onlyOwner() {\n        require(msg.sender == owner, \"Not owner\");\n        _;\n    }\n    \n    function stake(uint256 amount) external {\n        require(amount > 0, \"Cannot stake 0\");\n        require(!blacklisted[msg.sender], \"Blacklisted\");\n        \n        _transfer(msg.sender, address(this), amount);\n        \n        if (stakes[msg.sender].amount > 0) {\n            _claimRewards(msg.sender);\n        }\n        \n        stakes[msg.sender].amount += amount;\n        stakes[msg.sender].startTime = block.timestamp;\n        stakes[msg.sender].lastClaim = block.timestamp;\n        totalStaked += amount;\n    }\n    \n    function withdraw(uint256 amount) external {\n        require(stakes[msg.sender].amount >= amount, \"Insufficient stake\");\n        \n        _claimRewards(msg.sender);\n        stakes[msg.sender].amount -= amount;\n        totalStaked -= amount;\n        \n        // Transfer tokens back to user\n        (bool success, ) = msg.sender.call{value: 0}(\n            abi.encodeWithSignature(\"onTokenReceived(uint256)\", amount)\n        );\n        _transfer(address(this), msg.sender, amount);\n    }\n    \n    function _claimRewards(address user) internal {\n        uint256 timeElapsed = block.timestamp - stakes[user].lastClaim;\n        uint256 reward = (stakes[user].amount * rewardRate * timeElapsed) / (365 days * 10000);\n        \n        if (reward > 0) {\n            _mint(user, reward);\n        }\n        stakes[user].lastClaim = block.timestamp;\n    }\n    \n    function claimRewards() external {\n        require(stakes[msg.sender].amount > 0, \"No stake\");\n        _claimRewards(msg.sender);\n    }\n    \n    function admin_mint(address to, uint256 amount) external onlyOwner {\n        _mint(to, amount);\n    }\n    \n    function setRewardRate(uint256 newRate) external onlyOwner {\n        rewardRate = newRate;\n    }\n    \n    function setBlacklist(address user, bool status) external onlyOwner {\n        blacklisted[user] = status;\n    }\n    \n    function transferOwnership(address newOwner) external onlyOwner {\n        owner = newOwner;\n    }\n    \n    function emergencyWithdraw() external onlyOwner {\n        uint256 balance = balanceOf(address(this));\n        _transfer(address(this), owner, balance);\n        totalStaked = 0;\n    }\n}",
+        "checklist/vulnerabilities.md": "# Smart Contract Vulnerability Checklist\n\n## Critical\n- [ ] Reentrancy: External calls before state updates\n- [ ] Unchecked return values on external calls\n- [ ] Integer overflow/underflow (pre-0.8.0 concern)\n- [ ] Delegatecall to untrusted contracts\n- [ ] Self-destruct vulnerabilities\n\n## High\n- [ ] Access control: Missing or insufficient modifiers\n- [ ] Timestamp manipulation: Using block.timestamp for critical logic\n- [ ] Front-running vulnerabilities\n- [ ] Centralization risks: Single admin with excessive power\n- [ ] Missing reentrancy guards (ReentrancyGuard from OZ)\n\n## Medium\n- [ ] Missing events for state changes\n- [ ] Floating pragma version\n- [ ] Denial of service vectors\n- [ ] Unsafe ERC20 interactions (missing approve race condition handling)\n- [ ] Reward calculation precision loss\n\n## Low\n- [ ] Missing zero-address checks\n- [ ] Magic numbers without constants\n- [ ] Gas optimization opportunities\n- [ ] Missing NatSpec documentation\n\n## Informational\n- [ ] Code style consistency\n- [ ] Test coverage gaps\n- [ ] Upgrade path considerations"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the contract from contracts/StakingToken.sol and the checklist from checklist/vulnerabilities.md. Review the contract for common vulnerabilities from the checklist.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "I see a potential reentrancy issue in the withdraw function. Explain the attack vector.",
+      "assertions": {
+        "response_matches": "(?i)(reentran(cy|t))"
+      }
+    },
+    {
+      "user_input": "The staking rewards calculation uses block.timestamp -- is that manipulable?",
+      "assertions": {
+        "response_matches": "(?i)(timestamp|manipulat|miner|validator)"
+      }
+    },
+    {
+      "user_input": "Check the access control patterns. Are there any functions that should be restricted but aren't?",
+      "assertions": {
+        "response_matches": "(?i)(access|control|owner|restrict)"
+      }
+    },
+    {
+      "user_input": "The owner can mint unlimited tokens via the admin_mint function. Is this a centralization risk?",
+      "assertions": {
+        "response_matches": "(?i)(centralization|admin|trust)"
+      }
+    },
+    {
+      "user_input": "Generate a severity-ranked audit findings report. List each finding with severity, description, location, and recommended fix.",
+      "assertions": {
+        "response_matches": "(?i)(critical|high|medium)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

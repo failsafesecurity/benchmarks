@@ -1,0 +1,72 @@
+{
+  "name": "multi-source-join",
+  "description": "Multi-turn data integration across 3 datasets with inconsistent keys: schema discovery, join key analysis, fuzzy matching, confidence scoring, manual review workflow, and unified view generation",
+  "tags": ["data-engineering", "adversarial", "accuracy", "multi-turn", "code-execution", "data-integration"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data integration engineer. When joining datasets with inconsistent keys, always quantify match quality with confidence scores. Never silently drop records — report matched, partially matched, and unmatched counts."
+    },
+    "workspace": {
+      "documents": {
+        "data/crm.csv": "customer_name,email,company,industry,deal_stage,deal_value\nJohn Doe,john@acme.com,Acme Corp,Technology,Closed Won,50000\nJane Smith,jane.smith@globex.net,Globex Inc,Manufacturing,Negotiation,75000\nBob Wilson,bob.w@initech.com,Initech LLC,Finance,Proposal,30000\nAlice Brown,alice.brown@umbrella.co,Umbrella Co,Healthcare,Discovery,120000\nCharlie Davis,charlie@soylent.com,Soylent Corp,Food & Bev,Closed Won,45000\nDiana Prince,diana.p@wayne.com,Wayne Enterprises,Technology,Closed Won,200000\nEve Taylor,eve.taylor@stark.io,Stark Industries,Technology,Negotiation,95000\nFrank Miller,frank.m@oscorp.net,Oscorp,Biotech,Proposal,60000\nGrace Lee,grace@lexcorp.com,LexCorp,Energy,Discovery,150000\nHank Pym,hank.pym@pymtech.com,Pym Technologies,Technology,Closed Won,80000\nIvy Chen,ivy.c@acme.com,Acme Corp,Technology,Proposal,35000\nJack Ryan,jack.r@globex.net,Globex Inc,Manufacturing,Closed Won,55000\nKara Danvers,kara.d@daily.com,Daily Planet,Media,Discovery,40000\nLuke Cage,luke@heroes.net,Heroes for Hire,Security,Negotiation,25000\nMaria Hill,maria.h@shield.gov,SHIELD,Government,Closed Won,180000",
+        "data/billing.csv": "account_name,billing_email,plan,monthly_amount,payment_status,start_date\nAcme Corporation,john.doe@acme.com,Enterprise,4500,current,2024-01-15\nGlobex International,j.smith@globex.net,Professional,3200,current,2024-03-01\nInitech LLC,bob.wilson@initech.com,Starter,1500,overdue,2024-05-10\nUmbrella Corporation,a.brown@umbrella.co,Enterprise,5000,current,2024-02-20\nSoylent Corp,cdavis@soylent.com,Professional,2800,current,2024-04-05\nWayne Enterprises,d.prince@wayne.com,Enterprise,8500,current,2023-11-01\nStark Industries,eve@stark.io,Enterprise,6200,current,2024-01-08\nOscorp Industries,frank.miller@oscorp.net,Professional,3500,past_due,2024-06-15\nLexCorp Energy,grace.lee@lexcorp.com,Enterprise,7000,current,2023-09-20\nPym Technologies,h.pym@pymtech.com,Professional,3000,current,2024-07-01\nDaily Planet Media,kara.danvers@daily.com,Starter,1200,current,2024-08-10\nHeroes for Hire LLC,luke.cage@heroes.net,Starter,800,past_due,2024-09-01\nSHIELD Agency,mhill@shield.gov,Enterprise,9500,current,2023-06-15\nParker Industries,peter.p@parker.co,Professional,2500,current,2024-10-01\nRand Enterprises,danny@rand.com,Starter,1000,current,2024-11-15",
+        "data/support.csv": "user,contact_email,tickets_open,tickets_closed,avg_resolution_hrs,satisfaction_score,last_contact\nJohn D.,john@acme.com,2,15,4.2,4.8,2025-09-10\nJane S.,jane@globex.net,0,8,6.1,4.5,2025-08-22\nBob W.,bob.w@initech.com,3,12,8.5,3.2,2025-09-15\nAlice B.,alice@umbrella.co,1,20,3.8,4.9,2025-09-12\nCharlie D.,c.davis@soylent.com,0,5,5.0,4.1,2025-07-30\nDiana P.,diana@wayne.com,1,25,2.5,4.7,2025-09-18\nEve T.,eve.t@stark.io,4,18,7.2,3.8,2025-09-20\nFrank M.,fmiller@oscorp.net,5,10,12.3,2.9,2025-09-19\nGrace L.,grace@lexcorp.com,0,14,4.0,4.6,2025-08-15\nHank P.,hank@pymtech.com,1,9,5.5,4.3,2025-09-01\nIvy C.,ivy@acme.com,2,7,6.0,4.0,2025-09-05\nJack R.,j.ryan@globex.net,0,11,4.8,4.4,2025-08-28\nKara D.,kara@daily.com,1,3,7.0,3.5,2025-09-08\nLuke C.,luke@heroes.net,2,6,9.0,3.0,2025-09-14\nMaria H.,maria@shield.gov,0,30,2.0,5.0,2025-09-22"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load all 3 datasets from data/crm.csv, data/billing.csv, and data/support.csv. Describe their schemas and how many records each has.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(crm|billing|support|column|schema|record|15)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Try to join them. What's the best join key across all 3 datasets? What challenges do you see with the email fields?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(email|join|key|match|inconsisten|different)"
+      }
+    },
+    {
+      "user_input": "The email fields don't always match — for example 'john@acme.com' in CRM vs 'john.doe@acme.com' in billing. Write a fuzzy matching function that can find likely matches across the datasets.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(fuzzy|Levenshtein|similar|distance|match|ratio|domain)"
+      }
+    },
+    {
+      "user_input": "Run the fuzzy join across all 3 datasets. How many records matched exactly, how many partially matched (confidence between 0.5 and 0.8), and how many were unmatched?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(match|exact|partial|unmatch|confidence).*\\d|\\d.*(match|exact|partial|unmatch|confidence)"
+      }
+    },
+    {
+      "user_input": "For the partial matches (those with confidence between 0.5 and 0.8), show me the pairs so I can review them manually.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(partial|review|confidence|pair|match)"
+      }
+    },
+    {
+      "user_input": "I've reviewed them. Confirm these matches as correct: john@acme.com matches john.doe@acme.com, diana@wayne.com matches d.prince@wayne.com, and maria@shield.gov matches mhill@shield.gov. Reject any others.",
+      "assertions": {
+        "response_matches": "(?i)(confirm|accept|reject|applied|updated|match)"
+      }
+    },
+    {
+      "user_input": "Generate the final unified customer view with all fields merged and save it to the workspace.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_matches": "(?i)(unified|merged|final|customer|saved|written)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "multi-doc-synthesis",
+  "description": "Agent must read 5 project documents with deliberate inconsistencies, synthesize a unified view, identify conflicts, and produce an executive brief",
+  "tags": ["long-context-stress", "basic", "accuracy", "multi-turn", "document-synthesis"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a project management assistant. When synthesizing documents, identify conflicts and inconsistencies explicitly. Always cite which document a fact comes from when there are discrepancies."
+    },
+    "workspace": {
+      "documents": {
+        "docs/product-spec.md": "# Project Phoenix - Product Specification\n## Version 2.3 | Last Updated: 2026-01-10\n\n### Overview\nProject Phoenix is a next-generation customer analytics platform designed to replace our legacy reporting system (Atlas). The platform will provide real-time dashboards, predictive analytics, and automated reporting.\n\n### Core Features\n1. **Real-time Dashboard Engine** - Sub-second data refresh, customizable widgets, role-based views\n2. **Predictive Analytics Module** - ML-powered churn prediction, revenue forecasting, customer segmentation\n3. **Automated Report Builder** - Scheduled reports, custom templates, multi-format export (PDF, CSV, Excel)\n4. **Data Integration Layer** - Connectors for Salesforce, HubSpot, Stripe, custom APIs\n5. **Self-Service Query Builder** - Natural language query interface, saved queries, sharing\n\n### Target Users\n- Executive team (C-suite dashboards)\n- Sales managers (pipeline and forecast views)\n- Marketing analysts (campaign performance)\n- Customer success (health scores and churn risk)\n\n### Technical Requirements\n- Handle 50M+ events per day\n- Dashboard load time < 2 seconds\n- 99.9% uptime SLA\n- SOC 2 Type II compliance required before launch\n- Data retention: 3 years hot, 7 years cold storage\n\n### Launch Date\nTarget launch: **February 15, 2026** (hard deadline per CEO commitment to board)\n\n### Phase 2 Features (Post-Launch)\n- Mobile app (iOS and Android)\n- Advanced ML models (next-best-action)\n- White-label partner portal\n- Real-time alerting engine\n\n### Dependencies\n- Data warehouse migration (must complete by Jan 30)\n- SSO integration with Okta (in progress)\n- SOC 2 audit (scheduled for Jan 15-25)\n\n### Risks\n- Data warehouse migration timeline is tight\n- ML model accuracy needs validation with real data\n- SOC 2 audit could surface blocking findings",
+        "docs/marketing-plan.md": "# Project Phoenix - Go-to-Market Plan\n## Marketing Team | Version 1.5 | 2026-01-08\n\n### Launch Strategy\nWe are planning a phased rollout starting **February 1, 2026** with a select group of enterprise customers, followed by general availability on February 15.\n\n### Pre-Launch Activities (Jan 15 - Jan 31)\n- Press embargo briefings with 5 tier-1 tech publications\n- Customer advisory board preview (12 key accounts)\n- Sales enablement training (3 sessions, 45 reps)\n- Landing page and product demo video production\n- Social media teaser campaign launch (Jan 20)\n\n### Launch Week (Feb 1 - Feb 7)\n- Press release and blog post\n- Webinar: \"The Future of Customer Analytics\" (target: 500 registrations)\n- Email campaign to 15,000 qualified leads\n- Product Hunt launch (Feb 3)\n- LinkedIn sponsored content campaign ($25,000 budget)\n\n### Post-Launch (Feb 8 - Mar 15)\n- Customer success stories (3 case studies by Mar 1)\n- Analyst briefings (Gartner, Forrester)\n- Partner co-marketing with Salesforce and HubSpot\n- Paid search campaign ($15,000/month)\n\n### Budget\n- Total marketing budget: $120,000\n- Pre-launch: $30,000\n- Launch week: $45,000\n- Post-launch: $45,000\n\n### Key Metrics\n- 500 webinar registrations\n- 200 trial signups in first month\n- 50 qualified demos booked\n- 15 press mentions\n\n### Messaging\n- Primary: \"Real-time insights, not yesterday's reports\"\n- Secondary: \"From data chaos to clarity in minutes\"\n- Tagline: \"Phoenix - Analytics Reborn\"\n\n### Open Items\n- Need final product screenshots for landing page\n- Pricing page copy pending finance approval\n- Integration partner logos need legal clearance",
+        "docs/engineering-status.md": "# Project Phoenix - Engineering Status Report\n## Sprint 14 | Week of 2026-01-06\n\n### Overall Status: YELLOW (at risk)\n\n### Completed This Sprint\n- Real-time dashboard engine: core rendering pipeline (95% complete)\n- Data integration: Salesforce and HubSpot connectors tested and deployed to staging\n- Authentication: SSO/Okta integration complete, pending security review\n- API: 42/48 endpoints implemented and documented\n\n### In Progress\n- Predictive analytics module: model training pipeline 70% complete\n- Report builder: template engine done, PDF export has rendering bugs\n- Query builder: NLP parser at 80% accuracy, needs improvement to 95%+\n- Performance: dashboard load times averaging 3.2 seconds (target: <2s)\n\n### Blockers\n- **Data warehouse migration delayed**: New ETA is Feb 5 (was Jan 30). This impacts integration testing.\n- **ML model accuracy**: Churn prediction at 72% accuracy, need 85%+ for launch\n- **Performance gap**: Dashboard load times 60% over target. Need to optimize query layer.\n\n### Revised Timeline\nGiven current blockers, engineering estimates a realistic launch date of **February 15, 2026** at earliest, with the following conditions:\n1. Data warehouse migration completes by Feb 5\n2. Performance optimization sprint (Feb 1-7) hits targets\n3. ML model accuracy reaches 85% by Feb 10\n4. SOC 2 audit has no critical findings\n\nIf any condition is not met, we recommend pushing to **March 1**.\n\n### Team Capacity\n- 8 engineers allocated (6 backend, 2 frontend)\n- 1 ML engineer (shared with Data Science team - only 60% allocation)\n- DevOps: 1 engineer for infrastructure and deployment\n- QA: 2 engineers starting integration testing Jan 13\n\n### Technical Debt\n- Legacy Atlas API shim needs maintenance until cutover\n- Test coverage at 67% (target: 80%)\n- 23 known bugs in backlog (8 P1, 10 P2, 5 P3)\n\n### Infrastructure Costs\n- Current staging: $8,500/month (AWS)\n- Estimated production: $22,000/month\n- ML training compute: $5,000/month (could spike to $12,000 during model retraining)",
+        "docs/risk-assessment.md": "# Project Phoenix - Risk Assessment\n## Risk Committee Review | 2026-01-05\n\n### Critical Risks\n\n**R1: Data Warehouse Migration Delay** (Likelihood: HIGH, Impact: HIGH)\n- Current status: 2 weeks behind schedule\n- Impact: Delays integration testing, could push launch by 2+ weeks\n- Mitigation: Added 2 contractors to migration team\n- Owner: David Chen (Data Engineering)\n\n**R2: SOC 2 Compliance Gap** (Likelihood: MEDIUM, Impact: CRITICAL)\n- Audit scheduled Jan 15-25\n- Pre-audit identified 3 potential gaps: encryption at rest, access logging, incident response plan\n- Impact: Cannot launch to enterprise customers without SOC 2\n- Mitigation: Remediation sprint in progress, 2 of 3 gaps addressed\n- Owner: Sarah Kim (Security)\n\n**R3: Cloud Cost Overrun** (Likelihood: HIGH, Impact: MEDIUM)\n- Current monthly burn: $35,500 (staging + ML training)\n- Production estimated: $22,000/month additional\n- ML retraining spikes could add $7,000/month unpredictably\n- **Potential $30,000 overage this quarter** if ML retraining runs long\n- Mitigation: Reserved instances purchase pending finance approval\n- Owner: Mike Torres (DevOps)\n\n**R4: ML Model Underperformance** (Likelihood: MEDIUM, Impact: HIGH)\n- Churn model at 72% accuracy vs 85% target\n- May need to launch with simplified heuristic model as fallback\n- Impact: Reduced product differentiation, weaker sales pitch\n- Mitigation: Brought in ML consultant for 2-week engagement\n- Owner: Priya Patel (ML Engineering)\n\n### Moderate Risks\n\n**R5: Key Person Dependency** (Likelihood: LOW, Impact: HIGH)\n- Lead architect (James Wong) is single point of failure for real-time engine\n- No documentation for custom streaming protocol\n- Mitigation: Knowledge transfer sessions scheduled\n\n**R6: Vendor Lock-in** (Likelihood: LOW, Impact: MEDIUM)\n- Heavy dependency on AWS Kinesis for streaming\n- Switching cost estimated at 3 months of engineering\n- Mitigation: Abstraction layer in architecture (partial)\n\n**R7: Customer Data Privacy** (Likelihood: LOW, Impact: CRITICAL)\n- GDPR and CCPA compliance required\n- Data residency requirements for EU customers not fully addressed\n- Mitigation: Legal review in progress\n\n### Risk Summary\n- Critical: 4 risks (2 being actively mitigated)\n- Moderate: 3 risks\n- Overall project risk level: **HIGH**",
+        "docs/budget.md": "# Project Phoenix - Budget Tracker\n## Finance Team | As of 2026-01-07\n\n### Total Approved Budget: $480,000\n\n### Spent to Date: $430,000\n| Category | Budget | Spent | Remaining |\n|----------|--------|-------|-----------|\n| Engineering (salaries) | $280,000 | $265,000 | $15,000 |\n| Cloud Infrastructure | $80,000 | $71,000 | $9,000 |\n| ML/AI Tools & Compute | $40,000 | $38,000 | $2,000 |\n| Marketing (pre-launch) | $30,000 | $22,000 | $8,000 |\n| Contractors | $25,000 | $18,000 | $7,000 |\n| QA & Testing Tools | $15,000 | $10,000 | $5,000 |\n| Miscellaneous | $10,000 | $6,000 | $4,000 |\n\n### Remaining Budget: $50,000\n\n### Upcoming Committed Expenses\n- Marketing launch campaign: $45,000 (from marketing plan)\n- ML consultant (2 weeks): $12,000\n- AWS reserved instances: $15,000 (annual prepay)\n- SOC 2 remediation tools: $5,000\n\n### Total Committed but Unspent: $77,000\n\n### Projected Shortfall: -$27,000\n\n### Notes\n- Marketing launch budget ($45K) was approved separately from initial $480K allocation\n- ML consultant was an unplanned expense (risk mitigation)\n- Cloud costs trending 15% over initial estimates\n- Finance committee meeting Jan 15 to discuss additional funding request\n- If reserved instances are not purchased, monthly costs will be ~$5,000 higher\n\n### Budget Risks\n- ML retraining could add $30,000 if extended (see risk assessment R3)\n- Marketing post-launch budget ($45K) not yet approved — pending Q1 review\n- Potential need for additional contractors if Feb 15 deadline holds"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Read all the documents in the docs folder and give me a one-paragraph status summary of Project Phoenix.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_contains": ["Phoenix"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What are the top 3 risks across all documents?",
+      "assertions": {
+        "response_contains": ["data warehouse"],
+        "response_matches": "(?i)(risk|concern|threat|issue)"
+      }
+    },
+    {
+      "user_input": "The engineering doc says the realistic launch is February 15 but marketing says the phased rollout starts February 1. Who's right and what's the impact of this discrepancy?",
+      "assertions": {
+        "response_contains": ["Feb"],
+        "response_matches": "(?i)(conflict|inconsisten|discrepan|mismatch|gap|misalign)"
+      }
+    },
+    {
+      "user_input": "The budget shows $50K remaining but the risk doc mentions a potential $30K overage for cloud costs. Are we going to be over budget?",
+      "assertions": {
+        "response_contains": ["50"],
+        "response_matches": "(?i)(over|shortfall|deficit|exceed|insufficient)"
+      }
+    },
+    {
+      "user_input": "Generate a unified executive brief that resolves all the conflicts between documents and presents a single coherent picture.",
+      "assertions": {
+        "response_matches": "(?i)(brief|summary|executive)",
+        "response_contains": ["Phoenix"]
+      }
+    },
+    {
+      "user_input": "Save the executive brief to the workspace as docs/executive-brief.md.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

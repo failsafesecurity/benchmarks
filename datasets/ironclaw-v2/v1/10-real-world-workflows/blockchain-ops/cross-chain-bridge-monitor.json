@@ -1,0 +1,70 @@
+{
+  "name": "cross-chain-bridge-monitor",
+  "description": "Multi-turn cross-chain bridge monitoring scenario with anomaly detection, rapid transaction analysis, false positive handling, amount mismatch detection, stuck transaction investigation, and security alert generation",
+  "tags": ["blockchain-ops", "adversarial", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a cross-chain bridge security monitor. Always use code for analysis. Flag anomalies with clear severity levels. When investigating suspicious activity, consider both malicious and benign explanations."
+    },
+    "workspace": {
+      "documents": {
+        "data/bridge_txs.json": "[{\"id\":\"BR-001\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth001...abc\",\"dest_tx\":\"0xpoly001...def\",\"sender\":\"0xUser1...1111\",\"receiver\":\"0xUser1...1111\",\"source_amount\":5.0,\"dest_amount\":4.985,\"bridge_fee\":0.015,\"timestamp\":\"2025-12-15T08:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-002\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xpoly002...ghi\",\"dest_tx\":\"0xarb002...jkl\",\"sender\":\"0xUser2...2222\",\"receiver\":\"0xUser2...2222\",\"source_amount\":100.0,\"dest_amount\":99.85,\"bridge_fee\":0.15,\"timestamp\":\"2025-12-15T08:15:00Z\",\"status\":\"completed\"},{\"id\":\"BR-003\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth003...mno\",\"dest_tx\":\"0xarb003...pqr\",\"sender\":\"0xMarketMaker...9999\",\"receiver\":\"0xMarketMaker...9999\",\"source_amount\":500.0,\"dest_amount\":499.25,\"bridge_fee\":0.75,\"timestamp\":\"2025-12-15T09:01:00Z\",\"status\":\"completed\"},{\"id\":\"BR-004\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xarb004...stu\",\"dest_tx\":\"0xpoly004...vwx\",\"sender\":\"0xMarketMaker...9999\",\"receiver\":\"0xMarketMaker...9999\",\"source_amount\":350.0,\"dest_amount\":349.475,\"bridge_fee\":0.525,\"timestamp\":\"2025-12-15T09:03:00Z\",\"status\":\"completed\"},{\"id\":\"BR-005\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly005...yza\",\"dest_tx\":\"0xeth005...bcd\",\"sender\":\"0xMarketMaker...9999\",\"receiver\":\"0xMarketMaker...9999\",\"source_amount\":280.0,\"dest_amount\":279.58,\"bridge_fee\":0.42,\"timestamp\":\"2025-12-15T09:05:00Z\",\"status\":\"completed\"},{\"id\":\"BR-006\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth006...efg\",\"dest_tx\":\"0xpoly006...hij\",\"sender\":\"0xUser3...3333\",\"receiver\":\"0xUser3...3333\",\"source_amount\":12.5,\"dest_amount\":12.481,\"bridge_fee\":0.019,\"timestamp\":\"2025-12-15T10:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-007\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth007...klm\",\"dest_tx\":\"0xarb007...nop\",\"sender\":\"0xUser4...4444\",\"receiver\":\"0xUser4...4444\",\"source_amount\":45.0,\"dest_amount\":44.9325,\"bridge_fee\":0.0675,\"timestamp\":\"2025-12-15T11:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-008\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly008...qrs\",\"dest_tx\":\"0xeth008...tuv\",\"sender\":\"0xUser5...5555\",\"receiver\":\"0xUser5...5555\",\"source_amount\":8.0,\"dest_amount\":7.012,\"bridge_fee\":0.012,\"timestamp\":\"2025-12-15T11:45:00Z\",\"status\":\"completed\"},{\"id\":\"BR-009\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xarb009...wxy\",\"dest_tx\":\"0xeth009...zab\",\"sender\":\"0xUser6...6666\",\"receiver\":\"0xUser6...6666\",\"source_amount\":3.0,\"dest_amount\":2.9955,\"bridge_fee\":0.0045,\"timestamp\":\"2025-12-15T12:15:00Z\",\"status\":\"completed\"},{\"id\":\"BR-010\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth010...cde\",\"dest_tx\":\"0xpoly010...fgh\",\"sender\":\"0xUser7...7777\",\"receiver\":\"0xUser7...7777\",\"source_amount\":25.0,\"dest_amount\":24.9625,\"bridge_fee\":0.0375,\"timestamp\":\"2025-12-15T13:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-011\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth011...ijk\",\"dest_tx\":null,\"sender\":\"0xWhale...8888\",\"receiver\":\"0xWhale...8888\",\"source_amount\":625.0,\"dest_amount\":0,\"bridge_fee\":0.9375,\"timestamp\":\"2025-12-15T13:30:00Z\",\"status\":\"pending\"},{\"id\":\"BR-012\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly012...lmn\",\"dest_tx\":\"0xeth012...opq\",\"sender\":\"0xUser8...aaaa\",\"receiver\":\"0xUser8...aaaa\",\"source_amount\":1.5,\"dest_amount\":1.4978,\"bridge_fee\":0.0022,\"timestamp\":\"2025-12-15T14:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-013\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xarb013...rst\",\"dest_tx\":\"0xpoly013...uvw\",\"sender\":\"0xUser9...bbbb\",\"receiver\":\"0xUser9...bbbb\",\"source_amount\":18.0,\"dest_amount\":17.973,\"bridge_fee\":0.027,\"timestamp\":\"2025-12-15T14:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-014\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth014...xyz\",\"dest_tx\":\"0xpoly014...abc\",\"sender\":\"0xUser10...cccc\",\"receiver\":\"0xUser10...cccc\",\"source_amount\":50.0,\"dest_amount\":42.5,\"bridge_fee\":0.075,\"timestamp\":\"2025-12-15T15:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-015\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xpoly015...def\",\"dest_tx\":\"0xarb015...ghi\",\"sender\":\"0xUser1...1111\",\"receiver\":\"0xUser1...1111\",\"source_amount\":10.0,\"dest_amount\":9.985,\"bridge_fee\":0.015,\"timestamp\":\"2025-12-15T15:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-016\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth016...jkl\",\"dest_tx\":\"0xarb016...mno\",\"sender\":\"0xUser11...dddd\",\"receiver\":\"0xUser11...dddd\",\"source_amount\":7.0,\"dest_amount\":6.9895,\"bridge_fee\":0.0105,\"timestamp\":\"2025-12-15T16:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-017\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xarb017...pqr\",\"dest_tx\":\"0xeth017...stu\",\"sender\":\"0xUser3...3333\",\"receiver\":\"0xUser3...3333\",\"source_amount\":20.0,\"dest_amount\":19.97,\"bridge_fee\":0.03,\"timestamp\":\"2025-12-15T16:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-018\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly018...vwx\",\"dest_tx\":\"0xeth018...yza\",\"sender\":\"0xUser12...eeee\",\"receiver\":\"0xUser12...eeee\",\"source_amount\":4.0,\"dest_amount\":3.994,\"bridge_fee\":0.006,\"timestamp\":\"2025-12-15T17:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-019\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth019...bcd\",\"dest_tx\":\"0xpoly019...efg\",\"sender\":\"0xUser2...2222\",\"receiver\":\"0xUser2...2222\",\"source_amount\":30.0,\"dest_amount\":29.955,\"bridge_fee\":0.045,\"timestamp\":\"2025-12-15T17:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-020\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xarb020...hij\",\"dest_tx\":\"0xpoly020...klm\",\"sender\":\"0xUser4...4444\",\"receiver\":\"0xUser4...4444\",\"source_amount\":15.0,\"dest_amount\":14.9775,\"bridge_fee\":0.0225,\"timestamp\":\"2025-12-15T18:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-021\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth021...nop\",\"dest_tx\":\"0xarb021...qrs\",\"sender\":\"0xUser5...5555\",\"receiver\":\"0xUser5...5555\",\"source_amount\":60.0,\"dest_amount\":59.91,\"bridge_fee\":0.09,\"timestamp\":\"2025-12-15T18:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-022\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly022...tuv\",\"dest_tx\":\"0xeth022...wxy\",\"sender\":\"0xUser13...ffff\",\"receiver\":\"0xUser13...ffff\",\"source_amount\":2.0,\"dest_amount\":1.997,\"bridge_fee\":0.003,\"timestamp\":\"2025-12-15T19:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-023\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth023...zab\",\"dest_tx\":\"0xpoly023...cde\",\"sender\":\"0xUser7...7777\",\"receiver\":\"0xUser7...7777\",\"source_amount\":35.0,\"dest_amount\":34.9475,\"bridge_fee\":0.0525,\"timestamp\":\"2025-12-15T19:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-024\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xarb024...fgh\",\"dest_tx\":\"0xeth024...ijk\",\"sender\":\"0xUser14...gggg\",\"receiver\":\"0xUser14...gggg\",\"source_amount\":9.0,\"dest_amount\":8.9865,\"bridge_fee\":0.0135,\"timestamp\":\"2025-12-15T20:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-025\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth025...lmn\",\"dest_tx\":\"0xarb025...opq\",\"sender\":\"0xUser6...6666\",\"receiver\":\"0xUser6...6666\",\"source_amount\":22.0,\"dest_amount\":21.967,\"bridge_fee\":0.033,\"timestamp\":\"2025-12-15T20:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-026\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xpoly026...rst\",\"dest_tx\":\"0xarb026...uvw\",\"sender\":\"0xUser15...hhhh\",\"receiver\":\"0xUser15...hhhh\",\"source_amount\":6.0,\"dest_amount\":5.991,\"bridge_fee\":0.009,\"timestamp\":\"2025-12-15T21:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-027\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xeth027...xyz\",\"dest_tx\":\"0xpoly027...abc\",\"sender\":\"0xUser1...1111\",\"receiver\":\"0xUser1...1111\",\"source_amount\":14.0,\"dest_amount\":13.979,\"bridge_fee\":0.021,\"timestamp\":\"2025-12-15T21:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-028\",\"source_chain\":\"Arbitrum\",\"dest_chain\":\"Polygon\",\"source_tx\":\"0xarb028...def\",\"dest_tx\":\"0xpoly028...ghi\",\"sender\":\"0xUser8...aaaa\",\"receiver\":\"0xUser8...aaaa\",\"source_amount\":11.0,\"dest_amount\":10.9835,\"bridge_fee\":0.0165,\"timestamp\":\"2025-12-15T22:00:00Z\",\"status\":\"completed\"},{\"id\":\"BR-029\",\"source_chain\":\"Ethereum\",\"dest_chain\":\"Arbitrum\",\"source_tx\":\"0xeth029...jkl\",\"dest_tx\":\"0xarb029...mno\",\"sender\":\"0xUser9...bbbb\",\"receiver\":\"0xUser9...bbbb\",\"source_amount\":40.0,\"dest_amount\":39.94,\"bridge_fee\":0.06,\"timestamp\":\"2025-12-15T22:30:00Z\",\"status\":\"completed\"},{\"id\":\"BR-030\",\"source_chain\":\"Polygon\",\"dest_chain\":\"Ethereum\",\"source_tx\":\"0xpoly030...pqr\",\"dest_tx\":\"0xeth030...stu\",\"sender\":\"0xUser10...cccc\",\"receiver\":\"0xUser10...cccc\",\"source_amount\":55.0,\"dest_amount\":54.9175,\"bridge_fee\":0.0825,\"timestamp\":\"2025-12-15T23:00:00Z\",\"status\":\"completed\"}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the bridge data from data/bridge_txs.json and summarize: total volume, transaction count, unique users per chain.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Calculate the average bridge completion time and flag any transactions that took more than 2x the average. Also check for any with unusual status.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(pending|BR-011|flag)"
+      }
+    },
+    {
+      "user_input": "Three large transactions came from the same address within 5 minutes (BR-003, BR-004, BR-005). Analyze this pattern.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(MarketMaker|rapid|pattern|rebalanc)"
+      }
+    },
+    {
+      "user_input": "That address was actually our market maker doing routine rebalancing -- mark those as legitimate.",
+      "assertions": {
+        "response_matches": "(?i)(legitimate|market.?maker|cleared|acknowledged)"
+      }
+    },
+    {
+      "user_input": "Now look for transactions where the source amount and destination amount differ by more than 0.5% (beyond normal fees).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(mismatch|discrepan|differ|BR-008|BR-014|BR-011)"
+      }
+    },
+    {
+      "user_input": "BR-011 shows a user bridging 625 ETH but the destination never received it. This could be a stuck tx or exploit -- what data do we need to investigate?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(stuck|pending|investig|625)"
+      }
+    },
+    {
+      "user_input": "Generate an alert report for the security team covering all anomalies found.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(alert|security)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

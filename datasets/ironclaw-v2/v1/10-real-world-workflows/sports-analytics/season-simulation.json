@@ -1,0 +1,72 @@
+{
+  "name": "season-simulation",
+  "description": "Run Monte Carlo simulations of the NBA season remainder to calculate playoff probabilities, seeding scenarios, and championship odds for 30 teams",
+  "tags": ["sports-analytics", "adversarial", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a sports analytics assistant. Use Monte Carlo methods for simulations. Show confidence intervals. Use at least 1000 iterations for reliable results. Present probabilities as percentages."
+    },
+    "workspace": {
+      "documents": {
+        "data/standings.json": "{\"conference\": \"Eastern\", \"teams\": [{\"name\": \"Boston Celtics\", \"wins\": 52, \"losses\": 14, \"conf\": \"East\"}, {\"name\": \"Cleveland Cavaliers\", \"wins\": 48, \"losses\": 18, \"conf\": \"East\"}, {\"name\": \"New York Knicks\", \"wins\": 44, \"losses\": 22, \"conf\": \"East\"}, {\"name\": \"Milwaukee Bucks\", \"wins\": 43, \"losses\": 23, \"conf\": \"East\"}, {\"name\": \"Indiana Pacers\", \"wins\": 40, \"losses\": 26, \"conf\": \"East\"}, {\"name\": \"Orlando Magic\", \"wins\": 37, \"losses\": 29, \"conf\": \"East\"}, {\"name\": \"Philadelphia 76ers\", \"wins\": 37, \"losses\": 29, \"conf\": \"East\"}, {\"name\": \"Miami Heat\", \"wins\": 36, \"losses\": 30, \"conf\": \"East\"}, {\"name\": \"Chicago Bulls\", \"wins\": 31, \"losses\": 35, \"conf\": \"East\"}, {\"name\": \"Atlanta Hawks\", \"wins\": 30, \"losses\": 36, \"conf\": \"East\"}, {\"name\": \"Brooklyn Nets\", \"wins\": 26, \"losses\": 40, \"conf\": \"East\"}, {\"name\": \"Toronto Raptors\", \"wins\": 25, \"losses\": 41, \"conf\": \"East\"}, {\"name\": \"Detroit Pistons\", \"wins\": 17, \"losses\": 49, \"conf\": \"East\"}, {\"name\": \"Charlotte Hornets\", \"wins\": 18, \"losses\": 48, \"conf\": \"East\"}, {\"name\": \"Washington Wizards\", \"wins\": 14, \"losses\": 52, \"conf\": \"East\"}, {\"name\": \"Oklahoma City Thunder\", \"wins\": 50, \"losses\": 16, \"conf\": \"West\"}, {\"name\": \"Denver Nuggets\", \"wins\": 46, \"losses\": 20, \"conf\": \"West\"}, {\"name\": \"Minnesota Timberwolves\", \"wins\": 47, \"losses\": 19, \"conf\": \"West\"}, {\"name\": \"Dallas Mavericks\", \"wins\": 42, \"losses\": 24, \"conf\": \"West\"}, {\"name\": \"Phoenix Suns\", \"wins\": 41, \"losses\": 25, \"conf\": \"West\"}, {\"name\": \"Los Angeles Lakers\", \"wins\": 39, \"losses\": 27, \"conf\": \"West\"}, {\"name\": \"Sacramento Kings\", \"wins\": 38, \"losses\": 28, \"conf\": \"West\"}, {\"name\": \"New Orleans Pelicans\", \"wins\": 35, \"losses\": 31, \"conf\": \"West\"}, {\"name\": \"Golden State Warriors\", \"wins\": 34, \"losses\": 32, \"conf\": \"West\"}, {\"name\": \"Houston Rockets\", \"wins\": 33, \"losses\": 33, \"conf\": \"West\"}, {\"name\": \"Los Angeles Clippers\", \"wins\": 35, \"losses\": 31, \"conf\": \"West\"}, {\"name\": \"Utah Jazz\", \"wins\": 27, \"losses\": 39, \"conf\": \"West\"}, {\"name\": \"Memphis Grizzlies\", \"wins\": 28, \"losses\": 38, \"conf\": \"West\"}, {\"name\": \"Portland Trail Blazers\", \"wins\": 22, \"losses\": 44, \"conf\": \"West\"}, {\"name\": \"San Antonio Spurs\", \"wins\": 24, \"losses\": 42, \"conf\": \"West\"}]}",
+        "data/remaining_schedule.json": "{\"games_remaining\": 16, \"schedule\": [{\"team\": \"New York Knicks\", \"opponents\": [{\"vs\": \"Boston Celtics\", \"loc\": \"away\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"home\"}, {\"vs\": \"Miami Heat\", \"loc\": \"away\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"home\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"away\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"home\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"home\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"away\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"home\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"away\"}, {\"vs\": \"Milwaukee Bucks\", \"loc\": \"home\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"away\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"home\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"home\"}, {\"vs\": \"Boston Celtics\", \"loc\": \"home\"}, {\"vs\": \"Miami Heat\", \"loc\": \"home\"}]}, {\"team\": \"Boston Celtics\", \"opponents\": [{\"vs\": \"New York Knicks\", \"loc\": \"home\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"away\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"home\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"away\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"home\"}, {\"vs\": \"Milwaukee Bucks\", \"loc\": \"away\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"home\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"home\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"away\"}, {\"vs\": \"Miami Heat\", \"loc\": \"home\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"away\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"home\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"home\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"away\"}, {\"vs\": \"New York Knicks\", \"loc\": \"away\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"home\"}]}, {\"team\": \"Cleveland Cavaliers\", \"opponents\": [{\"vs\": \"Boston Celtics\", \"loc\": \"home\"}, {\"vs\": \"New York Knicks\", \"loc\": \"home\"}, {\"vs\": \"Milwaukee Bucks\", \"loc\": \"away\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"home\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"home\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"away\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"home\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"away\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"home\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"away\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"home\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"away\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"home\"}, {\"vs\": \"Miami Heat\", \"loc\": \"away\"}, {\"vs\": \"Boston Celtics\", \"loc\": \"away\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"away\"}]}, {\"team\": \"Milwaukee Bucks\", \"opponents\": [{\"vs\": \"Cleveland Cavaliers\", \"loc\": \"home\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"away\"}, {\"vs\": \"New York Knicks\", \"loc\": \"away\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"home\"}, {\"vs\": \"Boston Celtics\", \"loc\": \"home\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"home\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"away\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"home\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"away\"}, {\"vs\": \"Miami Heat\", \"loc\": \"home\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"away\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"home\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"home\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"away\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"home\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"away\"}]}, {\"team\": \"Indiana Pacers\", \"opponents\": [{\"vs\": \"Milwaukee Bucks\", \"loc\": \"home\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"away\"}, {\"vs\": \"New York Knicks\", \"loc\": \"away\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"home\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"away\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"home\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"home\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"away\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"home\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"away\"}, {\"vs\": \"Miami Heat\", \"loc\": \"home\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"away\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"home\"}, {\"vs\": \"Boston Celtics\", \"loc\": \"home\"}, {\"vs\": \"Milwaukee Bucks\", \"loc\": \"away\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"home\"}]}, {\"team\": \"Miami Heat\", \"opponents\": [{\"vs\": \"New York Knicks\", \"loc\": \"home\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"away\"}, {\"vs\": \"Philadelphia 76ers\", \"loc\": \"home\"}, {\"vs\": \"Atlanta Hawks\", \"loc\": \"away\"}, {\"vs\": \"Chicago Bulls\", \"loc\": \"home\"}, {\"vs\": \"Brooklyn Nets\", \"loc\": \"away\"}, {\"vs\": \"Charlotte Hornets\", \"loc\": \"home\"}, {\"vs\": \"Washington Wizards\", \"loc\": \"away\"}, {\"vs\": \"Detroit Pistons\", \"loc\": \"home\"}, {\"vs\": \"Toronto Raptors\", \"loc\": \"away\"}, {\"vs\": \"Milwaukee Bucks\", \"loc\": \"away\"}, {\"vs\": \"Cleveland Cavaliers\", \"loc\": \"home\"}, {\"vs\": \"Indiana Pacers\", \"loc\": \"away\"}, {\"vs\": \"Boston Celtics\", \"loc\": \"away\"}, {\"vs\": \"New York Knicks\", \"loc\": \"away\"}, {\"vs\": \"Orlando Magic\", \"loc\": \"home\"}]}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the current standings from data/standings.json and the remaining schedule from data/remaining_schedule.json. Show me the current playoff picture for both conferences.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["East", "West"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Run a Monte Carlo simulation with 1000 iterations of the remaining season. Use each team's current win percentage as their base probability, adjusted for home court advantage (+3%). What are each team's playoff probabilities?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(playoff|probab).*%"
+      }
+    },
+    {
+      "user_input": "Which teams are on the bubble? Identify teams between 30-70% playoff probability. These are the most interesting races.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(bubble|contested|uncertain|30|70)"
+      }
+    },
+    {
+      "user_input": "My team is the Knicks. They have a 45% chance right now to make the playoffs in the top 6. What specific wins in the remaining schedule would push them over 60%?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Knicks|wins|schedule|60%|scenario)"
+      }
+    },
+    {
+      "user_input": "Simulate a scenario where the Knicks win their next 5 games. How does that change their playoff probability and seeding outlook?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Knicks).*(%|probab|seed)"
+      }
+    },
+    {
+      "user_input": "What's the probability of the Knicks getting the 4th seed vs the 5th seed? Seeding matters for home court advantage in the first round.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(4th|5th|seed|home court).*%"
+      }
+    },
+    {
+      "user_input": "Run the full simulation through the playoffs to the Finals. What are the championship probabilities for the top 8 teams? Use the Elo-style win probabilities based on team strength for playoff matchups.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(championship|Finals|title).*%",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

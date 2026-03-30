@@ -1,0 +1,56 @@
+{
+  "name": "draft-pick-analyzer",
+  "description": "Analyze NBA draft prospects using college stats, combine metrics, and mock draft data to build a composite ranking and draft board for a team picking 8th",
+  "tags": ["sports-analytics", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NBA draft scout and analytics expert. Use code for all calculations. When comparing players, use per-game stats normalized for pace and minutes. Present metrics in clean tables."
+    },
+    "workspace": {
+      "documents": {
+        "data/prospects.csv": "name,position,college,ppg,rpg,apg,fg_pct,wingspan,vertical,forty_time,mock_position\nCooper Flagg,PF,Duke,20.8,8.5,4.2,47.5,7.0,38.5,3.22,1\nDylan Harper,PG,Rutgers,21.5,5.2,6.8,46.2,6.6,36.0,3.35,2\nAce Bailey,SF,Rutgers,19.2,7.8,2.5,44.8,7.2,40.0,3.28,3\nVJ Edgecombe,SG,Baylor,18.5,4.8,3.5,43.5,6.8,42.5,3.18,4\nKon Knueppel,SG,Duke,16.8,5.5,3.2,45.0,6.7,35.5,3.40,7\nTre Johnson,SG,Texas,19.8,4.2,2.8,42.0,6.9,39.0,3.25,5\nKasparas Jakucionis,PG,Illinois,14.5,4.0,7.2,44.0,6.5,34.0,3.38,9\nJeremiah Fears,PG,Oklahoma,17.2,3.8,5.5,43.8,6.4,37.0,3.30,8\nNolan Traore,PG,France,15.0,3.5,8.0,46.5,6.7,36.5,3.32,6\nJinning Fan,C,China,14.2,9.5,1.8,55.2,7.4,33.0,3.50,10\nLiam McNeeley,SF,UConn,15.5,6.8,2.0,44.5,6.9,36.0,3.38,11\nBenjamin Aidoo,PF,UNLV,13.8,8.8,1.2,58.0,7.1,37.0,3.35,12\nCollin Murray-Boyles,PF,South Carolina,14.0,7.5,2.5,52.5,6.10,35.0,3.42,14\nDarrius Carter,PF,Kansas,12.5,7.2,1.5,54.0,7.0,34.5,3.45,16\nBrandon McCoy,C,Stanford,11.8,8.0,1.0,56.8,7.3,32.5,3.52,18\nLabaron Philon,PG,Alabama,13.2,3.2,5.0,41.5,6.3,38.0,3.28,13\nEgor Demin,PG,BYU,12.8,4.5,6.5,42.8,6.8,34.0,3.42,15\nJames Brown,SG,Oregon,16.2,4.0,2.2,43.0,6.6,41.0,3.20,17\nTyran Stokes,SG,Auburn,15.8,3.5,3.8,44.2,6.5,39.5,3.24,19\nKarter Knox,SF,Kentucky,14.5,6.0,2.0,45.5,7.0,36.0,3.36,20"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the prospect data from data/prospects.csv. Rank the prospects by a composite score weighting: 40% production (points, rebounds, assists), 30% athleticism (wingspan, vertical, forty_time), 30% projected role (inverse of mock_position, higher picks = higher value).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(rank|composite|score|Flagg|Harper)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Our team picks 8th overall. Based on mock draft positions, who is projected to be available at pick 8 and who is our best option according to the composite score?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(8th|pick|available)"
+      }
+    },
+    {
+      "user_input": "Compare the top 3 available prospects at pick 8 side-by-side on every metric. Include their composite score breakdown.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(compar|side.by.side|metric|score)"
+      }
+    },
+    {
+      "user_input": "For our top prospect at pick 8, find historical NBA players with similar college statistical profiles. Use Euclidean distance across key stats (ppg, rpg, apg, fg_pct) to find the 3 closest matches from this reference set: Ja Morant (24.5/5.7/10.0/49.9), Jayson Tatum (15.6/7.3/2.0/45.2), LaMelo Ball (21.2/5.4/7.7/38.0), Tyrese Haliburton (15.2/5.5/6.5/50.8), Anthony Edwards (19.1/5.2/2.8/40.2).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(similar|comparison|profile|closest|match)"
+      }
+    },
+    {
+      "user_input": "Generate a draft board with our top 5 targets at pick 8 and a brief scouting case for each. Include their composite score and key strengths/weaknesses.",
+      "assertions": {
+        "response_matches": "(draft board|target|scout|strength|weakness)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

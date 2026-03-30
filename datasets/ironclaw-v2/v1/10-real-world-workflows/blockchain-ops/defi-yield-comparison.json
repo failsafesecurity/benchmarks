@@ -1,0 +1,57 @@
+{
+  "name": "defi-yield-comparison",
+  "description": "Multi-turn DeFi protocol comparison requiring APY analysis, risk-adjusted scoring, filtering by TVL and audit status, earnings projections, and final recommendations",
+  "tags": ["blockchain-ops", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a DeFi research analyst. Always use code for calculations. Be precise with numbers and percentages. When making recommendations, cite specific data points."
+    },
+    "workspace": {
+      "documents": {
+        "data/defi_protocols.json": "[{\"name\":\"Aave V3\",\"chain\":\"Ethereum\",\"pool_type\":\"lending\",\"apy\":4.8,\"tvl_usd\":12500000000,\"risk_score\":2,\"audit_status\":\"audited\",\"token\":\"USDC\",\"impermanent_loss_risk\":false},{\"name\":\"Compound III\",\"chain\":\"Ethereum\",\"pool_type\":\"lending\",\"apy\":3.9,\"tvl_usd\":3200000000,\"risk_score\":2,\"audit_status\":\"audited\",\"token\":\"USDC\",\"impermanent_loss_risk\":false},{\"name\":\"Lido\",\"chain\":\"Ethereum\",\"pool_type\":\"liquid_staking\",\"apy\":3.5,\"tvl_usd\":18900000000,\"risk_score\":3,\"audit_status\":\"audited\",\"token\":\"ETH\",\"impermanent_loss_risk\":false},{\"name\":\"Pendle USDC Pool\",\"chain\":\"Arbitrum\",\"pool_type\":\"yield_tokenization\",\"apy\":12.3,\"tvl_usd\":890000000,\"risk_score\":5,\"audit_status\":\"audited\",\"token\":\"USDC\",\"impermanent_loss_risk\":true},{\"name\":\"GMX GLP\",\"chain\":\"Arbitrum\",\"pool_type\":\"perp_liquidity\",\"apy\":18.5,\"tvl_usd\":520000000,\"risk_score\":6,\"audit_status\":\"audited\",\"token\":\"GLP\",\"impermanent_loss_risk\":true},{\"name\":\"Yearn USDT Vault\",\"chain\":\"Ethereum\",\"pool_type\":\"yield_aggregator\",\"apy\":7.2,\"tvl_usd\":180000000,\"risk_score\":4,\"audit_status\":\"partial\",\"token\":\"USDT\",\"impermanent_loss_risk\":false},{\"name\":\"DeFi Degen Farm\",\"chain\":\"BSC\",\"pool_type\":\"farming\",\"apy\":45.0,\"tvl_usd\":12000000,\"risk_score\":9,\"audit_status\":\"unaudited\",\"token\":\"DEGEN\",\"impermanent_loss_risk\":true},{\"name\":\"Curve 3pool\",\"chain\":\"Ethereum\",\"pool_type\":\"stableswap\",\"apy\":5.1,\"tvl_usd\":2800000000,\"risk_score\":3,\"audit_status\":\"audited\",\"token\":\"3CRV\",\"impermanent_loss_risk\":false}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the DeFi protocol data from data/defi_protocols.json and compare all protocols by APY. Which has the highest yield?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Degen"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "But high APY alone is risky. Calculate a risk-adjusted score: APY * (TVL / max_TVL) * (1 - risk_score/10).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(risk.adjusted|score)"
+      }
+    },
+    {
+      "user_input": "Filter out any protocol with TVL under $50M or audit status 'unaudited'.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["filter"]
+      }
+    },
+    {
+      "user_input": "For the remaining protocols, calculate the expected monthly earnings on a $100K deposit.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(\\$|monthly|100)"
+      }
+    },
+    {
+      "user_input": "Rank the final options and give me your top 3 recommendations with reasoning.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)recommend",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

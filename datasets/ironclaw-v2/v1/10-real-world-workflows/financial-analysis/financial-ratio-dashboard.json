@@ -1,0 +1,67 @@
+{
+  "name": "financial-ratio-dashboard",
+  "description": "Multi-turn financial ratio analysis covering liquidity, profitability, and efficiency ratios with industry benchmark comparison and traffic-light dashboard",
+  "tags": ["financial-analysis", "edge-case", "accuracy", "multi-turn", "code-execution", "ratios"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a corporate finance analyst. Calculate all financial ratios using code and present them with proper formatting. When comparing to benchmarks, use clear visual indicators for above/below/at target."
+    },
+    "workspace": {
+      "documents": {
+        "data/balance_sheet.json": "{\"company\": \"Meridian Corp.\", \"quarters\": [{\"quarter\": \"Q1 2025\", \"assets\": {\"cash\": 4500000, \"accounts_receivable\": 8200000, \"inventory\": 6800000, \"prepaid_expenses\": 1200000, \"total_current_assets\": 20700000, \"property_plant_equipment\": 35000000, \"intangible_assets\": 12000000, \"total_non_current_assets\": 47000000, \"total_assets\": 67700000}, \"liabilities\": {\"accounts_payable\": 5100000, \"short_term_debt\": 3200000, \"accrued_expenses\": 2800000, \"current_portion_ltd\": 1500000, \"total_current_liabilities\": 12600000, \"long_term_debt\": 18000000, \"deferred_tax\": 2400000, \"total_non_current_liabilities\": 20400000, \"total_liabilities\": 33000000}, \"equity\": {\"common_stock\": 10000000, \"retained_earnings\": 24700000, \"total_equity\": 34700000}}, {\"quarter\": \"Q2 2025\", \"assets\": {\"cash\": 3800000, \"accounts_receivable\": 9100000, \"inventory\": 7200000, \"prepaid_expenses\": 1100000, \"total_current_assets\": 21200000, \"property_plant_equipment\": 34200000, \"intangible_assets\": 11800000, \"total_non_current_assets\": 46000000, \"total_assets\": 67200000}, \"liabilities\": {\"accounts_payable\": 5500000, \"short_term_debt\": 3800000, \"accrued_expenses\": 2900000, \"current_portion_ltd\": 1500000, \"total_current_liabilities\": 13700000, \"long_term_debt\": 16500000, \"deferred_tax\": 2300000, \"total_non_current_liabilities\": 18800000, \"total_liabilities\": 32500000}, \"equity\": {\"common_stock\": 10000000, \"retained_earnings\": 24700000, \"total_equity\": 34700000}}, {\"quarter\": \"Q3 2025\", \"assets\": {\"cash\": 5200000, \"accounts_receivable\": 8800000, \"inventory\": 6500000, \"prepaid_expenses\": 1300000, \"total_current_assets\": 21800000, \"property_plant_equipment\": 33500000, \"intangible_assets\": 11600000, \"total_non_current_assets\": 45100000, \"total_assets\": 66900000}, \"liabilities\": {\"accounts_payable\": 4900000, \"short_term_debt\": 3000000, \"accrued_expenses\": 2700000, \"current_portion_ltd\": 1500000, \"total_current_liabilities\": 12100000, \"long_term_debt\": 15000000, \"deferred_tax\": 2200000, \"total_non_current_liabilities\": 17200000, \"total_liabilities\": 29300000}, \"equity\": {\"common_stock\": 10000000, \"retained_earnings\": 27600000, \"total_equity\": 37600000}}, {\"quarter\": \"Q4 2025\", \"assets\": {\"cash\": 6100000, \"accounts_receivable\": 9500000, \"inventory\": 7000000, \"prepaid_expenses\": 1400000, \"total_current_assets\": 24000000, \"property_plant_equipment\": 32800000, \"intangible_assets\": 11400000, \"total_non_current_assets\": 44200000, \"total_assets\": 68200000}, \"liabilities\": {\"accounts_payable\": 5200000, \"short_term_debt\": 2800000, \"accrued_expenses\": 3000000, \"current_portion_ltd\": 1500000, \"total_current_liabilities\": 12500000, \"long_term_debt\": 14000000, \"deferred_tax\": 2100000, \"total_non_current_liabilities\": 16100000, \"total_liabilities\": 28600000}, \"equity\": {\"common_stock\": 10000000, \"retained_earnings\": 29600000, \"total_equity\": 39600000}}]}",
+        "data/income_statement.json": "{\"company\": \"Meridian Corp.\", \"quarters\": [{\"quarter\": \"Q1 2025\", \"revenue\": 22000000, \"cost_of_goods_sold\": 13200000, \"gross_profit\": 8800000, \"operating_expenses\": 5500000, \"depreciation\": 800000, \"operating_income\": 2500000, \"interest_expense\": 450000, \"income_before_tax\": 2050000, \"income_tax\": 512500, \"net_income\": 1537500}, {\"quarter\": \"Q2 2025\", \"revenue\": 23500000, \"cost_of_goods_sold\": 14100000, \"gross_profit\": 9400000, \"operating_expenses\": 5800000, \"depreciation\": 800000, \"operating_income\": 2800000, \"interest_expense\": 420000, \"income_before_tax\": 2380000, \"income_tax\": 595000, \"net_income\": 1785000}, {\"quarter\": \"Q3 2025\", \"revenue\": 25000000, \"cost_of_goods_sold\": 14750000, \"gross_profit\": 10250000, \"operating_expenses\": 5900000, \"depreciation\": 800000, \"operating_income\": 3550000, \"interest_expense\": 390000, \"income_before_tax\": 3160000, \"income_tax\": 790000, \"net_income\": 2370000}, {\"quarter\": \"Q4 2025\", \"revenue\": 27000000, \"cost_of_goods_sold\": 15660000, \"gross_profit\": 11340000, \"operating_expenses\": 6100000, \"depreciation\": 800000, \"operating_income\": 4440000, \"interest_expense\": 360000, \"income_before_tax\": 4080000, \"income_tax\": 1020000, \"net_income\": 3060000}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the balance sheet and income statement data. Calculate the key liquidity ratios for each quarter: current ratio, quick ratio, and cash ratio.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["current ratio"],
+        "response_matches": "\\d+\\.\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Now calculate profitability ratios for each quarter: gross margin, operating margin, net margin, return on equity (ROE), and return on assets (ROA).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["margin"],
+        "response_matches": "\\d+\\.?\\d*%"
+      }
+    },
+    {
+      "user_input": "Calculate efficiency ratios: inventory turnover, receivables turnover (days sales outstanding), and asset turnover for each quarter. Use annualized revenue for turnover calculations.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+\\.?\\d*"
+      }
+    },
+    {
+      "user_input": "Compare our Q4 2025 ratios to these industry benchmarks: current ratio 2.0, quick ratio 1.2, cash ratio 0.3, gross margin 45%, operating margin 18%, net margin 12%, ROE 15%, ROA 8%, inventory turnover 8.0x, DSO 35 days, asset turnover 1.5x.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(above|below|benchmark|industry|vs)"
+      }
+    },
+    {
+      "user_input": "Where are we significantly below benchmark? Rank by severity - which gaps should management prioritize?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(below|gap|priorit|improve|weak)"
+      }
+    },
+    {
+      "user_input": "Build a one-page dashboard summary with all Q4 ratios and a traffic-light status (green = at or above benchmark, yellow = within 10% of benchmark, red = more than 10% below benchmark).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(green|red|yellow|above|below|dashboard)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

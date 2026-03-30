@@ -1,0 +1,64 @@
+{
+  "name": "salary-cap-analyzer",
+  "description": "Analyze an NFL team's salary cap situation including cap space calculations, player cuts, contract restructures, and multi-year cap projections",
+  "tags": ["sports-analytics", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NFL salary cap analyst. Use code for all financial calculations. Present dollar amounts in millions (e.g., $12.5M). Be precise with dead money and proration calculations."
+    },
+    "workspace": {
+      "documents": {
+        "data/roster.json": "{\"team\": \"Chicago Bears\", \"salary_cap\": 255000000, \"players\": [{\"name\": \"Caleb Williams\", \"position\": \"QB\", \"age\": 23, \"base_salary\": 9200000, \"signing_bonus_proration\": 7800000, \"cap_hit\": 17000000, \"dead_money\": 23400000, \"years_remaining\": 3, \"performance_grade\": 78}, {\"name\": \"DJ Moore\", \"position\": \"WR\", \"age\": 27, \"base_salary\": 16500000, \"signing_bonus_proration\": 5500000, \"cap_hit\": 22000000, \"dead_money\": 11000000, \"years_remaining\": 2, \"performance_grade\": 82}, {\"name\": \"Rome Odunze\", \"position\": \"WR\", \"age\": 22, \"base_salary\": 5200000, \"signing_bonus_proration\": 4800000, \"cap_hit\": 10000000, \"dead_money\": 14400000, \"years_remaining\": 3, \"performance_grade\": 71}, {\"name\": \"Montez Sweat\", \"position\": \"DE\", \"age\": 28, \"base_salary\": 18000000, \"signing_bonus_proration\": 6000000, \"cap_hit\": 24000000, \"dead_money\": 12000000, \"years_remaining\": 2, \"performance_grade\": 85}, {\"name\": \"Tremaine Edmunds\", \"position\": \"LB\", \"age\": 26, \"base_salary\": 14000000, \"signing_bonus_proration\": 4500000, \"cap_hit\": 18500000, \"dead_money\": 9000000, \"years_remaining\": 2, \"performance_grade\": 74}, {\"name\": \"Jaylon Johnson\", \"position\": \"CB\", \"age\": 25, \"base_salary\": 17000000, \"signing_bonus_proration\": 4000000, \"cap_hit\": 21000000, \"dead_money\": 8000000, \"years_remaining\": 3, \"performance_grade\": 80}, {\"name\": \"Kevin Byard\", \"position\": \"S\", \"age\": 31, \"base_salary\": 10500000, \"signing_bonus_proration\": 1500000, \"cap_hit\": 12000000, \"dead_money\": 1500000, \"years_remaining\": 1, \"performance_grade\": 62}, {\"name\": \"Nate Davis\", \"position\": \"OG\", \"age\": 28, \"base_salary\": 11000000, \"signing_bonus_proration\": 2000000, \"cap_hit\": 13000000, \"dead_money\": 4000000, \"years_remaining\": 1, \"performance_grade\": 55}, {\"name\": \"Gerald Everett\", \"position\": \"TE\", \"age\": 30, \"base_salary\": 8000000, \"signing_bonus_proration\": 2500000, \"cap_hit\": 10500000, \"dead_money\": 2500000, \"years_remaining\": 1, \"performance_grade\": 60}, {\"name\": \"Cole Kmet\", \"position\": \"TE\", \"age\": 25, \"base_salary\": 10000000, \"signing_bonus_proration\": 3000000, \"cap_hit\": 13000000, \"dead_money\": 6000000, \"years_remaining\": 2, \"performance_grade\": 72}, {\"name\": \"Darnell Wright\", \"position\": \"OT\", \"age\": 23, \"base_salary\": 4500000, \"signing_bonus_proration\": 4200000, \"cap_hit\": 8700000, \"dead_money\": 12600000, \"years_remaining\": 3, \"performance_grade\": 76}, {\"name\": \"Braxton Jones\", \"position\": \"OT\", \"age\": 25, \"base_salary\": 3200000, \"signing_bonus_proration\": 800000, \"cap_hit\": 4000000, \"dead_money\": 800000, \"years_remaining\": 1, \"performance_grade\": 65}, {\"name\": \"T.J. Edwards\", \"position\": \"LB\", \"age\": 28, \"base_salary\": 9500000, \"signing_bonus_proration\": 3500000, \"cap_hit\": 13000000, \"dead_money\": 7000000, \"years_remaining\": 2, \"performance_grade\": 70}, {\"name\": \"Kyler Gordon\", \"position\": \"CB\", \"age\": 24, \"base_salary\": 3800000, \"signing_bonus_proration\": 2200000, \"cap_hit\": 6000000, \"dead_money\": 4400000, \"years_remaining\": 2, \"performance_grade\": 68}, {\"name\": \"Jaquan Brisker\", \"position\": \"S\", \"age\": 25, \"base_salary\": 4200000, \"signing_bonus_proration\": 2800000, \"cap_hit\": 7000000, \"dead_money\": 5600000, \"years_remaining\": 2, \"performance_grade\": 73}, {\"name\": \"Andrew Billings\", \"position\": \"DT\", \"age\": 29, \"base_salary\": 7500000, \"signing_bonus_proration\": 1500000, \"cap_hit\": 9000000, \"dead_money\": 1500000, \"years_remaining\": 1, \"performance_grade\": 58}, {\"name\": \"Gervon Dexter\", \"position\": \"DT\", \"age\": 23, \"base_salary\": 2800000, \"signing_bonus_proration\": 2700000, \"cap_hit\": 5500000, \"dead_money\": 8100000, \"years_remaining\": 3, \"performance_grade\": 69}, {\"name\": \"DeMarcus Walker\", \"position\": \"DE\", \"age\": 30, \"base_salary\": 8000000, \"signing_bonus_proration\": 2000000, \"cap_hit\": 10000000, \"dead_money\": 2000000, \"years_remaining\": 1, \"performance_grade\": 63}, {\"name\": \"Roschon Johnson\", \"position\": \"RB\", \"age\": 24, \"base_salary\": 1200000, \"signing_bonus_proration\": 400000, \"cap_hit\": 1600000, \"dead_money\": 400000, \"years_remaining\": 2, \"performance_grade\": 64}, {\"name\": \"D'Onta Foreman\", \"position\": \"RB\", \"age\": 28, \"base_salary\": 2500000, \"signing_bonus_proration\": 500000, \"cap_hit\": 3000000, \"dead_money\": 500000, \"years_remaining\": 1, \"performance_grade\": 56}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the roster from data/roster.json and calculate total cap hit and remaining cap space. The salary cap is $255M.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(cap space|cap hit).*\\$",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Which 5 players have the worst cap hit relative to their performance grade? Calculate a value score as performance_grade / (cap_hit in millions).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(worst|lowest|value|inefficient)"
+      }
+    },
+    {
+      "user_input": "If we cut Kevin Byard and Nate Davis, how much cap space do we save? Factor in dead money - cutting a player accelerates remaining dead money to the current year.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(save|dead money|cap space|\\$)"
+      }
+    },
+    {
+      "user_input": "We need $15M in additional cap space to sign a free agent QB. What combination of cuts and/or restructures gets us there with minimal roster damage? Consider cutting low-grade players or restructuring high-salary veterans.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(15|\\$15M|combination|restructure|cut)"
+      }
+    },
+    {
+      "user_input": "Restructure Montez Sweat's deal: convert $10M of his base salary to signing bonus spread over his 2 remaining years. Calculate the new cap hit per year.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(restructure|Sweat|cap hit|prorat)"
+      }
+    },
+    {
+      "user_input": "Show me the cap projection for the next 3 years with all the changes we discussed (Byard/Davis cuts and Sweat restructure). Account for the cap increasing by ~$15M per year.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(2027|2028|year 3|projection|future)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

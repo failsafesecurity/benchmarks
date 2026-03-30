@@ -1,0 +1,65 @@
+{
+  "name": "nft-collection-analyzer",
+  "description": "Multi-turn NFT collection analysis requiring floor price calculation, price trend analysis, whale identification, holding period distribution, wash trading detection, and collection health reporting",
+  "tags": ["blockchain-ops", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NFT market analyst. Always use code for calculations. Be thorough when identifying suspicious patterns. Present price data in ETH and note significant outliers."
+    },
+    "workspace": {
+      "documents": {
+        "data/nft_sales.json": "[{\"token_id\":142,\"price_eth\":2.5,\"buyer\":\"0xAlice...a1b2\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-01T10:00:00Z\",\"rarity_rank\":45},{\"token_id\":87,\"price_eth\":1.8,\"buyer\":\"0xBob...c3d4\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-02T14:30:00Z\",\"rarity_rank\":210},{\"token_id\":305,\"price_eth\":3.2,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-03T08:15:00Z\",\"rarity_rank\":12},{\"token_id\":22,\"price_eth\":1.5,\"buyer\":\"0xCarol...g7h8\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-05T16:45:00Z\",\"rarity_rank\":340},{\"token_id\":198,\"price_eth\":2.8,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xAlice...a1b2\",\"timestamp\":\"2025-09-08T11:00:00Z\",\"rarity_rank\":67},{\"token_id\":142,\"price_eth\":3.1,\"buyer\":\"0xDave...i9j0\",\"seller\":\"0xAlice...a1b2\",\"timestamp\":\"2025-09-10T09:20:00Z\",\"rarity_rank\":45},{\"token_id\":456,\"price_eth\":4.5,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-12T13:00:00Z\",\"rarity_rank\":3},{\"token_id\":87,\"price_eth\":2.1,\"buyer\":\"0xEve...k1l2\",\"seller\":\"0xBob...c3d4\",\"timestamp\":\"2025-09-14T15:30:00Z\",\"rarity_rank\":210},{\"token_id\":501,\"price_eth\":1.2,\"buyer\":\"0xSusA...m3n4\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-16T10:00:00Z\",\"rarity_rank\":420},{\"token_id\":501,\"price_eth\":3.8,\"buyer\":\"0xSusB...o5p6\",\"seller\":\"0xSusA...m3n4\",\"timestamp\":\"2025-09-16T10:45:00Z\",\"rarity_rank\":420},{\"token_id\":501,\"price_eth\":5.2,\"buyer\":\"0xSusC...q7r8\",\"seller\":\"0xSusB...o5p6\",\"timestamp\":\"2025-09-16T11:30:00Z\",\"rarity_rank\":420},{\"token_id\":501,\"price_eth\":1.4,\"buyer\":\"0xSusA...m3n4\",\"seller\":\"0xSusC...q7r8\",\"timestamp\":\"2025-09-16T12:15:00Z\",\"rarity_rank\":420},{\"token_id\":333,\"price_eth\":2.0,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-18T08:45:00Z\",\"rarity_rank\":88},{\"token_id\":77,\"price_eth\":2.3,\"buyer\":\"0xFrank...s9t0\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-20T14:00:00Z\",\"rarity_rank\":150},{\"token_id\":456,\"price_eth\":5.0,\"buyer\":\"0xGrace...u1v2\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-09-22T11:30:00Z\",\"rarity_rank\":3},{\"token_id\":198,\"price_eth\":3.5,\"buyer\":\"0xHank...w3x4\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-09-24T09:00:00Z\",\"rarity_rank\":67},{\"token_id\":22,\"price_eth\":1.3,\"buyer\":\"0xIvy...y5z6\",\"seller\":\"0xCarol...g7h8\",\"timestamp\":\"2025-09-26T16:00:00Z\",\"rarity_rank\":340},{\"token_id\":610,\"price_eth\":1.8,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-09-28T10:15:00Z\",\"rarity_rank\":190},{\"token_id\":77,\"price_eth\":2.6,\"buyer\":\"0xSusA...m3n4\",\"seller\":\"0xFrank...s9t0\",\"timestamp\":\"2025-09-30T13:00:00Z\",\"rarity_rank\":150},{\"token_id\":77,\"price_eth\":4.0,\"buyer\":\"0xSusB...o5p6\",\"seller\":\"0xSusA...m3n4\",\"timestamp\":\"2025-09-30T13:45:00Z\",\"rarity_rank\":150},{\"token_id\":77,\"price_eth\":1.9,\"buyer\":\"0xSusA...m3n4\",\"seller\":\"0xSusB...o5p6\",\"timestamp\":\"2025-09-30T14:30:00Z\",\"rarity_rank\":150},{\"token_id\":715,\"price_eth\":3.0,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-10-02T09:30:00Z\",\"rarity_rank\":25},{\"token_id\":142,\"price_eth\":3.8,\"buyer\":\"0xJack...a2b3\",\"seller\":\"0xDave...i9j0\",\"timestamp\":\"2025-10-04T14:45:00Z\",\"rarity_rank\":45},{\"token_id\":820,\"price_eth\":1.0,\"buyer\":\"0xKate...c4d5\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-10-06T11:00:00Z\",\"rarity_rank\":500},{\"token_id\":333,\"price_eth\":2.4,\"buyer\":\"0xLiam...e6f7\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-10-08T08:30:00Z\",\"rarity_rank\":88},{\"token_id\":610,\"price_eth\":2.2,\"buyer\":\"0xMia...g8h9\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-10-10T15:00:00Z\",\"rarity_rank\":190},{\"token_id\":905,\"price_eth\":1.6,\"buyer\":\"0xWhale1...e5f6\",\"seller\":\"0xMinter...0000\",\"timestamp\":\"2025-10-12T10:30:00Z\",\"rarity_rank\":275},{\"token_id\":87,\"price_eth\":2.5,\"buyer\":\"0xNick...i0j1\",\"seller\":\"0xEve...k1l2\",\"timestamp\":\"2025-10-14T13:15:00Z\",\"rarity_rank\":210},{\"token_id\":456,\"price_eth\":5.8,\"buyer\":\"0xWhale2...k2l3\",\"seller\":\"0xGrace...u1v2\",\"timestamp\":\"2025-10-16T09:45:00Z\",\"rarity_rank\":3},{\"token_id\":715,\"price_eth\":3.5,\"buyer\":\"0xOliv...m4n5\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-10-18T11:00:00Z\",\"rarity_rank\":25},{\"token_id\":820,\"price_eth\":1.1,\"buyer\":\"0xPete...o6p7\",\"seller\":\"0xKate...c4d5\",\"timestamp\":\"2025-10-20T14:30:00Z\",\"rarity_rank\":500},{\"token_id\":142,\"price_eth\":4.2,\"buyer\":\"0xWhale2...k2l3\",\"seller\":\"0xJack...a2b3\",\"timestamp\":\"2025-10-22T10:00:00Z\",\"rarity_rank\":45},{\"token_id\":305,\"price_eth\":4.0,\"buyer\":\"0xRuth...q8r9\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-10-24T08:15:00Z\",\"rarity_rank\":12},{\"token_id\":905,\"price_eth\":1.9,\"buyer\":\"0xSam...s0t1\",\"seller\":\"0xWhale1...e5f6\",\"timestamp\":\"2025-10-26T16:30:00Z\",\"rarity_rank\":275},{\"token_id\":501,\"price_eth\":1.5,\"buyer\":\"0xTina...u2v3\",\"seller\":\"0xSusA...m3n4\",\"timestamp\":\"2025-10-28T12:00:00Z\",\"rarity_rank\":420},{\"token_id\":22,\"price_eth\":1.4,\"buyer\":\"0xUma...w4x5\",\"seller\":\"0xIvy...y5z6\",\"timestamp\":\"2025-10-30T09:45:00Z\",\"rarity_rank\":340},{\"token_id\":456,\"price_eth\":6.2,\"buyer\":\"0xVic...y6z7\",\"seller\":\"0xWhale2...k2l3\",\"timestamp\":\"2025-11-01T11:30:00Z\",\"rarity_rank\":3},{\"token_id\":333,\"price_eth\":2.8,\"buyer\":\"0xWhale2...k2l3\",\"seller\":\"0xLiam...e6f7\",\"timestamp\":\"2025-11-03T14:00:00Z\",\"rarity_rank\":88},{\"token_id\":715,\"price_eth\":4.1,\"buyer\":\"0xWendy...a8b9\",\"seller\":\"0xOliv...m4n5\",\"timestamp\":\"2025-11-05T10:15:00Z\",\"rarity_rank\":25},{\"token_id\":142,\"price_eth\":4.5,\"buyer\":\"0xXena...c0d1\",\"seller\":\"0xWhale2...k2l3\",\"timestamp\":\"2025-11-07T13:30:00Z\",\"rarity_rank\":45}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the sales data from data/nft_sales.json and calculate the floor price, average sale price, and total volume.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["floor"],
+        "response_matches": "\\d+\\.?\\d*",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Show the price trend over time. Is the collection appreciating or depreciating?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(appreciat|depreciat|trend)"
+      }
+    },
+    {
+      "user_input": "Identify the top 5 'whale' buyers by total spend.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)whale"
+      }
+    },
+    {
+      "user_input": "What's the distribution of holding periods? How long do people hold before reselling?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(day|hold|period)"
+      }
+    },
+    {
+      "user_input": "One address bought 8 NFTs. Is there evidence of wash trading? Check if there are circular patterns.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(wash|circular|suspicious)"
+      }
+    },
+    {
+      "user_input": "Generate a collection health report: volume trend, holder distribution, concentration risk.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(report|health)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

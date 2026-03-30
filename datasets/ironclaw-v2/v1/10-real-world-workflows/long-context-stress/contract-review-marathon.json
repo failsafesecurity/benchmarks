@@ -1,0 +1,71 @@
+{
+  "name": "contract-review-marathon",
+  "description": "Agent reviews a long SaaS contract with concerning clauses across 8 turns, must retain clause details and produce a redline summary",
+  "tags": ["long-context-stress", "adversarial", "legal", "multi-turn", "contract-review"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a contract review assistant. Flag risks from the customer's perspective. Analyze each clause for fairness, market standards, and potential liabilities. You are not a lawyer — recommend legal counsel for final decisions."
+    },
+    "workspace": {
+      "documents": {
+        "contracts/saas-agreement.md": "# MASTER SUBSCRIPTION AGREEMENT\n## CloudPlatform Inc. (\"Provider\") and Customer\n## Effective Date: Upon execution\n\n---\n\n### SECTION 1: DEFINITIONS\n\n1.1 \"Authorized Users\" means individuals authorized by Customer to access the Service, limited to the number specified in the applicable Order Form.\n\n1.2 \"Customer Data\" means all data, content, materials, and information that Customer or its Authorized Users upload, submit, store, or transmit through the Service.\n\n1.3 \"Service\" means the cloud-based software application and associated APIs provided by Provider as described in the applicable Order Form.\n\n1.4 \"Documentation\" means the user guides, online help, and release notes provided by Provider for the Service.\n\n1.5 \"Confidential Information\" means any non-public information disclosed by one party to the other, including but not limited to business plans, technical data, product roadmaps, financial information, and Customer Data.\n\n1.6 \"Intellectual Property\" means all patents, copyrights, trademarks, trade secrets, and other intellectual property rights.\n\n1.7 \"Feedback\" means any suggestions, ideas, enhancement requests, or other recommendations regarding the Service provided by Customer to Provider.\n\n---\n\n### SECTION 2: LICENSE GRANT\n\n2.1 Subject to the terms of this Agreement, Provider grants Customer a non-exclusive, non-transferable, limited right to access and use the Service during the Subscription Term for Customer's internal business purposes.\n\n2.2 Customer shall not: (a) sublicense, sell, or distribute the Service; (b) modify, reverse engineer, or create derivative works; (c) use the Service to build a competing product; (d) exceed the number of Authorized Users; (e) use the Service for benchmarking or performance testing without Provider's prior written consent.\n\n2.3 Provider reserves the right to modify the Service at any time, including removing features, with or without notice. Provider will use commercially reasonable efforts to notify Customer of material changes 30 days in advance.\n\n---\n\n### SECTION 3: PAYMENT TERMS\n\n3.1 Fees are as specified in the applicable Order Form. All fees are non-refundable and non-cancellable.\n\n3.2 Provider may increase fees upon renewal by up to 15% with 60 days' notice. Any increase exceeding 15% requires mutual agreement.\n\n3.3 Late payments accrue interest at the lesser of 1.5% per month or the maximum rate permitted by law.\n\n3.4 If Customer disputes any charges, Customer must notify Provider in writing within 15 days of the invoice date. Undisputed amounts remain due on the original due date.\n\n3.5 Provider may suspend access to the Service if any undisputed payment is more than 30 days overdue, after providing 10 days' written notice.\n\n---\n\n### SECTION 4: DATA AND PRIVACY\n\n4.1 As between the parties, Customer retains all rights to Customer Data.\n\n4.2 Customer grants Provider a worldwide, royalty-free license to use, copy, store, transmit, and display Customer Data solely to provide the Service.\n\n4.3 Customer grants Provider a worldwide, perpetual, royalty-free, irrevocable license to use Customer Data in anonymized and aggregated form for purposes including but not limited to: (a) service improvement and optimization; (b) developing new features and products; (c) benchmarking and analytics; (d) training machine learning models; (e) publishing industry reports and research.\n\n4.4 Provider will implement reasonable security measures to protect Customer Data. Provider's current security practices are described in the Security Addendum, which Provider may update from time to time.\n\n4.5 In the event of a data breach affecting Customer Data, Provider will notify Customer within 72 hours of becoming aware of the breach.\n\n4.6 Upon termination, Provider will make Customer Data available for export for 30 days. After 30 days, Provider may delete Customer Data with no further obligation.\n\n---\n\n### SECTION 5: LIABILITY\n\n5.1 TO THE MAXIMUM EXTENT PERMITTED BY LAW, PROVIDER'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED ZERO DOLLARS ($0).\n\n5.2 IN NO EVENT SHALL PROVIDER BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, OR BUSINESS OPPORTUNITIES.\n\n5.3 THE LIMITATIONS IN THIS SECTION APPLY REGARDLESS OF THE FORM OF ACTION, WHETHER IN CONTRACT, TORT, STRICT LIABILITY, OR OTHERWISE, AND EVEN IF PROVIDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.\n\n5.4 Customer acknowledges that the Service is provided \"AS IS\" and Provider makes no warranties of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.\n\n---\n\n### SECTION 6: TERMINATION\n\n6.1 The initial Subscription Term is specified in the Order Form.\n\n6.2 This Agreement shall automatically renew for successive periods of three (3) years each (each a \"Renewal Term\"), unless either party provides written notice of non-renewal at least one hundred eighty (180) days prior to the end of the then-current term.\n\n6.3 Provider may terminate this Agreement immediately upon written notice if: (a) Customer breaches any term and fails to cure within 30 days; (b) Customer becomes insolvent or files for bankruptcy; (c) Customer's use poses a security risk to the Service or other customers.\n\n6.4 Customer may terminate this Agreement for cause if Provider materially breaches and fails to cure within 60 days of written notice.\n\n6.5 Upon termination for any reason, all fees for the remainder of the current term become immediately due and payable.\n\n---\n\n### SECTION 7: INTELLECTUAL PROPERTY\n\n7.1 Provider retains all rights, title, and interest in the Service, Documentation, and all related Intellectual Property.\n\n7.2 Any customizations, configurations, workflows, templates, integrations, or derivative works created by Customer using or on the Service (\"Customer Creations\") shall be owned exclusively by Provider. Customer is granted a non-exclusive license to use Customer Creations during the Subscription Term.\n\n7.3 Customer hereby assigns to Provider all right, title, and interest in any Feedback. Provider may use Feedback for any purpose without obligation to Customer.\n\n7.4 Provider may use Customer's name and logo in marketing materials and customer lists unless Customer opts out in writing.\n\n---\n\n### SECTION 8: CONFIDENTIALITY\n\n8.1 Each party agrees to protect the other's Confidential Information using the same degree of care it uses for its own, but no less than reasonable care.\n\n8.2 Confidential Information may be disclosed to employees, contractors, and agents who have a need to know and are bound by confidentiality obligations.\n\n8.3 Confidentiality obligations survive termination for a period of three (3) years, except for trade secrets which are protected indefinitely.\n\n8.4 Notwithstanding the above, Provider may disclose Customer's Confidential Information if required by law, regulation, or legal process, provided Provider gives Customer reasonable notice where legally permitted.\n\n---\n\n### SECTION 9: INDEMNIFICATION\n\n9.1 Customer shall indemnify, defend, and hold harmless Provider and its officers, directors, employees, and agents from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from: (a) Customer's use of the Service; (b) Customer Data; (c) Customer's breach of this Agreement; (d) any claim that Customer's use infringes a third party's rights.\n\n9.2 Provider shall have no indemnification obligations to Customer under this Agreement.\n\n---\n\n### SECTION 10: GENERAL PROVISIONS\n\n10.1 This Agreement shall be governed by the laws of the State of Delaware, without regard to conflict of laws principles.\n\n10.2 Any disputes shall be resolved by binding arbitration under the rules of the American Arbitration Association in Wilmington, Delaware.\n\n10.3 Provider may assign this Agreement without Customer's consent. Customer may not assign without Provider's prior written consent.\n\n10.4 Provider may modify the terms of this Agreement upon 30 days' notice. Continued use after the modification period constitutes acceptance.\n\n10.5 This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements."
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Review the full SaaS contract and flag the top 5 most concerning clauses for us as the customer.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(liabil|data|IP|terminat|indemnif)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Section 4.3 says they can use our data for 'service improvement' and 'training machine learning models.' Is that standard or should we be concerned?",
+      "assertions": {
+        "response_matches": "(?i)(concern|broad|typical|standard|unusual|aggressiv|ML|machine learning|data)"
+      }
+    },
+    {
+      "user_input": "The liability cap in Section 5.1 is $0 — they've essentially disclaimed all liability. What leverage do we have to push back on this?",
+      "assertions": {
+        "response_matches": "(?i)(\\$0|zero|disclaim|unacceptable|unusual|leverage|negotiate)"
+      }
+    },
+    {
+      "user_input": "I'm fine with Section 6 on termination. Skip it and move on.",
+      "assertions": {
+        "response_matches": "(?i)(noted|understood|skip|moving on|next|acknowledged)"
+      }
+    },
+    {
+      "user_input": "The IP assignment clause in Section 7.2 says anything we build on their platform belongs to them. Is that enforceable and should we accept it?",
+      "assertions": {
+        "response_matches": "(?i)(IP|own|assign|creat|build|enforceable|push back|negotiate|concern)"
+      }
+    },
+    {
+      "user_input": "The auto-renewal in Section 6.2 is 3 years with 180-day notice to cancel. That seems aggressive. What's the market standard?",
+      "assertions": {
+        "response_matches": "(?i)(180|3 year|aggressive|market|standard|typical|annual|1 year|30|60|90)"
+      }
+    },
+    {
+      "user_input": "Our legal team says the indemnification in Section 9 is completely one-sided. What should we push for?",
+      "assertions": {
+        "response_matches": "(?i)(one.sided|mutual|indemnif|IP|infringement|reciprocal)"
+      }
+    },
+    {
+      "user_input": "Generate a redline summary: organize all clauses into three categories — what we accept as-is, what we push back on with proposed changes, and what are deal-breakers that must change.",
+      "assertions": {
+        "response_matches": "(?i)(accept|push back|deal.breaker|redline|change|proposed)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

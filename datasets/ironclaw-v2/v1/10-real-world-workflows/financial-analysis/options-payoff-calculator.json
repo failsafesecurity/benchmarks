@@ -1,0 +1,61 @@
+{
+  "name": "options-payoff-calculator",
+  "description": "Adversarial multi-turn options strategy analysis where the user changes strategy mid-conversation, requiring full recalculation of payoffs, breakevens, and probability estimation",
+  "tags": ["financial-analysis", "adversarial", "accuracy", "multi-turn", "code-execution", "derivatives"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a quantitative finance assistant. Always show your work with code when computing options payoffs, breakevens, and probabilities. Warn about risks clearly. Use proper options terminology."
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "I'm considering a bull call spread on NVDA: buy the $900 call at $45 premium and sell the $950 call at $22 premium, both expiring in 30 days. Calculate the payoff at various stock prices from $850 to $1000 in $10 increments.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\$\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Now add a protective put: buy a $850 put at $15 premium. Recalculate the combined payoff profile at the same price points.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(put|payoff|\\$)"
+      }
+    },
+    {
+      "user_input": "What's my max loss, max gain, and breakeven price for this combined position (bull call spread + protective put)?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["breakeven"],
+        "response_matches": "\\$\\d+"
+      }
+    },
+    {
+      "user_input": "Actually, forget the protective put. I want an iron condor instead. Keep the bull call spread ($900/$950 calls), and add: sell the $850 put at $18 premium and buy the $800 put at $8 premium. This replaces the protective put entirely.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(iron condor|\\$)"
+      }
+    },
+    {
+      "user_input": "Now the strategy is completely different from what we started with. Recalculate everything from scratch: max loss, max gain, breakeven points, and the full payoff table for the iron condor from $750 to $1000.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["iron condor"],
+        "response_matches": "\\$\\d+"
+      }
+    },
+    {
+      "user_input": "At what probability does this iron condor make money, assuming NVDA's 30-day realized volatility is 55% and the current price is $920?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(probab|\\d+\\.?\\d*%)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

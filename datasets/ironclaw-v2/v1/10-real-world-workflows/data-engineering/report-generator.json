@@ -1,0 +1,57 @@
+{
+  "name": "report-generator",
+  "description": "Multi-turn report generation from raw sales data and a template: load data, compute metrics, populate placeholders, write analysis, and save final report",
+  "tags": ["data-engineering", "basic", "accuracy", "multi-turn", "code-execution", "reporting"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a business intelligence analyst. Use code to compute exact metrics from data. When generating reports, ensure all placeholders are replaced with actual values and all claims are backed by data."
+    },
+    "workspace": {
+      "documents": {
+        "data/sales.json": "{\"period\": \"September 2025\", \"region\": \"North America\", \"sales\": [{\"date\": \"2025-09-01\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 12, \"revenue\": 7188.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-01\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 8, \"revenue\": 3192.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-02\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 25, \"revenue\": 4975.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-03\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 5, \"revenue\": 4495.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-04\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 8, \"revenue\": 4792.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-05\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 15, \"revenue\": 5985.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-06\", \"product\": \"APIBridge\", \"category\": \"Integration\", \"units\": 3, \"revenue\": 2697.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-08\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 30, \"revenue\": 5970.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-09\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 7, \"revenue\": 6293.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-10\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 10, \"revenue\": 5990.00, \"customer_type\": \"mid-market\"}, {\"date\": \"2025-09-11\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 6, \"revenue\": 2394.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-12\", \"product\": \"APIBridge\", \"category\": \"Integration\", \"units\": 5, \"revenue\": 4495.00, \"customer_type\": \"mid-market\"}, {\"date\": \"2025-09-13\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 18, \"revenue\": 3582.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-15\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 4, \"revenue\": 3596.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-16\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 15, \"revenue\": 8985.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-17\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 10, \"revenue\": 3990.00, \"customer_type\": \"mid-market\"}, {\"date\": \"2025-09-18\", \"product\": \"APIBridge\", \"category\": \"Integration\", \"units\": 2, \"revenue\": 1798.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-19\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 22, \"revenue\": 4378.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-20\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 6, \"revenue\": 5394.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-22\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 11, \"revenue\": 6589.00, \"customer_type\": \"mid-market\"}, {\"date\": \"2025-09-23\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 12, \"revenue\": 4788.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-24\", \"product\": \"APIBridge\", \"category\": \"Integration\", \"units\": 4, \"revenue\": 3596.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-25\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 28, \"revenue\": 5572.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-26\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 3, \"revenue\": 2697.00, \"customer_type\": \"mid-market\"}, {\"date\": \"2025-09-27\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 9, \"revenue\": 5391.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-29\", \"product\": \"DataVault\", \"category\": \"Storage\", \"units\": 7, \"revenue\": 2793.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-29\", \"product\": \"APIBridge\", \"category\": \"Integration\", \"units\": 6, \"revenue\": 5394.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-30\", \"product\": \"CloudSync Basic\", \"category\": \"SaaS\", \"units\": 20, \"revenue\": 3980.00, \"customer_type\": \"smb\"}, {\"date\": \"2025-09-30\", \"product\": \"SecureAuth\", \"category\": \"Security\", \"units\": 8, \"revenue\": 7192.00, \"customer_type\": \"enterprise\"}, {\"date\": \"2025-09-30\", \"product\": \"CloudSync Pro\", \"category\": \"SaaS\", \"units\": 14, \"revenue\": 8386.00, \"customer_type\": \"enterprise\"}]}",
+        "templates/monthly_report.md": "# Monthly Sales Report: {{period}}\n\n## Executive Summary\n\n**Region:** {{region}}\n**Total Revenue:** {{total_revenue}}\n**Total Units Sold:** {{total_units}}\n**Unique Customers:** {{customer_count}} customer segments\n**Top Product:** {{top_product}} ({{top_product_revenue}})\n**Month-over-Month Growth:** {{growth_rate}}\n\n## Revenue by Category\n\n| Category | Revenue | % of Total |\n|----------|---------|------------|\n{{category_table}}\n\n## Revenue by Customer Segment\n\n| Segment | Revenue | Units | Avg Deal Size |\n|---------|---------|-------|---------------|\n{{segment_table}}\n\n## Key Trends\n\n{{key_trends}}\n\n## Recommendations\n\n{{recommendations}}\n\n---\n*Report generated on {{generated_date}}*"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the sales data from data/sales.json and the report template from templates/monthly_report.md. Give me a quick overview of what we're working with.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(sales|template|placeholder|September|record|product)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Calculate the values needed for each placeholder in the template: total_revenue, total_units, top_product, top_product_revenue, customer_count, and the category and segment breakdowns.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\$[\\d,]+|\\d+\\.?\\d*"
+      }
+    },
+    {
+      "user_input": "Populate the template with all the calculated values. Show me the filled-in report.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_not_contains": ["{{"]
+      }
+    },
+    {
+      "user_input": "The report also needs a 'key trends' section. Analyze the data and write 3 bullet points about notable trends you see in the sales data.",
+      "assertions": {
+        "response_matches": "(?i)(trend|pattern|growth|increase|strong|notable)"
+      }
+    },
+    {
+      "user_input": "Generate the final complete report and save it to the workspace as reports/september_2025.md.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_matches": "(?i)(save|written|generated|report|final)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

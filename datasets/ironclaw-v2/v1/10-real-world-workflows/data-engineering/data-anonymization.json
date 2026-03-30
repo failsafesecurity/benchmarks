@@ -1,0 +1,62 @@
+{
+  "name": "data-anonymization",
+  "description": "Multi-turn data anonymization pipeline: PII identification, technique planning, anonymization implementation, re-identification risk assessment, k-anonymity, and compliance reporting",
+  "tags": ["data-engineering", "adversarial", "accuracy", "multi-turn", "code-execution", "privacy", "pii"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data privacy engineer. Follow GDPR and CCPA principles. Never output raw PII in your responses — always mask or redact sensitive data when displaying examples. Use code to apply anonymization techniques systematically."
+    },
+    "workspace": {
+      "documents": {
+        "data/customers_pii.csv": "id,name,email,ssn,phone,address,city,state,zip,birth_date,gender,account_balance\n1,Emily Richardson,emily.r@techstart.com,123-45-6789,(415) 555-0101,742 Evergreen Terrace,San Francisco,CA,94102,1988-03-15,F,12450.00\n2,Marcus Johnson,marcus.j@dataflow.io,234-56-7890,(212) 555-0202,100 Broadway Apt 4B,New York,NY,10001,1992-07-22,M,8920.50\n3,Sophia Chen,sophia.c@cloudnine.com,345-67-8901,(512) 555-0303,2501 Lake Austin Blvd,Austin,TX,78703,1995-11-08,F,15780.25\n4,James O'Brien,james.ob@finserv.net,456-78-9012,(312) 555-0404,55 E Monroe St,Chicago,IL,60603,1985-01-30,M,6340.00\n5,Aisha Patel,aisha.p@healthco.org,567-89-0123,(206) 555-0505,1420 5th Ave,Seattle,WA,98101,1990-09-12,F,21050.75\n6,Robert Kim,robert.k@logistics.com,678-90-1234,(305) 555-0606,800 Brickell Ave,Miami,FL,33131,1987-05-25,M,4560.00\n7,Maria Santos,maria.s@edutech.edu,789-01-2345,(617) 555-0707,1 Beacon St,Boston,MA,02108,1993-12-03,F,9870.50\n8,David Nakamura,david.n@greentech.co,890-12-3456,(720) 555-0808,1600 California St,Denver,CO,80202,1991-04-18,M,11230.00\n9,Sarah Thompson,sarah.t@mediagroup.com,901-23-4567,(503) 555-0909,1000 SW Broadway,Portland,OR,97205,1989-08-07,F,7650.25\n10,Michael Lee,michael.l@retailhub.com,012-34-5678,(404) 555-1010,250 Peachtree St NE,Atlanta,GA,30303,1994-02-14,M,18920.00\n11,Jennifer Walsh,jennifer.w@biolab.org,111-22-3333,(415) 555-1111,450 Sutter St,San Francisco,CA,94108,1986-06-20,F,5430.50\n12,Carlos Rivera,carlos.r@automate.io,222-33-4444,(713) 555-1212,1200 McKinney St,Houston,TX,77010,1997-10-28,M,13670.00\n13,Lisa Yamamoto,lisa.y@designco.com,333-44-5555,(858) 555-1313,750 B St,San Diego,CA,92101,1988-03-15,F,8210.75\n14,Thomas Wright,thomas.w@construct.net,444-55-6666,(602) 555-1414,2 N Central Ave,Phoenix,AZ,85004,1992-07-22,M,6890.00\n15,Amanda Foster,amanda.f@lawfirm.com,555-66-7777,(215) 555-1515,1500 Market St,Philadelphia,PA,19102,1990-09-12,F,22340.50\n16,Kevin Nguyen,kevin.n@startup.dev,666-77-8888,(408) 555-1616,200 University Ave,Palo Alto,CA,94301,1996-01-05,M,15670.00\n17,Rachel Green,rachel.g@fashion.co,777-88-9999,(646) 555-1717,570 Lexington Ave,New York,NY,10022,1993-12-03,F,9450.25\n18,Daniel Park,daniel.p@analytics.com,888-99-0000,(312) 555-1818,233 S Wacker Dr,Chicago,IL,60606,1985-01-30,M,7120.00\n19,Michelle Torres,michelle.t@nonprofit.org,999-00-1111,(202) 555-1919,1600 K St NW,Washington,DC,20006,1991-04-18,F,3450.50\n20,Andrew Cooper,andrew.c@venture.fund,000-11-2222,(415) 555-2020,500 Terry Francine St,San Francisco,CA,94158,1994-02-14,M,28950.75"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the customer data from data/customers_pii.csv and identify all columns that contain personally identifiable information (PII).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(PII|personal|identif|sensitive|name|email|ssn|phone|address)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Write an anonymization plan: what technique should we use for each PII type? Consider hashing, masking, generalization, and suppression.",
+      "assertions": {
+        "response_matches": "(?i)(hash|mask|generali|suppress|technique|plan|strategy)"
+      }
+    },
+    {
+      "user_input": "Apply the anonymization: hash the emails, mask SSNs to show only the last 4 digits, generalize addresses to city and state only, and suppress phone numbers entirely. Show a sample of the result.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(hash|mask|XXX|\\*\\*\\*|suppress|anonymi|applied)"
+      }
+    },
+    {
+      "user_input": "Verify: can any individual record be re-identified from the anonymized data? Check for quasi-identifiers — combinations of fields that could uniquely identify someone.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(quasi-identifier|re-identif|combination|unique|risk)"
+      }
+    },
+    {
+      "user_input": "The combination of zip_code + birth_date + gender could be re-identifying. Apply k-anonymity with k=3 — generalize birth_date to birth_year and zip to the first 3 digits. Verify the result.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(k-anonymity|k=3|generali|birth.?year|zip|group)"
+      }
+    },
+    {
+      "user_input": "Generate a data privacy compliance report documenting what was anonymized, which techniques were applied, and the final re-identification risk assessment.",
+      "assertions": {
+        "response_matches": "(?i)(compliance|privacy|report|technique|risk|anonymi)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

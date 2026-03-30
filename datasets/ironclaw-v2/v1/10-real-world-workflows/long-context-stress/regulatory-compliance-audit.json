@@ -1,0 +1,94 @@
+{
+  "name": "regulatory-compliance-audit",
+  "description": "Agent audits company policies against a 20-item GDPR-style compliance checklist, tracks pass/fail status across 7 turns, and generates remediation recommendations",
+  "tags": [
+    "long-context-stress",
+    "edge-case",
+    "compliance",
+    "multi-turn",
+    "audit"
+  ],
+  "setup": {
+    "tools": [
+      "execute_code",
+      "memory_read",
+      "memory_write",
+      "memory_search",
+      "memory_tree"
+    ],
+    "identity": {
+      "SOUL.md": "You are a compliance audit assistant. When checking policy documents against a regulatory checklist, be thorough and cite specific sections. Clearly mark each item as PASS, PARTIAL, or FAIL with justification. You are not a lawyer \u2014 recommend legal review for final sign-off."
+    },
+    "workspace": {
+      "documents": {
+        "compliance/checklist.md": "# Data Protection Compliance Checklist v2.1\n## Based on GDPR Articles and Common Data Protection Standards\n\n### Section A: Data Collection & Consent (Items 1-7)\n1. Lawful basis for data processing is documented for each data category\n2. Explicit consent is obtained before collecting personal data\n3. Purpose limitation: data is collected only for specified, explicit purposes\n4. Data minimization: only necessary data is collected\n5. Privacy notice is provided at the point of data collection\n6. Consent records are maintained with timestamps and scope\n7. Mechanism exists for users to withdraw consent easily\n\n### Section B: Data Storage & Security (Items 8-12)\n8. Personal data is encrypted at rest using industry-standard algorithms (AES-256 or equivalent)\n9. Personal data is encrypted in transit (TLS 1.2+)\n10. Access controls enforce least-privilege principle with role-based access\n11. Audit logs track all access to personal data\n12. Data retention periods are defined and automated deletion is in place\n\n### Section C: Data Subject Rights (Items 13-17)\n13. Mechanism for data subjects to access their personal data (Subject Access Request)\n14. Mechanism for data subjects to request correction of inaccurate data\n15. Mechanism for data subjects to request deletion (Right to Erasure)\n16. Mechanism for data subjects to export their data in portable format (Data Portability)\n17. Automated decision-making processes allow human review upon request\n\n### Section D: Breach & Governance (Items 18-20)\n18. Data breach notification process can notify authorities within 72 hours\n19. Data breach notification process can notify affected individuals without undue delay\n20. A Data Protection Officer (DPO) is appointed and contactable\n\n### Audit Rating Scale\n- PASS: Fully compliant, documented, and operational\n- PARTIAL: Policy exists but incomplete implementation or documentation gaps\n- FAIL: No policy, no implementation, or significant gap",
+        "compliance/privacy-policy.md": "# Company Privacy Policy\n## Effective Date: 2025-06-01 | Last Reviewed: 2025-11-15\n\n### 1. Introduction\nAcme Corp (\"we\", \"us\") is committed to protecting the privacy of our users. This policy describes how we collect, use, and protect personal data.\n\n### 2. Data We Collect\nWe collect the following categories of personal data:\n- **Account Data**: Name, email address, phone number, billing address\n- **Usage Data**: Pages visited, features used, session duration, click patterns\n- **Device Data**: IP address, browser type, operating system, device identifiers\n- **Payment Data**: Credit card last 4 digits, billing address (full card data handled by Stripe)\n- **Communication Data**: Support tickets, chat transcripts, email correspondence\n- **Analytics Data**: Aggregated usage statistics, A/B test participation\n\n### 3. Lawful Basis for Processing\n- Account Data: Contract performance (account creation and service delivery)\n- Usage Data: Legitimate interest (service improvement and personalization)\n- Device Data: Legitimate interest (security and fraud prevention)\n- Payment Data: Contract performance (payment processing)\n- Communication Data: Contract performance (support delivery)\n- Analytics Data: Consent (optional analytics participation)\n\n### 4. How We Use Your Data\n- Provide and maintain our services\n- Process payments and transactions\n- Send transactional emails (order confirmations, password resets)\n- Improve our products based on usage patterns\n- Detect and prevent fraud\n- Comply with legal obligations\n- Send marketing communications (with consent)\n\n### 5. Data Sharing\nWe share data with:\n- **Stripe**: Payment processing\n- **AWS**: Cloud infrastructure (data processing agreement in place)\n- **SendGrid**: Email delivery\n- **Google Analytics**: Usage analytics (anonymized)\n- **Zendesk**: Customer support\nWe do NOT sell personal data to third parties.\n\n### 6. Data Retention\n- Account data: Retained while account is active, deleted 90 days after account closure\n- Usage data: Retained for 24 months, then aggregated and anonymized\n- Payment data: Retained for 7 years (legal/tax requirement)\n- Communication data: Retained for 36 months\n- Analytics data: Retained for 12 months\n\n### 7. Your Rights\nYou have the right to:\n- Access your personal data\n- Correct inaccurate data\n- Request deletion of your data\n- Object to processing based on legitimate interest\n- Receive your data in a portable format\n\nTo exercise these rights, email privacy@acme.com. We will respond within 30 days.\n\n### 8. Cookies\nWe use essential cookies for service functionality and optional cookies for analytics. Cookie preferences can be managed through our cookie banner.\n\n### 9. Changes to This Policy\nWe may update this policy from time to time. Material changes will be notified via email.\n\n### 10. Contact\nData Protection Officer: privacy@acme.com\nMailing address: 123 Tech Avenue, San Francisco, CA 94105",
+        "compliance/data-handling.md": "# Data Handling Procedures\n## Internal Document | Version 3.2 | Last Updated: 2025-10-20\n\n### 1. Data Classification\nAll data is classified into four tiers:\n- **Tier 1 (Public)**: Marketing materials, public documentation\n- **Tier 2 (Internal)**: Internal communications, non-sensitive business data\n- **Tier 3 (Confidential)**: Customer personal data, financial records\n- **Tier 4 (Restricted)**: Authentication credentials, encryption keys, payment card data\n\n### 2. Encryption Standards\n- **In Transit**: TLS 1.2 minimum for all external communications. Internal service-to-service uses mTLS.\n- **At Rest**: Tier 3 and Tier 4 data encrypted using AES-256. Tier 1 and Tier 2 not encrypted at rest.\n- **Key Management**: AWS KMS for encryption key management. Keys rotated annually.\n- **Note**: Legacy database (user_analytics_v1) has not been migrated to encrypted storage yet. Migration planned for Q2 2026.\n\n### 3. Access Controls\n- Role-based access control (RBAC) enforced via Okta\n- Tier 3 access requires manager approval\n- Tier 4 access requires VP-level approval and is logged\n- Access reviews conducted quarterly\n- Service accounts have dedicated credentials with scoped permissions\n- **Gap**: Developer access to production database is not currently restricted to read-only. Engineering team has read-write access for debugging purposes.\n\n### 4. Audit Logging\n- All API access is logged via CloudWatch\n- Database queries are logged for Tier 3 and Tier 4 data\n- Log retention: 12 months in hot storage, 36 months in cold storage (S3 Glacier)\n- **Known Issue**: Admin panel actions are not currently captured in audit logs. Fix scheduled for Sprint 24.\n\n### 5. Data Retention & Deletion\n- Automated retention policies configured in the data warehouse\n- Account deletion triggers a cascade delete across all services within 30 days\n- Backup retention: 90 days (backups are encrypted)\n- **Note**: Deletion process does not currently cover data in third-party systems (Zendesk, SendGrid). Manual deletion process exists but is not consistently followed.\n\n### 6. Data Transfer\n- Cross-border transfers covered under Standard Contractual Clauses (SCCs) with AWS and Stripe\n- No data transferred to countries without adequacy decisions outside of SCC-covered vendors\n- Employee access from personal devices is prohibited for Tier 3+ data\n\n### 7. Training\n- All employees complete data handling training within 30 days of hire\n- Annual refresher training required\n- Completion tracked in HR system\n- Last training cycle: 89% completion rate (target: 100%)",
+        "compliance/incident-response.md": "# Incident Response Plan\n## Version 2.0 | Last Updated: 2025-09-15 | Owner: Security Team\n\n### 1. Scope\nThis plan covers all security incidents including data breaches, unauthorized access, system compromises, and data loss events.\n\n### 2. Incident Classification\n- **SEV-1 (Critical)**: Confirmed data breach affecting customer personal data, system-wide compromise\n- **SEV-2 (High)**: Suspected data breach, unauthorized access to Tier 3+ data, service outage\n- **SEV-3 (Medium)**: Failed intrusion attempt, policy violation, phishing incident\n- **SEV-4 (Low)**: Vulnerability discovered, minor policy deviation\n\n### 3. Response Procedures\n\n**Detection & Triage (0-1 hours)**\n1. Incident detected via monitoring, employee report, or third-party notification\n2. On-call engineer performs initial triage and classification\n3. Incident commander assigned based on severity\n4. War room opened in Slack #incident-response channel\n\n**Investigation (1-4 hours)**\n1. Scope assessment: what data, what systems, how many users affected\n2. Containment: isolate affected systems, revoke compromised credentials\n3. Evidence preservation: snapshot affected systems, preserve logs\n4. Root cause analysis initiated\n\n**Notification**\n- SEV-1: Executive team notified within 1 hour. Regulatory notification within 72 hours.\n- SEV-2: Security team and CTO notified within 2 hours\n- SEV-3: Security team notified within 24 hours\n- SEV-4: Logged and reviewed in weekly security standup\n\n**Customer Notification (SEV-1 only)**\n- Draft notification within 24 hours of confirmed breach\n- Legal review required before sending\n- Notification includes: what happened, what data was affected, what we're doing, what they should do\n- Sent via email to affected users\n- **Gap**: No automated system for mass notification. Currently manual email via SendGrid. Can handle up to 10,000 recipients per batch. For larger breaches, notification could take 48-72 hours to reach all affected users.\n\n### 4. Post-Incident\n- Post-mortem within 5 business days\n- Remediation tracked in JIRA\n- Lessons learned shared in monthly security review\n- Update this plan if gaps identified\n\n### 5. Roles & Responsibilities\n- **Incident Commander**: CTO (David Chen) or designated backup (Sarah Kim)\n- **Technical Lead**: Senior engineer on rotation\n- **Communications**: VP Marketing coordinates external comms\n- **Legal**: Outside counsel on retainer (Morrison & Associates)\n\n### 6. Testing\n- Tabletop exercise conducted annually\n- Last exercise: 2025-07-15\n- Next scheduled: 2026-07-15\n- **Note**: No full simulation test has been conducted. Only tabletop exercises.\n\n### 7. Contact List\n- Security hotline: security@acme.com\n- CTO: david.chen@acme.com, +1-555-0100\n- Legal: legal@morrison-associates.com\n- Insurance: CyberPolicy Inc, policy #CP-2025-4421\n\n### 8. Regulatory Contacts\n- ICO (UK): casework@ico.org.uk\n- CNIL (France): notifications@cnil.fr\n- FTC (US): ftc.gov/complaint\n- DPA contacts for other jurisdictions maintained in secure wiki"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the compliance checklist and all three policy documents. Give me a quick overview of what we're working with.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(checklist|20|items|policy|compliance)",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    },
+    {
+      "user_input": "Check items 1-7 from the checklist: data collection consent and purpose limitation. For each item, tell me PASS, PARTIAL, or FAIL with justification.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(PASS|PARTIAL|FAIL)",
+        "response_contains": [
+          "consent"
+        ]
+      }
+    },
+    {
+      "user_input": "Check items 8-12: data storage, encryption, and access controls.",
+      "assertions": {
+        "response_matches": "(?i)(PASS|PARTIAL|FAIL)",
+        "response_contains": [
+          "encrypt"
+        ]
+      }
+    },
+    {
+      "user_input": "Check items 13-17: data subject rights including access, deletion, and portability.",
+      "assertions": {
+        "response_matches": "(?=.*(?i)(PASS|PARTIAL|FAIL))(?=.*(?i)(access|deletion|portab))"
+      }
+    },
+    {
+      "user_input": "Check items 18-20: breach notification and DPO requirements.",
+      "assertions": {
+        "response_matches": "(?=.*(?i)(PASS|PARTIAL|FAIL))(?=.*(?i)(breach|notification|DPO|72))"
+      }
+    },
+    {
+      "user_input": "How many items pass, partially pass, and fail? Give me the overall compliance score.",
+      "assertions": {
+        "response_matches": "(?=.*\\d+)(?=.*(?i)(fail))",
+        "response_contains": [
+          "pass"
+        ]
+      }
+    },
+    {
+      "user_input": "Generate the full audit report with remediation recommendations for each failing or partially passing item. Prioritize by risk level.",
+      "assertions": {
+        "response_matches": "(?i)(remediation|recommendation|action)",
+        "response_not_contains": [
+          "LLM error"
+        ]
+      }
+    }
+  ]
+}

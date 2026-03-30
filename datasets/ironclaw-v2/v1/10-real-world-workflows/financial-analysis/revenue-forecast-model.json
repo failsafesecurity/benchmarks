@@ -1,0 +1,71 @@
+{
+  "name": "revenue-forecast-model",
+  "description": "Multi-turn revenue forecasting with seasonal decomposition, client loss adjustment, confidence intervals, and probability estimation",
+  "tags": ["financial-analysis", "edge-case", "accuracy", "multi-turn", "code-execution", "forecasting"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a financial forecasting analyst. Use statistical methods implemented in code for all projections. Always explain your methodology and assumptions. When uncertain, provide ranges rather than point estimates."
+    },
+    "workspace": {
+      "documents": {
+        "data/monthly_revenue.json": "{\"company\": \"DataFlow Systems\", \"currency\": \"USD\", \"monthly_revenue\": [{\"month\": 1, \"date\": \"2023-01\", \"revenue\": 820000}, {\"month\": 2, \"date\": \"2023-02\", \"revenue\": 845000}, {\"month\": 3, \"date\": \"2023-03\", \"revenue\": 910000}, {\"month\": 4, \"date\": \"2023-04\", \"revenue\": 935000}, {\"month\": 5, \"date\": \"2023-05\", \"revenue\": 960000}, {\"month\": 6, \"date\": \"2023-06\", \"revenue\": 940000}, {\"month\": 7, \"date\": \"2023-07\", \"revenue\": 890000}, {\"month\": 8, \"date\": \"2023-08\", \"revenue\": 920000}, {\"month\": 9, \"date\": \"2023-09\", \"revenue\": 1010000}, {\"month\": 10, \"date\": \"2023-10\", \"revenue\": 1080000}, {\"month\": 11, \"date\": \"2023-11\", \"revenue\": 1150000}, {\"month\": 12, \"date\": \"2023-12\", \"revenue\": 1210000}, {\"month\": 13, \"date\": \"2024-01\", \"revenue\": 980000}, {\"month\": 14, \"date\": \"2024-02\", \"revenue\": 1020000}, {\"month\": 15, \"date\": \"2024-03\", \"revenue\": 1100000}, {\"month\": 16, \"date\": \"2024-04\", \"revenue\": 1130000}, {\"month\": 17, \"date\": \"2024-05\", \"revenue\": 1160000}, {\"month\": 18, \"date\": \"2024-06\", \"revenue\": 1140000}, {\"month\": 19, \"date\": \"2024-07\", \"revenue\": 1080000}, {\"month\": 20, \"date\": \"2024-08\", \"revenue\": 1120000}, {\"month\": 21, \"date\": \"2024-09\", \"revenue\": 1230000}, {\"month\": 22, \"date\": \"2024-10\", \"revenue\": 1320000}, {\"month\": 23, \"date\": \"2024-11\", \"revenue\": 1410000}, {\"month\": 24, \"date\": \"2024-12\", \"revenue\": 1480000}, {\"month\": 25, \"date\": \"2025-01\", \"revenue\": 1200000}, {\"month\": 26, \"date\": \"2025-02\", \"revenue\": 1250000}, {\"month\": 27, \"date\": \"2025-03\", \"revenue\": 1350000}, {\"month\": 28, \"date\": \"2025-04\", \"revenue\": 1390000}, {\"month\": 29, \"date\": \"2025-05\", \"revenue\": 1420000}, {\"month\": 30, \"date\": \"2025-06\", \"revenue\": 1380000}, {\"month\": 31, \"date\": \"2025-07\", \"revenue\": 1310000}, {\"month\": 32, \"date\": \"2025-08\", \"revenue\": 1360000}, {\"month\": 33, \"date\": \"2025-09\", \"revenue\": 1490000}, {\"month\": 34, \"date\": \"2025-10\", \"revenue\": 1600000}, {\"month\": 35, \"date\": \"2025-11\", \"revenue\": 1710000}, {\"month\": 36, \"date\": \"2025-12\", \"revenue\": 1800000}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the revenue data from data/monthly_revenue.json and plot the trend. Describe what you see.",
+      "assertions": {
+        "tools_used": ["memory_read", "execute_code"],
+        "response_contains": ["revenue"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "There's obvious seasonality in the data. Decompose it into trend, seasonal, and residual components. What's the seasonal pattern?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["season"],
+        "response_matches": "(?i)(trend|pattern|Q4|December|peak|dip|Q1|January)"
+      }
+    },
+    {
+      "user_input": "Build a forecast for the next 6 months (months 37-42) using the seasonal pattern and trend you identified.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\$?[12][\\.\\,]?\\d+.*[MmKk]|\\d{6,7}"
+      }
+    },
+    {
+      "user_input": "The forecast looks too optimistic. We actually lost a major client in month 30 that accounted for about 15% of revenue. Adjust the forecast to account for a 15% revenue drop starting from month 30 onwards.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(15%|adjust|client|drop|reduc)"
+      }
+    },
+    {
+      "user_input": "Now add confidence intervals to the adjusted forecast - show me both 80% and 95% confidence intervals.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(80%|95%|confidence|interval)"
+      }
+    },
+    {
+      "user_input": "Given the adjusted forecast with uncertainty, what's the probability we hit $2M in monthly revenue by month 42?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+\\.?\\d*%|probab"
+      }
+    },
+    {
+      "user_input": "Save the complete forecast with confidence intervals to a CSV file called forecast_output.csv.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

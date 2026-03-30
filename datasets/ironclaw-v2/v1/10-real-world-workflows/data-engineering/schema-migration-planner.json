@@ -1,0 +1,62 @@
+{
+  "name": "schema-migration-planner",
+  "description": "Multi-turn database schema migration planning: diff old vs new schemas, classify breaking changes, generate ALTER statements, write data migration scripts, plan rollbacks, and produce a migration runbook",
+  "tags": ["data-engineering", "edge-case", "accuracy", "multi-turn", "code-execution", "schema"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a database migration specialist. Analyze schema changes carefully, distinguishing between backward-compatible and breaking changes. Always consider data integrity and provide rollback plans."
+    },
+    "workspace": {
+      "documents": {
+        "schemas/old_schema.sql": "-- E-commerce platform schema v1.0\n\nCREATE TABLE users (\n    id SERIAL PRIMARY KEY,\n    username VARCHAR(50) NOT NULL UNIQUE,\n    email VARCHAR(255) NOT NULL UNIQUE,\n    password_hash VARCHAR(255) NOT NULL,\n    full_name VARCHAR(100),\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    is_active BOOLEAN DEFAULT TRUE\n);\n\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(200) NOT NULL,\n    description TEXT,\n    price DECIMAL(10, 2) NOT NULL,\n    stock_quantity INTEGER DEFAULT 0,\n    category VARCHAR(50),\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE orders (\n    id SERIAL PRIMARY KEY,\n    user_id INTEGER REFERENCES users(id),\n    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    total_amount DECIMAL(10, 2),\n    status VARCHAR(20) DEFAULT 'pending',\n    shipping_address TEXT\n);\n\nCREATE TABLE order_items (\n    id SERIAL PRIMARY KEY,\n    order_id INTEGER REFERENCES orders(id),\n    product_id INTEGER REFERENCES products(id),\n    quantity INTEGER NOT NULL,\n    unit_price DECIMAL(10, 2) NOT NULL\n);",
+        "schemas/new_schema.sql": "-- E-commerce platform schema v2.0\n\nCREATE TABLE users (\n    id SERIAL PRIMARY KEY,\n    username VARCHAR(50) NOT NULL UNIQUE,\n    email VARCHAR(255) NOT NULL UNIQUE,\n    password_hash VARCHAR(255) NOT NULL,\n    display_name VARCHAR(100),\n    phone VARCHAR(20),\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    is_active BOOLEAN DEFAULT TRUE,\n    role VARCHAR(20) DEFAULT 'customer'\n);\n\nCREATE TABLE products (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(200) NOT NULL,\n    description TEXT,\n    price DECIMAL(12, 4) NOT NULL,\n    stock_quantity INTEGER DEFAULT 0,\n    category_id INTEGER REFERENCES categories(id),\n    sku VARCHAR(50) UNIQUE,\n    weight_kg DECIMAL(6, 2),\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE categories (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100) NOT NULL UNIQUE,\n    parent_id INTEGER REFERENCES categories(id),\n    description TEXT\n);\n\nCREATE TABLE orders (\n    id SERIAL PRIMARY KEY,\n    user_id INTEGER REFERENCES users(id),\n    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    total_amount DECIMAL(12, 4),\n    status VARCHAR(20) DEFAULT 'pending',\n    shipping_address_id INTEGER REFERENCES addresses(id),\n    tracking_number VARCHAR(100),\n    notes TEXT\n);\n\nCREATE TABLE addresses (\n    id SERIAL PRIMARY KEY,\n    user_id INTEGER REFERENCES users(id),\n    street VARCHAR(255) NOT NULL,\n    city VARCHAR(100) NOT NULL,\n    state VARCHAR(50),\n    postal_code VARCHAR(20) NOT NULL,\n    country VARCHAR(50) NOT NULL DEFAULT 'US',\n    is_default BOOLEAN DEFAULT FALSE\n);\n\nCREATE TABLE order_items (\n    id SERIAL PRIMARY KEY,\n    order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,\n    product_id INTEGER REFERENCES products(id),\n    quantity INTEGER NOT NULL,\n    unit_price DECIMAL(12, 4) NOT NULL,\n    discount_pct DECIMAL(5, 2) DEFAULT 0\n);"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the old and new schemas from schemas/old_schema.sql and schemas/new_schema.sql. Compare them and tell me what changed.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(rename|add|drop|change|new table|column|type|categories|addresses)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Which changes are backwards-compatible and which are breaking? Classify each change.",
+      "assertions": {
+        "response_matches": "(?i)(breaking|backwards|compatible|non-breaking|safe)"
+      }
+    },
+    {
+      "user_input": "Write the migration SQL: ALTER TABLE statements for the backwards-compatible changes that can be applied without data loss.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(ALTER TABLE|ADD COLUMN|CREATE TABLE)"
+      }
+    },
+    {
+      "user_input": "For the breaking changes (like the column rename from full_name to display_name, the type changes, and the shipping_address to shipping_address_id conversion), write a data migration script that transforms the old data to the new format.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(migration|UPDATE|INSERT|transform|data)"
+      }
+    },
+    {
+      "user_input": "What's the rollback plan if the migration fails halfway through? Write the rollback SQL.",
+      "assertions": {
+        "response_matches": "(?i)(rollback|revert|undo|restore|DROP|RENAME)"
+      }
+    },
+    {
+      "user_input": "Generate a complete migration runbook with pre-checks, execution steps, validation queries, and rollback procedures.",
+      "assertions": {
+        "response_matches": "(?i)(runbook|migration|pre-check|validation|step|procedure)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

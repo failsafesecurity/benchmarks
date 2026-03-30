@@ -1,0 +1,65 @@
+{
+  "name": "fantasy-draft-optimizer",
+  "description": "Optimize a fantasy basketball draft using player projections, ADP data, and scoring rules to build an optimal 13-player roster through a snake draft",
+  "tags": ["sports-analytics", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a fantasy basketball draft strategist. Use code for all calculations. Rank players by projected fantasy points. Consider positional scarcity and value over replacement."
+    },
+    "workspace": {
+      "documents": {
+        "data/projections.csv": "name,position,team,games,pts,reb,ast,stl,blk,to,fg_pct,ft_pct,threes,adp\nNikola Jokic,C,DEN,79,26.5,12.2,9.0,1.3,0.8,3.5,58.3,81.5,1.1,1\nLuka Doncic,PG,DAL,70,33.9,9.2,9.8,1.4,0.5,4.0,48.7,78.6,4.1,2\nShai Gilgeous-Alexander,PG,OKC,75,31.4,5.5,6.2,2.0,0.9,2.8,53.5,87.4,1.5,3\nGiannis Antetokounmpo,PF,MIL,73,31.1,11.8,5.8,1.2,1.1,3.4,61.1,65.7,0.7,4\nJayson Tatum,SF,BOS,74,26.9,8.1,4.9,1.0,0.6,2.5,47.1,83.6,3.0,6\nAnthony Edwards,SG,MIN,79,25.9,5.4,5.1,1.3,0.5,2.7,46.1,84.2,3.5,7\nLeBron James,SF,LAL,71,25.7,7.3,8.3,1.3,0.5,3.5,54.0,75.0,2.1,8\nKevin Durant,PF,PHX,75,27.1,6.6,5.0,0.9,1.2,3.1,52.3,85.6,2.2,9\nTyrese Haliburton,PG,IND,69,20.1,3.7,10.9,1.2,0.7,2.4,47.7,85.4,3.1,10\nVictor Wembanyama,C,SAS,71,21.4,10.6,3.9,1.2,3.6,2.8,46.5,79.6,1.8,5\nJoel Embiid,C,PHI,39,34.7,11.0,5.6,1.2,1.7,3.8,52.9,88.3,1.4,14\nTrae Young,PG,ATL,73,25.7,2.8,10.8,1.1,0.2,4.0,43.0,86.0,3.0,15\nDe'Aaron Fox,PG,SAC,74,26.6,4.6,5.6,2.0,0.4,2.7,46.5,73.8,2.4,11\nKawhi Leonard,SF,LAC,52,23.7,6.1,3.6,1.6,0.9,2.0,52.5,88.0,1.6,35\nDamian Lillard,PG,MIL,73,24.3,4.4,7.0,1.0,0.3,2.9,42.4,92.0,3.5,16\nPaul George,SF,PHI,74,22.6,5.2,3.5,1.5,0.4,2.8,47.1,87.3,2.8,25\nAnthony Davis,C,LAL,76,24.7,12.6,3.5,1.2,2.3,2.1,55.6,81.6,0.5,12\nBam Adebayo,C,MIA,71,19.3,10.4,5.4,1.2,0.9,2.6,52.4,80.2,0.2,20\nJalen Brunson,PG,NYK,77,28.7,3.5,6.7,0.9,0.2,2.4,47.9,84.7,2.1,13\nChet Holmgren,C,OKC,70,16.5,7.9,2.4,0.5,2.5,1.4,53.0,79.0,1.5,22\nDarius Garland,PG,CLE,57,18.0,2.8,6.5,1.3,0.1,2.7,44.9,88.0,2.5,30\nLauri Markkanen,PF,UTA,55,23.2,8.2,2.0,0.5,0.6,1.5,48.0,87.9,2.2,24\nMikal Bridges,SF,NYK,82,19.6,4.5,3.6,1.0,0.4,1.7,43.6,81.2,2.8,40\nDevin Booker,SG,PHX,68,27.1,4.5,6.9,1.0,0.3,2.6,49.2,87.8,2.4,17\nJa Morant,PG,MEM,55,25.1,5.6,8.1,0.8,0.3,3.4,47.3,72.6,1.5,23\nTyrese Maxey,PG,PHI,70,25.9,3.7,6.2,1.0,0.3,1.8,45.0,87.2,3.3,18\nPascal Siakam,PF,IND,71,21.3,6.8,3.8,0.7,0.4,2.3,49.5,77.5,1.2,28\nFranz Wagner,SF,ORL,72,21.0,5.3,5.2,1.1,0.3,2.4,46.8,82.0,1.8,26\nJalen Williams,SF,OKC,72,19.1,5.5,4.5,1.2,0.6,2.0,54.1,79.3,1.1,27\nScottie Barnes,PF,TOR,60,19.9,7.2,5.1,1.3,1.1,2.5,47.5,73.8,0.9,29\nKarl-Anthony Towns,C,NYK,62,22.8,8.3,3.0,0.7,0.5,2.4,50.4,87.3,2.2,19\nDonovan Mitchell,SG,CLE,55,26.6,5.1,5.1,1.8,0.4,2.8,46.2,86.1,3.2,21\nZion Williamson,PF,NOP,50,22.9,5.8,5.0,1.1,0.6,2.8,60.2,71.5,0.3,45\nBrandon Ingram,SF,NOP,45,24.7,5.1,5.7,0.7,0.3,2.5,49.2,84.3,2.3,50\nJalen Green,SG,HOU,72,19.6,5.2,3.5,0.8,0.3,2.3,42.8,80.5,3.1,55\nAlperen Sengun,C,HOU,63,21.1,9.3,5.0,1.2,0.7,3.0,53.7,71.4,0.5,32\nJalen Suggs,SG,ORL,63,12.6,3.5,3.7,1.5,0.4,2.0,44.5,73.0,1.9,80\nObi Toppin,PF,IND,69,10.3,4.3,1.5,0.3,0.6,1.2,55.1,67.5,0.8,95\nCam Thomas,SG,BKN,58,22.5,3.4,3.2,0.6,0.2,2.6,43.8,86.7,2.4,65\nAustin Reaves,SG,LAL,76,15.9,4.3,5.5,1.0,0.3,1.5,48.5,86.2,1.6,60\nHerb Jones,SF,NOP,68,11.3,3.9,1.8,1.3,1.0,1.0,45.0,73.6,0.6,90\nTari Eason,PF,HOU,60,8.5,5.4,0.9,1.3,0.8,1.3,50.2,70.1,0.5,100\nJalen Duren,C,DET,74,13.8,10.5,2.0,0.5,1.1,2.5,56.0,57.5,0.0,42\nAmen Thompson,PG,HOU,55,9.8,5.5,3.5,1.0,0.3,1.6,52.0,60.0,0.2,85\nCoby White,PG,CHI,78,19.1,4.1,5.3,0.7,0.3,2.2,44.8,85.0,3.0,48\nJalen Johnson,PF,ATL,62,16.0,8.3,3.7,1.1,0.4,2.3,51.2,72.0,1.0,38\nNick Richards,C,CHA,56,9.8,8.3,0.5,0.4,1.2,1.0,64.5,66.0,0.0,110\nKeegan Murray,SF,SAC,78,15.3,5.0,1.9,0.8,0.4,1.3,47.2,83.8,2.5,70\nImmanuel Quickley,PG,TOR,72,18.6,4.8,6.8,1.2,0.3,2.8,44.0,82.3,2.5,52\nJerami Grant,PF,POR,63,21.0,3.5,2.8,0.9,0.5,2.0,44.8,82.9,1.5,58",
+        "data/scoring_rules.json": "{\"scoring_system\": \"points-based\", \"rules\": {\"points\": 1.0, \"rebounds\": 1.2, \"assists\": 1.5, \"steals\": 3.0, \"blocks\": 3.0, \"turnovers\": -1.0, \"threes\": 0.5, \"fg_missed\": -0.5, \"ft_missed\": -0.5, \"double_double\": 3.0, \"triple_double\": 5.0}, \"roster_slots\": {\"PG\": 2, \"SG\": 2, \"SF\": 2, \"PF\": 2, \"C\": 2, \"UTIL\": 2, \"BENCH\": 1}, \"league_settings\": {\"teams\": 12, \"draft_type\": \"snake\", \"roster_size\": 13}}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the projections from data/projections.csv and scoring rules from data/scoring_rules.json. Calculate the expected fantasy points per game for each player.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Jokic", "Doncic"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "I have the 5th pick in a 12-team snake draft. Simulate the first 4 picks based on ADP and tell me who's likely available at pick 5.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(pick|available|5th|draft)"
+      }
+    },
+    {
+      "user_input": "Between LeBron and Jokic (assuming both are available), who gives me better value based on total projected fantasy points for the season? Factor in games played.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Jokic|LeBron)"
+      }
+    },
+    {
+      "user_input": "My first 3 picks are Jokic, Haliburton, and Anthony Edwards. What positions should I target next? Show me the best available player at each position of need.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(PG|SG|SF|PF|C|position|target)"
+      }
+    },
+    {
+      "user_input": "Identify the top 5 sleeper picks - players ranked 80+ in ADP who project in the top 50 by your fantasy scoring calculations.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(sleeper|value|undervalued)"
+      }
+    },
+    {
+      "user_input": "Generate my optimal 13-player roster strategy for the full draft. Show me who to target in each round with my snake draft position.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(round|roster|strategy|draft)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

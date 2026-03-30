@@ -1,0 +1,59 @@
+{
+  "name": "token-vesting-schedule",
+  "description": "Multi-turn token vesting analysis requiring schedule calculation, circulating supply impact projection, USD value estimation, early departure forfeiture calculation, and treasury dilution report generation",
+  "tags": ["blockchain-ops", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a tokenomics analyst. Always use code for calculations. Present vesting schedules clearly with monthly breakdowns. Be precise about cliff periods and vesting curves."
+    },
+    "workspace": {
+      "documents": {
+        "data/vesting_terms.json": "[{\"name\":\"Alice\",\"role\":\"CTO\",\"total_tokens\":2000000,\"cliff_months\":12,\"vesting_months\":48,\"vesting_type\":\"linear\",\"start_date\":\"2024-07-01\",\"acceleration_on_exit\":false},{\"name\":\"Bob\",\"role\":\"CEO\",\"total_tokens\":3000000,\"cliff_months\":6,\"vesting_months\":36,\"vesting_type\":\"linear\",\"start_date\":\"2024-07-01\",\"acceleration_on_exit\":true},{\"name\":\"Carol\",\"role\":\"Lead Engineer\",\"total_tokens\":1000000,\"cliff_months\":12,\"vesting_months\":48,\"vesting_type\":\"linear\",\"start_date\":\"2024-10-01\",\"acceleration_on_exit\":false},{\"name\":\"Dave\",\"role\":\"Head of BD\",\"total_tokens\":800000,\"cliff_months\":6,\"vesting_months\":24,\"vesting_type\":\"graded\",\"start_date\":\"2025-01-01\",\"acceleration_on_exit\":false,\"graded_schedule\":{\"year1_pct\":30,\"year2_pct\":70}},{\"name\":\"Eve\",\"role\":\"Advisor\",\"total_tokens\":500000,\"cliff_months\":6,\"vesting_months\":24,\"vesting_type\":\"linear\",\"start_date\":\"2024-07-01\",\"acceleration_on_exit\":false},{\"name\":\"Frank\",\"role\":\"Community Lead\",\"total_tokens\":400000,\"cliff_months\":3,\"vesting_months\":24,\"vesting_type\":\"linear\",\"start_date\":\"2025-04-01\",\"acceleration_on_exit\":true}]",
+        "data/token_info.json": "{\"token_name\":\"GOV\",\"total_supply\":100000000,\"circulating_supply\":35000000,\"team_allocation_pct\":7.7,\"current_price_usd\":2.50}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the vesting data from data/vesting_terms.json and calculate the vesting schedule for each team member. Show monthly unlock amounts for the next 12 months starting from January 2026.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's the total circulating supply impact over the next 12 months? How many new tokens enter circulation from team vesting each month?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(circulat|supply)"
+      }
+    },
+    {
+      "user_input": "The token price is $2.50. Calculate the USD value unlocking each month for the next 12 months.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(\\$|monthly|2\\.50|USD)"
+      }
+    },
+    {
+      "user_input": "Alice wants to leave after 18 months (January 2026). How many tokens has she vested vs what she'd forfeit?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Alice"],
+        "response_matches": "(?i)(forfeit|vested)"
+      }
+    },
+    {
+      "user_input": "Generate a treasury planning report showing total supply dilution timeline from team vesting over the full vesting period.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(dilution|treasury)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

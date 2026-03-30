@@ -1,0 +1,64 @@
+{
+  "name": "mev-detection",
+  "description": "Multi-turn MEV (Maximal Extractable Value) detection scenario requiring transaction flow parsing, sandwich attack verification, backrun analysis, value extraction calculation, pattern recognition, and protection recommendations",
+  "tags": ["blockchain-ops", "adversarial", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a blockchain security analyst specializing in MEV. Always explain attack vectors clearly and suggest mitigations. Use code to verify calculations. Present financial figures in both ETH and USD (assume ETH=$3,200)."
+    },
+    "workspace": {
+      "documents": {
+        "data/block_txs.json": "[{\"position_in_block\":1,\"tx_hash\":\"0xblk001...aaa\",\"from\":\"0xBuilder...0001\",\"to\":\"0xCoinbase\",\"value_eth\":0.05,\"gas_price_gwei\":150,\"gas_used\":21000,\"type\":\"coinbase_transfer\",\"token_in\":null,\"token_out\":null,\"amount_in\":null,\"amount_out\":null,\"dex\":null},{\"position_in_block\":2,\"tx_hash\":\"0xblk002...bbb\",\"from\":\"0xNormal1...1234\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":45,\"gas_used\":125000,\"type\":\"swap\",\"token_in\":\"USDC\",\"token_out\":\"WETH\",\"amount_in\":5000,\"amount_out\":1.5625,\"dex\":\"Uniswap V3\"},{\"position_in_block\":3,\"tx_hash\":\"0xblk003...ccc\",\"from\":\"0xMEVBot1...dead\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":80,\"gas_used\":145000,\"type\":\"swap\",\"token_in\":\"USDC\",\"token_out\":\"PEPE\",\"amount_in\":50000,\"amount_out\":125000000,\"dex\":\"Uniswap V3\"},{\"position_in_block\":4,\"tx_hash\":\"0xblk004...ddd\",\"from\":\"0xVictim1...5678\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":42,\"gas_used\":148000,\"type\":\"swap\",\"token_in\":\"USDC\",\"token_out\":\"PEPE\",\"amount_in\":10000,\"amount_out\":22500000,\"dex\":\"Uniswap V3\"},{\"position_in_block\":5,\"tx_hash\":\"0xblk005...eee\",\"from\":\"0xMEVBot1...dead\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":80,\"gas_used\":142000,\"type\":\"swap\",\"token_in\":\"PEPE\",\"token_out\":\"USDC\",\"amount_in\":125000000,\"amount_out\":52800,\"dex\":\"Uniswap V3\"},{\"position_in_block\":6,\"tx_hash\":\"0xblk006...fff\",\"from\":\"0xNormal2...abcd\",\"to\":\"0xSushiSwapRouter\",\"value_eth\":0,\"gas_price_gwei\":40,\"gas_used\":130000,\"type\":\"swap\",\"token_in\":\"WETH\",\"token_out\":\"USDC\",\"amount_in\":2.0,\"amount_out\":6380,\"dex\":\"SushiSwap\"},{\"position_in_block\":7,\"tx_hash\":\"0xblk007...ggg\",\"from\":\"0xWhale...9abc\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":55,\"gas_used\":165000,\"type\":\"swap\",\"token_in\":\"WETH\",\"token_out\":\"LINK\",\"amount_in\":100.0,\"amount_out\":21500,\"dex\":\"Uniswap V3\"},{\"position_in_block\":8,\"tx_hash\":\"0xblk008...hhh\",\"from\":\"0xMEVBot2...beef\",\"to\":\"0xSushiSwapRouter\",\"value_eth\":0,\"gas_price_gwei\":70,\"gas_used\":155000,\"type\":\"swap\",\"token_in\":\"LINK\",\"token_out\":\"WETH\",\"amount_in\":5000,\"amount_out\":15.8,\"dex\":\"SushiSwap\"},{\"position_in_block\":9,\"tx_hash\":\"0xblk009...iii\",\"from\":\"0xMEVBot2...beef\",\"to\":\"0xUniswapV3Router\",\"value_eth\":0,\"gas_price_gwei\":70,\"gas_used\":140000,\"type\":\"swap\",\"token_in\":\"WETH\",\"token_out\":\"LINK\",\"amount_in\":15.8,\"amount_out\":5120,\"dex\":\"Uniswap V3\"},{\"position_in_block\":10,\"tx_hash\":\"0xblk010...jjj\",\"from\":\"0xNormal3...ef01\",\"to\":\"0xUniswapV2Router\",\"value_eth\":0,\"gas_price_gwei\":38,\"gas_used\":118000,\"type\":\"swap\",\"token_in\":\"DAI\",\"token_out\":\"WETH\",\"amount_in\":10000,\"amount_out\":3.12,\"dex\":\"Uniswap V2\"},{\"position_in_block\":11,\"tx_hash\":\"0xblk011...kkk\",\"from\":\"0xNormal4...2345\",\"to\":\"0xAaveV3Pool\",\"value_eth\":0,\"gas_price_gwei\":35,\"gas_used\":210000,\"type\":\"lending\",\"token_in\":\"USDC\",\"token_out\":null,\"amount_in\":25000,\"amount_out\":null,\"dex\":null},{\"position_in_block\":12,\"tx_hash\":\"0xblk012...lll\",\"from\":\"0xMEVBot1...dead\",\"to\":\"0xUniswapV2Router\",\"value_eth\":0,\"gas_price_gwei\":75,\"gas_used\":135000,\"type\":\"swap\",\"token_in\":\"USDC\",\"token_out\":\"ARB\",\"amount_in\":30000,\"amount_out\":27500,\"dex\":\"Uniswap V2\"},{\"position_in_block\":13,\"tx_hash\":\"0xblk013...mmm\",\"from\":\"0xVictim2...6789\",\"to\":\"0xUniswapV2Router\",\"value_eth\":0,\"gas_price_gwei\":36,\"gas_used\":122000,\"type\":\"swap\",\"token_in\":\"USDC\",\"token_out\":\"ARB\",\"amount_in\":8000,\"amount_out\":7100,\"dex\":\"Uniswap V2\"},{\"position_in_block\":14,\"tx_hash\":\"0xblk014...nnn\",\"from\":\"0xMEVBot1...dead\",\"to\":\"0xUniswapV2Router\",\"value_eth\":0,\"gas_price_gwei\":75,\"gas_used\":132000,\"type\":\"swap\",\"token_in\":\"ARB\",\"token_out\":\"USDC\",\"amount_in\":27500,\"amount_out\":31200,\"dex\":\"Uniswap V2\"},{\"position_in_block\":15,\"tx_hash\":\"0xblk015...ooo\",\"from\":\"0xNormal5...cdef\",\"to\":\"0xTransferContract\",\"value_eth\":1.0,\"gas_price_gwei\":32,\"gas_used\":21000,\"type\":\"transfer\",\"token_in\":null,\"token_out\":null,\"amount_in\":null,\"amount_out\":null,\"dex\":null}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the block transactions from data/block_txs.json. Parse these transactions in execution order and show the flow of each transaction.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Transactions 3-5 look like a sandwich attack: a buy before the victim's swap, then a sell after. Verify and calculate the profit.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["sandwich"],
+        "response_matches": "(?i)(profit|\\$|USDC)"
+      }
+    },
+    {
+      "user_input": "Is transaction 8 a backrun? Check if it arbitrages the price impact from transaction 7.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(backrun|arbitrag|price)"
+      }
+    },
+    {
+      "user_input": "Calculate the total value extracted from regular users in this block.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(extract|value|\\$|ETH)"
+      }
+    },
+    {
+      "user_input": "The sandwich attacker's address (0xMEVBot1...dead) also appears in transactions 12-14. Is this the same pattern?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(sandwich|pattern|MEVBot1|same)"
+      }
+    },
+    {
+      "user_input": "What protections could the victim transactions have used? Explain slippage tolerance and private mempools.",
+      "assertions": {
+        "response_matches": "(?i)(slippage|private|protection|mempool)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

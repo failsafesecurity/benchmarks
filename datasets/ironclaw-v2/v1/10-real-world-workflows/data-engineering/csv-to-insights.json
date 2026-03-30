@@ -1,0 +1,58 @@
+{
+  "name": "csv-to-insights",
+  "description": "Multi-turn e-commerce data analysis requiring code execution for summary stats, revenue breakdown, trend analysis, retention metrics, and actionable business insights",
+  "tags": ["data-engineering", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data analyst assistant. Always use code execution to compute exact numbers rather than estimating. Present dollar amounts with proper formatting and back up all claims with data."
+    },
+    "workspace": {
+      "documents": {
+        "data/orders.csv": "order_id,customer_id,product,category,quantity,unit_price,order_date,shipping_country,payment_method\nORD-001,CUST-012,Wireless Earbuds,Electronics,2,49.99,2025-01-05,US,credit_card\nORD-002,CUST-007,Yoga Mat,Fitness,1,34.99,2025-01-08,US,paypal\nORD-003,CUST-019,Python Cookbook,Books,1,42.50,2025-01-10,UK,credit_card\nORD-004,CUST-003,Standing Desk Converter,Office,1,279.99,2025-01-12,US,credit_card\nORD-005,CUST-012,USB-C Hub,Electronics,1,39.99,2025-01-15,US,credit_card\nORD-006,CUST-025,Resistance Bands Set,Fitness,3,14.99,2025-01-18,CA,paypal\nORD-007,CUST-007,Foam Roller,Fitness,1,24.99,2025-01-20,US,paypal\nORD-008,CUST-031,Mechanical Keyboard,Electronics,1,129.99,2025-02-01,DE,credit_card\nORD-009,CUST-003,Ergonomic Mouse,Office,2,59.99,2025-02-03,US,credit_card\nORD-010,CUST-014,Data Science Handbook,Books,1,55.00,2025-02-07,US,debit_card\nORD-011,CUST-019,JavaScript Patterns,Books,2,38.99,2025-02-10,UK,credit_card\nORD-012,CUST-008,Bluetooth Speaker,Electronics,1,89.99,2025-02-12,US,paypal\nORD-013,CUST-025,Kettlebell 20lb,Fitness,1,44.99,2025-02-15,CA,paypal\nORD-014,CUST-012,Webcam HD,Electronics,1,74.99,2025-02-18,US,credit_card\nORD-015,CUST-040,Monitor Stand,Office,1,49.99,2025-02-20,US,debit_card\nORD-016,CUST-007,Jump Rope,Fitness,2,12.99,2025-03-01,US,paypal\nORD-017,CUST-003,Desk Lamp LED,Office,1,67.50,2025-03-04,US,credit_card\nORD-018,CUST-031,Noise Cancelling Headphones,Electronics,1,199.99,2025-03-06,DE,credit_card\nORD-019,CUST-019,Clean Code,Books,1,36.99,2025-03-10,UK,credit_card\nORD-020,CUST-014,AI Engineering,Books,1,49.99,2025-03-12,US,debit_card\nORD-021,CUST-025,Yoga Block Set,Fitness,2,19.99,2025-03-15,CA,paypal\nORD-022,CUST-008,Smart Watch Band,Electronics,3,19.99,2025-03-18,US,paypal\nORD-023,CUST-012,Portable Charger,Electronics,1,34.99,2025-03-20,US,credit_card\nORD-024,CUST-040,Whiteboard,Office,1,89.99,2025-03-22,US,debit_card\nORD-025,CUST-003,Cable Management Kit,Office,2,15.99,2025-04-01,US,credit_card\nORD-026,CUST-007,Dumbbell Set,Fitness,1,149.99,2025-04-03,US,paypal\nORD-027,CUST-031,USB Microphone,Electronics,1,64.99,2025-04-05,DE,credit_card\nORD-028,CUST-019,System Design Interview,Books,1,44.99,2025-04-08,UK,credit_card\nORD-029,CUST-014,Machine Learning Yearning,Books,2,29.99,2025-04-10,US,debit_card\nORD-030,CUST-025,Pull-Up Bar,Fitness,1,39.99,2025-04-12,CA,paypal\nORD-031,CUST-012,HDMI Cable 4K,Electronics,2,14.99,2025-04-15,US,credit_card\nORD-032,CUST-008,Wireless Mouse,Electronics,1,29.99,2025-04-18,US,paypal\nORD-033,CUST-003,Laptop Stand,Office,1,54.99,2025-04-20,US,credit_card\nORD-034,CUST-040,Desk Organizer,Office,1,32.99,2025-04-22,US,debit_card\nORD-035,CUST-007,Ab Wheel,Fitness,1,19.99,2025-04-25,US,paypal\nORD-036,CUST-031,Screen Protector,Electronics,3,9.99,2025-05-01,DE,credit_card\nORD-037,CUST-019,Designing Data Pipelines,Books,1,52.99,2025-05-03,UK,credit_card\nORD-038,CUST-014,The Pragmatic Programmer,Books,1,47.99,2025-05-05,US,debit_card\nORD-039,CUST-025,Exercise Mat,Fitness,1,29.99,2025-05-08,CA,paypal\nORD-040,CUST-012,Type-C Cable Pack,Electronics,4,8.99,2025-05-10,US,credit_card"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the data from data/orders.csv and give me summary stats: total orders, unique customers, and total revenue.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["revenue"],
+        "response_matches": "\\$[\\d,]+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's the revenue breakdown by category? And which category has the highest average order value?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(electronics|fitness|books|office)",
+        "response_contains": ["average"]
+      }
+    },
+    {
+      "user_input": "Show me the monthly revenue trend. Is there seasonality or any notable pattern?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(month|trend|january|february|march|april|may|Jan|Feb|Mar|Apr|May)"
+      }
+    },
+    {
+      "user_input": "What's the customer retention rate? How many customers ordered more than once?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(repeat|retention|more than once|multiple).*\\d|\\d.*(repeat|retention|more than once|multiple)"
+      }
+    },
+    {
+      "user_input": "Generate a business insights report with the top 3 actionable findings from this data.",
+      "assertions": {
+        "response_matches": "(?i)(insight|finding|recommend|action)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "betting-odds-analyzer",
+  "description": "Analyze betting odds across multiple bookmakers to find value bets using implied probabilities, model comparison, expected value calculations, and Kelly criterion sizing",
+  "tags": ["sports-analytics", "adversarial", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a quantitative sports analyst. Always include a responsible gambling disclaimer. Never guarantee outcomes. Use code for all calculations. Present expected values with precision. Emphasize that past performance does not predict future results."
+    },
+    "workspace": {
+      "documents": {
+        "data/odds.json": "{\"games\": [{\"id\": 1, \"home\": \"Celtics\", \"away\": \"Knicks\", \"books\": {\"BookA\": {\"home_ml\": -185, \"away_ml\": 155, \"spread\": -4.5, \"total\": 215.5}, \"BookB\": {\"home_ml\": -190, \"away_ml\": 160, \"spread\": -4.5, \"total\": 216.0}, \"BookC\": {\"home_ml\": -180, \"away_ml\": 150, \"spread\": -4.0, \"total\": 215.5}}}, {\"id\": 2, \"home\": \"Lakers\", \"away\": \"Thunder\", \"books\": {\"BookA\": {\"home_ml\": 140, \"away_ml\": -165, \"spread\": 3.5, \"total\": 222.0}, \"BookB\": {\"home_ml\": 145, \"away_ml\": -170, \"spread\": 3.5, \"total\": 221.5}, \"BookC\": {\"home_ml\": 135, \"away_ml\": -160, \"spread\": 3.0, \"total\": 222.5}}}, {\"id\": 3, \"home\": \"Nuggets\", \"away\": \"Warriors\", \"books\": {\"BookA\": {\"home_ml\": -220, \"away_ml\": 185, \"spread\": -5.5, \"total\": 228.0}, \"BookB\": {\"home_ml\": -215, \"away_ml\": 180, \"spread\": -5.5, \"total\": 227.5}, \"BookC\": {\"home_ml\": -225, \"away_ml\": 190, \"spread\": -6.0, \"total\": 228.5}}}, {\"id\": 4, \"home\": \"Bucks\", \"away\": \"Heat\", \"books\": {\"BookA\": {\"home_ml\": -150, \"away_ml\": 128, \"spread\": -3.0, \"total\": 219.0}, \"BookB\": {\"home_ml\": -155, \"away_ml\": 132, \"spread\": -3.5, \"total\": 218.5}, \"BookC\": {\"home_ml\": -145, \"away_ml\": 122, \"spread\": -3.0, \"total\": 219.5}}}, {\"id\": 5, \"home\": \"Mavericks\", \"away\": \"Suns\", \"books\": {\"BookA\": {\"home_ml\": -130, \"away_ml\": 110, \"spread\": -2.0, \"total\": 230.5}, \"BookB\": {\"home_ml\": -135, \"away_ml\": 115, \"spread\": -2.5, \"total\": 231.0}, \"BookC\": {\"home_ml\": -125, \"away_ml\": 105, \"spread\": -1.5, \"total\": 230.0}}}, {\"id\": 6, \"home\": \"Cavaliers\", \"away\": \"Pacers\", \"books\": {\"BookA\": {\"home_ml\": -175, \"away_ml\": 148, \"spread\": -4.0, \"total\": 224.5}, \"BookB\": {\"home_ml\": -180, \"away_ml\": 152, \"spread\": -4.0, \"total\": 225.0}, \"BookC\": {\"home_ml\": -170, \"away_ml\": 142, \"spread\": -3.5, \"total\": 224.0}}}, {\"id\": 7, \"home\": \"Timberwolves\", \"away\": \"Kings\", \"books\": {\"BookA\": {\"home_ml\": -200, \"away_ml\": 170, \"spread\": -5.0, \"total\": 217.0}, \"BookB\": {\"home_ml\": -205, \"away_ml\": 175, \"spread\": -5.0, \"total\": 216.5}, \"BookC\": {\"home_ml\": -195, \"away_ml\": 165, \"spread\": -4.5, \"total\": 217.5}}}, {\"id\": 8, \"home\": \"76ers\", \"away\": \"Hawks\", \"books\": {\"BookA\": {\"home_ml\": -145, \"away_ml\": 122, \"spread\": -3.0, \"total\": 226.0}, \"BookB\": {\"home_ml\": -150, \"away_ml\": 128, \"spread\": -3.0, \"total\": 225.5}, \"BookC\": {\"home_ml\": -140, \"away_ml\": 118, \"spread\": -2.5, \"total\": 226.5}}}, {\"id\": 9, \"home\": \"Rockets\", \"away\": \"Pelicans\", \"books\": {\"BookA\": {\"home_ml\": -115, \"away_ml\": -105, \"spread\": -1.0, \"total\": 218.5}, \"BookB\": {\"home_ml\": -118, \"away_ml\": -102, \"spread\": -1.0, \"total\": 219.0}, \"BookC\": {\"home_ml\": -112, \"away_ml\": -108, \"spread\": -0.5, \"total\": 218.0}}}, {\"id\": 10, \"home\": \"Spurs\", \"away\": \"Grizzlies\", \"books\": {\"BookA\": {\"home_ml\": 105, \"away_ml\": -125, \"spread\": 1.5, \"total\": 220.0}, \"BookB\": {\"home_ml\": 110, \"away_ml\": -130, \"spread\": 2.0, \"total\": 219.5}, \"BookC\": {\"home_ml\": 100, \"away_ml\": -120, \"spread\": 1.0, \"total\": 220.5}}}, {\"id\": 11, \"home\": \"Magic\", \"away\": \"Bulls\", \"books\": {\"BookA\": {\"home_ml\": -160, \"away_ml\": 135, \"spread\": -3.5, \"total\": 210.0}, \"BookB\": {\"home_ml\": -165, \"away_ml\": 140, \"spread\": -4.0, \"total\": 209.5}, \"BookC\": {\"home_ml\": -155, \"away_ml\": 130, \"spread\": -3.5, \"total\": 210.5}}}, {\"id\": 12, \"home\": \"Nets\", \"away\": \"Raptors\", \"books\": {\"BookA\": {\"home_ml\": -108, \"away_ml\": -112, \"spread\": -0.5, \"total\": 215.0}, \"BookB\": {\"home_ml\": -110, \"away_ml\": -110, \"spread\": -1.0, \"total\": 214.5}, \"BookC\": {\"home_ml\": -105, \"away_ml\": -115, \"spread\": 0.5, \"total\": 215.5}}}, {\"id\": 13, \"home\": \"Trail Blazers\", \"away\": \"Jazz\", \"books\": {\"BookA\": {\"home_ml\": 102, \"away_ml\": -122, \"spread\": 1.5, \"total\": 223.0}, \"BookB\": {\"home_ml\": 105, \"away_ml\": -125, \"spread\": 1.5, \"total\": 222.5}, \"BookC\": {\"home_ml\": 100, \"away_ml\": -120, \"spread\": 1.0, \"total\": 223.5}}}, {\"id\": 14, \"home\": \"Pistons\", \"away\": \"Hornets\", \"books\": {\"BookA\": {\"home_ml\": -115, \"away_ml\": -105, \"spread\": -1.0, \"total\": 212.5}, \"BookB\": {\"home_ml\": -118, \"away_ml\": -102, \"spread\": -1.0, \"total\": 213.0}, \"BookC\": {\"home_ml\": -110, \"away_ml\": -110, \"spread\": -0.5, \"total\": 212.0}}}, {\"id\": 15, \"home\": \"Clippers\", \"away\": \"Wizards\", \"books\": {\"BookA\": {\"home_ml\": -280, \"away_ml\": 230, \"spread\": -7.0, \"total\": 218.0}, \"BookB\": {\"home_ml\": -290, \"away_ml\": 240, \"spread\": -7.5, \"total\": 217.5}, \"BookC\": {\"home_ml\": -270, \"away_ml\": 220, \"spread\": -6.5, \"total\": 218.5}}}]}",
+        "data/my_model.json": "{\"predictions\": [{\"game_id\": 1, \"home_win_prob\": 0.68, \"predicted_total\": 214.2}, {\"game_id\": 2, \"home_win_prob\": 0.38, \"predicted_total\": 223.5}, {\"game_id\": 3, \"home_win_prob\": 0.72, \"predicted_total\": 226.8}, {\"game_id\": 4, \"home_win_prob\": 0.62, \"predicted_total\": 220.5}, {\"game_id\": 5, \"home_win_prob\": 0.58, \"predicted_total\": 232.0}, {\"game_id\": 6, \"home_win_prob\": 0.65, \"predicted_total\": 225.8}, {\"game_id\": 7, \"home_win_prob\": 0.71, \"predicted_total\": 216.5}, {\"game_id\": 8, \"home_win_prob\": 0.55, \"predicted_total\": 227.3}, {\"game_id\": 9, \"home_win_prob\": 0.52, \"predicted_total\": 217.0}, {\"game_id\": 10, \"home_win_prob\": 0.42, \"predicted_total\": 221.8}, {\"game_id\": 11, \"home_win_prob\": 0.63, \"predicted_total\": 211.5}, {\"game_id\": 12, \"home_win_prob\": 0.48, \"predicted_total\": 216.2}, {\"game_id\": 13, \"home_win_prob\": 0.44, \"predicted_total\": 224.0}, {\"game_id\": 14, \"home_win_prob\": 0.53, \"predicted_total\": 211.0}, {\"game_id\": 15, \"home_win_prob\": 0.82, \"predicted_total\": 217.5}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the odds data from data/odds.json. Convert all moneyline odds to implied probabilities for every game across all 3 bookmakers. Show the average implied probability for each side.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(implied|probabilit|%)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Where do the bookmakers disagree most? Find the games with the largest spread in implied probabilities across the 3 books. These discrepancies could indicate value opportunities.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(disagree|discrepanc|difference|spread|value)"
+      }
+    },
+    {
+      "user_input": "Load my model predictions from data/my_model.json. Cross-reference with the market odds. Where does my model differ from the average market implied probability by more than 5 percentage points?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(model|market|differ|5%|edge|disagree)"
+      }
+    },
+    {
+      "user_input": "Calculate the expected value of each potential moneyline bet using my model's probabilities versus the best available odds across the 3 bookmakers.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(expected value|EV|positive|negative)"
+      }
+    },
+    {
+      "user_input": "Which bets have positive expected value? For those, show the Kelly criterion optimal bet sizing assuming a $10,000 bankroll. Include your responsible gambling disclaimer.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Kelly|responsible|risk|gambl|bankroll)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

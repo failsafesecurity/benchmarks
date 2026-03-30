@@ -1,0 +1,59 @@
+{
+  "name": "multi-currency-conversion",
+  "description": "Multi-turn multi-currency transaction analysis with FX conversion, monthly breakdown, rate adjustment, and sensitivity analysis",
+  "tags": ["financial-analysis", "basic", "accuracy", "multi-turn", "code-execution", "fx"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a treasury operations assistant. Use code for all currency conversions and calculations. Always specify which exchange rates you are using and show intermediate calculations."
+    },
+    "workspace": {
+      "documents": {
+        "data/fx_rates.json": "{\"base\": \"USD\", \"as_of\": \"2025-04-01\", \"rates\": {\"EUR\": 1.08, \"GBP\": 1.27, \"JPY\": 0.0067, \"CAD\": 0.74, \"CHF\": 1.13, \"AUD\": 0.65}}",
+        "data/transactions.json": "{\"transactions\": [{\"id\": \"TXN-001\", \"date\": \"2025-01-05\", \"amount\": 15000, \"currency\": \"EUR\", \"vendor\": \"Berlin Tech GmbH\", \"category\": \"Software\"}, {\"id\": \"TXN-002\", \"date\": \"2025-01-08\", \"amount\": 8500, \"currency\": \"GBP\", \"vendor\": \"London Consulting Ltd\", \"category\": \"Services\"}, {\"id\": \"TXN-003\", \"date\": \"2025-01-12\", \"amount\": 2500000, \"currency\": \"JPY\", \"vendor\": \"Tokyo Electronics Co\", \"category\": \"Hardware\"}, {\"id\": \"TXN-004\", \"date\": \"2025-01-15\", \"amount\": 12000, \"currency\": \"CAD\", \"vendor\": \"Maple Cloud Inc\", \"category\": \"Software\"}, {\"id\": \"TXN-005\", \"date\": \"2025-01-20\", \"amount\": 9800, \"currency\": \"CHF\", \"vendor\": \"Zurich Analytics AG\", \"category\": \"Services\"}, {\"id\": \"TXN-006\", \"date\": \"2025-01-25\", \"amount\": 18000, \"currency\": \"AUD\", \"vendor\": \"Sydney Data Pty\", \"category\": \"Services\"}, {\"id\": \"TXN-007\", \"date\": \"2025-01-28\", \"amount\": 22000, \"currency\": \"EUR\", \"vendor\": \"Paris Design SARL\", \"category\": \"Services\"}, {\"id\": \"TXN-008\", \"date\": \"2025-02-03\", \"amount\": 7200, \"currency\": \"GBP\", \"vendor\": \"Manchester IT Solutions\", \"category\": \"Software\"}, {\"id\": \"TXN-009\", \"date\": \"2025-02-07\", \"amount\": 1800000, \"currency\": \"JPY\", \"vendor\": \"Osaka Manufacturing\", \"category\": \"Hardware\"}, {\"id\": \"TXN-010\", \"date\": \"2025-02-10\", \"amount\": 15500, \"currency\": \"CAD\", \"vendor\": \"Maple Cloud Inc\", \"category\": \"Software\"}, {\"id\": \"TXN-011\", \"date\": \"2025-02-14\", \"amount\": 6300, \"currency\": \"EUR\", \"vendor\": \"Berlin Tech GmbH\", \"category\": \"Software\"}, {\"id\": \"TXN-012\", \"date\": \"2025-02-18\", \"amount\": 11200, \"currency\": \"CHF\", \"vendor\": \"Geneva Finance SA\", \"category\": \"Services\"}, {\"id\": \"TXN-013\", \"date\": \"2025-02-22\", \"amount\": 9500, \"currency\": \"AUD\", \"vendor\": \"Melbourne Ops Pty\", \"category\": \"Operations\"}, {\"id\": \"TXN-014\", \"date\": \"2025-02-25\", \"amount\": 19000, \"currency\": \"GBP\", \"vendor\": \"London Consulting Ltd\", \"category\": \"Services\"}, {\"id\": \"TXN-015\", \"date\": \"2025-02-28\", \"amount\": 8800, \"currency\": \"EUR\", \"vendor\": \"Amsterdam Data BV\", \"category\": \"Software\"}, {\"id\": \"TXN-016\", \"date\": \"2025-03-02\", \"amount\": 25000, \"currency\": \"EUR\", \"vendor\": \"Berlin Tech GmbH\", \"category\": \"Software\"}, {\"id\": \"TXN-017\", \"date\": \"2025-03-05\", \"amount\": 14000, \"currency\": \"GBP\", \"vendor\": \"Edinburgh Research\", \"category\": \"Services\"}, {\"id\": \"TXN-018\", \"date\": \"2025-03-08\", \"amount\": 3200000, \"currency\": \"JPY\", \"vendor\": \"Tokyo Electronics Co\", \"category\": \"Hardware\"}, {\"id\": \"TXN-019\", \"date\": \"2025-03-11\", \"amount\": 10500, \"currency\": \"CAD\", \"vendor\": \"Vancouver Labs\", \"category\": \"Services\"}, {\"id\": \"TXN-020\", \"date\": \"2025-03-14\", \"amount\": 7600, \"currency\": \"CHF\", \"vendor\": \"Zurich Analytics AG\", \"category\": \"Services\"}, {\"id\": \"TXN-021\", \"date\": \"2025-03-17\", \"amount\": 21000, \"currency\": \"AUD\", \"vendor\": \"Sydney Data Pty\", \"category\": \"Services\"}, {\"id\": \"TXN-022\", \"date\": \"2025-03-20\", \"amount\": 16500, \"currency\": \"EUR\", \"vendor\": \"Munich Engineering\", \"category\": \"Hardware\"}, {\"id\": \"TXN-023\", \"date\": \"2025-03-22\", \"amount\": 5800, \"currency\": \"GBP\", \"vendor\": \"London Consulting Ltd\", \"category\": \"Services\"}, {\"id\": \"TXN-024\", \"date\": \"2025-03-25\", \"amount\": 13200, \"currency\": \"CAD\", \"vendor\": \"Maple Cloud Inc\", \"category\": \"Software\"}, {\"id\": \"TXN-025\", \"date\": \"2025-03-28\", \"amount\": 8900, \"currency\": \"CHF\", \"vendor\": \"Geneva Finance SA\", \"category\": \"Services\"}, {\"id\": \"TXN-026\", \"date\": \"2025-04-01\", \"amount\": 11000, \"currency\": \"EUR\", \"vendor\": \"Paris Design SARL\", \"category\": \"Services\"}, {\"id\": \"TXN-027\", \"date\": \"2025-04-03\", \"amount\": 9200, \"currency\": \"GBP\", \"vendor\": \"Manchester IT Solutions\", \"category\": \"Software\"}, {\"id\": \"TXN-028\", \"date\": \"2025-04-06\", \"amount\": 1500000, \"currency\": \"JPY\", \"vendor\": \"Osaka Manufacturing\", \"category\": \"Hardware\"}, {\"id\": \"TXN-029\", \"date\": \"2025-04-09\", \"amount\": 14500, \"currency\": \"AUD\", \"vendor\": \"Melbourne Ops Pty\", \"category\": \"Operations\"}, {\"id\": \"TXN-030\", \"date\": \"2025-04-12\", \"amount\": 6700, \"currency\": \"EUR\", \"vendor\": \"Amsterdam Data BV\", \"category\": \"Software\"}, {\"id\": \"TXN-031\", \"date\": \"2025-01-30\", \"amount\": 4200, \"currency\": \"CHF\", \"vendor\": \"Bern Logistics\", \"category\": \"Operations\"}, {\"id\": \"TXN-032\", \"date\": \"2025-02-12\", \"amount\": 16800, \"currency\": \"EUR\", \"vendor\": \"Munich Engineering\", \"category\": \"Hardware\"}, {\"id\": \"TXN-033\", \"date\": \"2025-03-15\", \"amount\": 7500, \"currency\": \"GBP\", \"vendor\": \"Edinburgh Research\", \"category\": \"Services\"}, {\"id\": \"TXN-034\", \"date\": \"2025-01-18\", \"amount\": 2100000, \"currency\": \"JPY\", \"vendor\": \"Nagoya Parts Ltd\", \"category\": \"Hardware\"}, {\"id\": \"TXN-035\", \"date\": \"2025-02-20\", \"amount\": 8300, \"currency\": \"CAD\", \"vendor\": \"Toronto Analytics\", \"category\": \"Services\"}, {\"id\": \"TXN-036\", \"date\": \"2025-03-09\", \"amount\": 12400, \"currency\": \"AUD\", \"vendor\": \"Brisbane Tech\", \"category\": \"Software\"}, {\"id\": \"TXN-037\", \"date\": \"2025-04-15\", \"amount\": 19500, \"currency\": \"EUR\", \"vendor\": \"Berlin Tech GmbH\", \"category\": \"Software\"}, {\"id\": \"TXN-038\", \"date\": \"2025-01-22\", \"amount\": 5600, \"currency\": \"GBP\", \"vendor\": \"Bristol Digital\", \"category\": \"Services\"}, {\"id\": \"TXN-039\", \"date\": \"2025-02-08\", \"amount\": 11500, \"currency\": \"CHF\", \"vendor\": \"Zurich Analytics AG\", \"category\": \"Services\"}, {\"id\": \"TXN-040\", \"date\": \"2025-03-30\", \"amount\": 7800, \"currency\": \"CAD\", \"vendor\": \"Vancouver Labs\", \"category\": \"Services\"}, {\"id\": \"TXN-041\", \"date\": \"2025-04-18\", \"amount\": 13700, \"currency\": \"GBP\", \"vendor\": \"London Consulting Ltd\", \"category\": \"Services\"}, {\"id\": \"TXN-042\", \"date\": \"2025-01-14\", \"amount\": 3800, \"currency\": \"AUD\", \"vendor\": \"Perth Mining IT\", \"category\": \"Operations\"}, {\"id\": \"TXN-043\", \"date\": \"2025-02-26\", \"amount\": 1950000, \"currency\": \"JPY\", \"vendor\": \"Tokyo Electronics Co\", \"category\": \"Hardware\"}, {\"id\": \"TXN-044\", \"date\": \"2025-03-18\", \"amount\": 9100, \"currency\": \"EUR\", \"vendor\": \"Amsterdam Data BV\", \"category\": \"Software\"}, {\"id\": \"TXN-045\", \"date\": \"2025-04-08\", \"amount\": 6200, \"currency\": \"CHF\", \"vendor\": \"Bern Logistics\", \"category\": \"Operations\"}, {\"id\": \"TXN-046\", \"date\": \"2025-01-09\", \"amount\": 10800, \"currency\": \"CAD\", \"vendor\": \"Toronto Analytics\", \"category\": \"Services\"}, {\"id\": \"TXN-047\", \"date\": \"2025-02-15\", \"amount\": 4500, \"currency\": \"GBP\", \"vendor\": \"Bristol Digital\", \"category\": \"Services\"}, {\"id\": \"TXN-048\", \"date\": \"2025-03-24\", \"amount\": 17200, \"currency\": \"AUD\", \"vendor\": \"Sydney Data Pty\", \"category\": \"Services\"}, {\"id\": \"TXN-049\", \"date\": \"2025-04-20\", \"amount\": 2800000, \"currency\": \"JPY\", \"vendor\": \"Nagoya Parts Ltd\", \"category\": \"Hardware\"}, {\"id\": \"TXN-050\", \"date\": \"2025-04-22\", \"amount\": 14200, \"currency\": \"EUR\", \"vendor\": \"Munich Engineering\", \"category\": \"Hardware\"}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the transactions from data/transactions.json and the FX rates from data/fx_rates.json. Tell me how many transactions we have per currency.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Convert all transactions to USD using the provided exchange rates and give me the total spend in USD.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["USD"],
+        "response_matches": "\\$[\\d,]+"
+      }
+    },
+    {
+      "user_input": "Break it down by month. What's the total monthly spend in USD for each month from January through April 2025?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(january|february|march|april|Jan|Feb|Mar|Apr)"
+      }
+    },
+    {
+      "user_input": "Actually, the EUR exchange rate changed to 1.12 USD per EUR in March. Recalculate the March and April totals using 1.12 for EUR instead of 1.08.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(1\\.12|March|recalculat)"
+      }
+    },
+    {
+      "user_input": "Which currency has the most volatility impact on our total spend? Run a sensitivity analysis - show how a +/- 5% change in each currency's rate would affect our total USD spend.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(sensitiv|impact|JPY|EUR|volatil)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

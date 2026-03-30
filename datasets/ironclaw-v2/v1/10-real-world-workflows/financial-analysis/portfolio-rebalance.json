@@ -1,0 +1,66 @@
+{
+  "name": "portfolio-rebalance",
+  "description": "Multi-turn portfolio rebalancing scenario requiring allocation analysis, trade calculation with constraints, tax impact estimation, and final plan generation",
+  "tags": ["financial-analysis", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a portfolio management assistant. Always compute exact figures using code. Present allocations as percentages and trade amounts in dollars. Be precise about rounding."
+    },
+    "workspace": {
+      "documents": {
+        "portfolio/positions.json": "{\"portfolio_name\": \"Main Investment Account\", \"as_of\": \"2025-12-31\", \"positions\": [{\"ticker\": \"AAPL\", \"name\": \"Apple Inc.\", \"asset_class\": \"stocks\", \"shares\": 200, \"current_price\": 225.00, \"market_value\": 45000, \"cost_basis\": 32000, \"purchase_date\": \"2022-03-15\"}, {\"ticker\": \"MSFT\", \"name\": \"Microsoft Corp.\", \"asset_class\": \"stocks\", \"shares\": 80, \"current_price\": 400.00, \"market_value\": 32000, \"cost_basis\": 24000, \"purchase_date\": \"2022-06-01\"}, {\"ticker\": \"GOOGL\", \"name\": \"Alphabet Inc.\", \"asset_class\": \"stocks\", \"shares\": 160, \"current_price\": 175.00, \"market_value\": 28000, \"cost_basis\": 22000, \"purchase_date\": \"2023-01-10\"}, {\"ticker\": \"AMZN\", \"name\": \"Amazon.com Inc.\", \"asset_class\": \"stocks\", \"shares\": 100, \"current_price\": 200.00, \"market_value\": 20000, \"cost_basis\": 15000, \"purchase_date\": \"2022-09-20\"}, {\"ticker\": \"JPM\", \"name\": \"JPMorgan Chase\", \"asset_class\": \"stocks\", \"shares\": 75, \"current_price\": 200.00, \"market_value\": 15000, \"cost_basis\": 12000, \"purchase_date\": \"2023-05-15\"}, {\"ticker\": \"TSLA\", \"name\": \"Tesla Inc.\", \"asset_class\": \"stocks\", \"shares\": 40, \"current_price\": 250.00, \"market_value\": 10000, \"cost_basis\": 11500, \"purchase_date\": \"2023-11-01\"}, {\"ticker\": \"VTI\", \"name\": \"Vanguard Total Stock Market ETF\", \"asset_class\": \"stocks\", \"shares\": 60, \"current_price\": 250.00, \"market_value\": 15000, \"cost_basis\": 13000, \"purchase_date\": \"2022-01-05\"}, {\"ticker\": \"BND\", \"name\": \"Vanguard Total Bond Market ETF\", \"asset_class\": \"bonds\", \"shares\": 325, \"current_price\": 76.92, \"market_value\": 25000, \"cost_basis\": 26500, \"purchase_date\": \"2022-04-10\"}, {\"ticker\": \"AGG\", \"name\": \"iShares Core US Aggregate Bond ETF\", \"asset_class\": \"bonds\", \"shares\": 180, \"current_price\": 100.00, \"market_value\": 18000, \"cost_basis\": 19200, \"purchase_date\": \"2022-07-20\"}, {\"ticker\": \"TLT\", \"name\": \"iShares 20+ Year Treasury Bond ETF\", \"asset_class\": \"bonds\", \"shares\": 130, \"current_price\": 92.31, \"market_value\": 12000, \"cost_basis\": 14000, \"purchase_date\": \"2023-02-28\"}, {\"ticker\": \"BTC\", \"name\": \"Bitcoin\", \"asset_class\": \"crypto\", \"shares\": 0.25, \"current_price\": 88000.00, \"market_value\": 22000, \"cost_basis\": 10000, \"purchase_date\": \"2022-11-15\"}, {\"ticker\": \"ETH\", \"name\": \"Ethereum\", \"asset_class\": \"crypto\", \"shares\": 2.5, \"current_price\": 3200.00, \"market_value\": 8000, \"cost_basis\": 5000, \"purchase_date\": \"2023-03-10\"}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load my portfolio from portfolio/positions.json and tell me my current allocation by asset class (stocks, bonds, crypto) as percentages.",
+      "assertions": {
+        "tools_used": ["memory_read"],
+        "response_contains": ["stock", "bond", "crypto"],
+        "response_matches": "\\d+\\.?\\d*%",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "My target allocation is 60% stocks, 30% bonds, 10% crypto. How far am I from target in each asset class?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+\\.?\\d*%"
+      }
+    },
+    {
+      "user_input": "Calculate the exact trades needed to rebalance to the target allocation, minimizing the number of transactions.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\$[\\d,]+"
+      }
+    },
+    {
+      "user_input": "What would be the tax impact of this rebalance? Assume 15% long-term capital gains tax on any position I sell that has a gain.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["tax"],
+        "response_matches": "\\$[\\d,]+"
+      }
+    },
+    {
+      "user_input": "Actually, I want to keep my AAPL and BTC positions untouched. Rebalance everything else around those two holdings to get as close to target as possible.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["AAPL", "BTC"]
+      }
+    },
+    {
+      "user_input": "Write the final rebalance plan as a clear table showing current value, target value, and the trade for each position.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(\\|.*\\||sell|buy|hold)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

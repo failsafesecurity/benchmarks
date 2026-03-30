@@ -1,0 +1,64 @@
+{
+  "name": "meeting-notes-consolidation",
+  "description": "Agent consolidates 5 days of meeting notes, extracts action items, identifies conflicting decisions, and produces a weekly summary",
+  "tags": ["long-context-stress", "basic", "accuracy", "multi-turn", "document-synthesis"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search", "memory_tree"],
+    "identity": {
+      "SOUL.md": "You are a project coordination assistant. When consolidating meeting notes, always extract action items with owners and deadlines. Flag any conflicting decisions across meetings. Be thorough and precise with names and dates."
+    },
+    "workspace": {
+      "documents": {
+        "meetings/monday-standup.md": "# Monday Standup - 2026-03-09\n## Attendees: Sarah (PM), Mike (Frontend Lead), Lisa (Backend Lead), Tom (QA), Priya (Design), Alex (DevOps)\n\n### Updates\n**Mike**: Finished the new navigation component. Starting on the settings page redesign today. Blocked on design specs from Priya.\n**Lisa**: API refactoring 80% done. Will finish the auth endpoints by Wednesday. Found a performance issue in the search endpoint - will investigate.\n**Tom**: Wrote 15 new integration tests last week. Need access to the staging environment to run full regression. Alex, can you set that up?\n**Priya**: Design specs for settings page will be ready by Tuesday EOD. Also working on the mobile responsive layouts.\n**Alex**: Deployed the new monitoring stack on Friday. Will set up Tom's staging access today.\n\n### Action Items\n- [ ] Priya: Deliver settings page design specs by Tuesday EOD\n- [ ] Alex: Set up staging access for Tom by Monday EOD\n- [ ] Lisa: Investigate search endpoint performance issue\n- [ ] Mike: Start settings page once specs are ready\n- [ ] Sarah: Schedule mid-week check-in with stakeholders\n\n### Decisions\n- Agreed to use React for the settings page (consistent with rest of app)\n- Sprint demo moved from Friday to Thursday this week (Sarah has conflict Friday)\n\n### Blockers\n- Mike blocked on design specs\n- Tom blocked on staging access",
+        "meetings/tuesday-design-review.md": "# Tuesday Design Review - 2026-03-10\n## Attendees: Sarah (PM), Mike (Frontend Lead), Priya (Design), Carlos (UX Research), Jennifer (VP Product)\n\n### Agenda: Settings Page & Mobile Strategy\n\n**Priya** presented two design options for the settings page:\n- Option A: Tab-based layout (similar to current pattern)\n- Option B: Single scrolling page with section anchors (modern approach)\n\n**Carlos** shared user research: 73% of users change settings on mobile. Current tab pattern has 45% abandonment rate on mobile.\n\n**Discussion:**\n- Jennifer strongly prefers Option B, says it aligns with the new design system\n- Mike raised concern about Option B requiring more frontend refactoring\n- Sarah asked about timeline impact - Priya estimates Option B adds 2 days vs Option A\n\n### Decisions\n- **Go with Option B** (single scrolling page) per Jennifer's direction\n- **Use React for implementation** - wait, Jennifer mentioned we should evaluate Vue.js for new components as the company is considering a framework migration\n- Mobile-first approach: design for mobile, then adapt for desktop\n- Priya to update Figma by Wednesday noon\n\n### Action Items\n- [ ] Priya: Update Figma with Option B, mobile-first, by Wednesday noon\n- [ ] Mike: Spike on Option B implementation complexity (2 hours)\n- [ ] Carlos: Share full user research report with team by Wednesday\n- [ ] Jennifer: Send email about Vue.js evaluation criteria\n- [ ] Sarah: Update project timeline to reflect 2-day extension\n\n### Notes\n- Jennifer wants a demo of the settings page at next week's exec review\n- Carlos will run usability tests on the new design with 5 users next week\n- Priya mentioned she's taking PTO March 20-24",
+        "meetings/wednesday-sprint-planning.md": "# Wednesday Sprint Planning - 2026-03-11\n## Attendees: Sarah (PM), Mike (Frontend Lead), Lisa (Backend Lead), Tom (QA), Alex (DevOps)\n## Sprint 23 Planning (Mar 11 - Mar 25)\n\n### Sprint Goal\nComplete settings page, API refactoring, and begin Angular migration for the dashboard module.\n\n### Backlog Items Selected\n\n**Frontend (Mike - 40 points)**\n1. Settings page implementation - Option B (13 pts) [Mike]\n2. Angular migration: dashboard header component (8 pts) [Mike]\n3. Angular migration: sidebar navigation (8 pts) [Junior dev - assigned to new hire Raj]\n4. Bug fix: date picker timezone issue (3 pts) [Mike]\n5. Accessibility audit fixes for login page (8 pts) [Raj]\n\n**Backend (Lisa - 35 points)**\n1. Complete API refactoring - auth endpoints (8 pts) [Lisa]\n2. Search endpoint performance optimization (5 pts) [Lisa]\n3. New bulk export API endpoint (8 pts) [Lisa]\n4. Database index optimization (5 pts) [Junior dev - assigned to Wei]\n5. Rate limiting middleware (5 pts) [Wei]\n6. Deprecate v1 API endpoints (4 pts) [Lisa]\n\n**QA (Tom - 20 points)**\n1. Full regression test on staging (8 pts) [Tom]\n2. Settings page test plan and execution (5 pts) [Tom]\n3. API refactoring verification (5 pts) [Tom]\n4. Load testing for search endpoint (2 pts) [Tom]\n\n**DevOps (Alex - 15 points)**\n1. CI/CD pipeline optimization (5 pts) [Alex]\n2. Production monitoring dashboard (5 pts) [Alex]\n3. Staging environment data refresh (3 pts) [Alex]\n4. SSL certificate renewal (2 pts) [Alex]\n\n### Risks\n- Angular migration items depend on Raj onboarding (starts Monday)\n- Settings page depends on Priya's updated designs (due Wednesday noon)\n- Lisa's API work could conflict with Mike's frontend if API contracts change\n\n### Decisions\n- Sprint velocity target: 110 points\n- Daily standups at 9:30 AM\n- Mid-sprint review on March 18\n\n### Notes\n- Sarah to confirm with Jennifer if Angular migration is still priority (conflicting signals from design review)\n- Tom needs staging access - Alex confirmed it's done\n- Lisa raised concern: bulk export could be a security risk without proper authorization checks",
+        "meetings/thursday-stakeholder-sync.md": "# Thursday Stakeholder Sync - 2026-03-12\n## Attendees: Sarah (PM), Jennifer (VP Product), David (CTO), Rachel (VP Sales), Mark (CS Lead)\n\n### Agenda: Q2 Roadmap & Current Sprint\n\n**Jennifer** provided product update:\n- Settings page on track for demo next week\n- Mobile responsive work progressing well\n- Considering framework migration to Vue.js (exploratory)\n\n**David (CTO)** raised concerns:\n- Angular migration was planned 6 months ago, we committed to it in the technical roadmap\n- Vue.js evaluation would need a formal RFC process (minimum 4 weeks)\n- Prefers we stick with React for now and evaluate frameworks in Q3\n- **New requirement**: All API endpoints must support pagination by end of Q2. This is blocking enterprise customer onboarding.\n\n**Rachel (VP Sales)** shared:\n- 3 enterprise deals ($500K total) waiting on pagination support\n- Customers also asking for SAML SSO integration (currently only Okta)\n- Q2 target: close 10 enterprise deals, need technical features delivered\n\n**Mark (CS Lead)**:\n- Current customers reporting slow search - confirms Lisa's finding\n- Need bulk export for compliance reporting - already in sprint backlog\n- Settings page redesign is top customer request\n\n### Decisions\n- **Pagination is now P0** for Q2 - must be in next sprint planning\n- **SAML SSO** added to Q2 roadmap (target: end of April)\n- **Framework migration deferred** to Q3 evaluation (David's recommendation accepted)\n- Settings page demo confirmed for next Thursday's exec review\n\n### Action Items\n- [ ] Lisa: Estimate pagination work for all API endpoints by Friday\n- [ ] Sarah: Reprioritize Sprint 23 backlog to include pagination spike\n- [ ] David: Write technical RFC template for framework evaluation\n- [ ] Rachel: Compile list of enterprise feature requirements by Monday\n- [ ] Mark: Aggregate customer feedback on search performance\n- [ ] Sarah: Schedule SAML SSO planning session for next week\n\n### Impact Assessment\n- Pagination work was NOT in Sprint 23 plan\n- Adding pagination spike means something else needs to drop\n- Sarah notes: Angular migration items in Sprint 23 may conflict with the framework deferral decision\n\n### Open Questions\n- If pagination is P0, do we pull Angular migration from Sprint 23?\n- Do we need a dedicated sprint for pagination, or can it be incremental?\n- Who owns the SAML SSO implementation?",
+        "meetings/friday-retrospective.md": "# Friday Retrospective - Sprint 22 Review - 2026-03-13\n## Attendees: Sarah (PM), Mike (Frontend Lead), Lisa (Backend Lead), Tom (QA), Priya (Design), Alex (DevOps)\n\n### Sprint 22 Results\n- Planned: 95 points\n- Completed: 78 points (82% completion)\n- Carried over: 17 points (navigation component polish, 2 bug fixes)\n\n### What Went Well\n- Navigation component shipped and customers love it (+15 positive feedback tickets)\n- Alex's monitoring stack deployment was smooth\n- Good collaboration between Mike and Priya on navigation design\n- Test coverage improved from 67% to 74%\n\n### What Didn't Go Well\n- Lisa's API refactoring took longer than estimated (complexity underestimated)\n- Tom was blocked for 2 days waiting on staging access\n- Sprint scope creep: 3 unplanned items added mid-sprint\n- Design specs delivered late (Thursday instead of Tuesday), cascading delay\n\n### Action Items for Improvement\n- [ ] Sarah: Implement stricter scope change process - no additions without removing equal points\n- [ ] Alex: Create self-service staging access provisioning (reduce blocker risk)\n- [ ] Priya: Commit to delivering specs 1 day before sprint planning\n- [ ] Lisa: Break down large refactoring tasks into smaller, independently deliverable chunks\n- [ ] Tom: Create staging environment checklist to verify access before sprint starts\n\n### Team Morale\n- Overall: 7/10 (down from 8/10 last sprint)\n- Concern about growing backlog and shifting priorities\n- Mike expressed frustration about Angular migration being planned then potentially cancelled\n- Lisa worried about API pagination being added on top of existing sprint commitments\n\n### Process Changes\n- Agreed: Design specs must be finalized before sprint planning (not during)\n- Agreed: Maximum 2 unplanned items per sprint, with formal trade-off discussion\n- Trial: Pair programming sessions for complex features (Lisa + Wei for rate limiting)\n\n### Kudos\n- Mike: exceptional work on the navigation component under pressure\n- Alex: proactive monitoring stack deployment saved us from a potential outage\n- Tom: thoroughness in test coverage improvement\n\n### Notes\n- Sprint 23 already planned (see Wednesday notes) but may need revision based on Thursday's new requirements\n- Sarah to send out revised sprint plan by Monday morning\n- Next retrospective: March 27"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Read all the meeting notes from this week and extract every action item across all 5 meetings.",
+      "assertions": {
+        "min_tool_calls": 1,
+        "response_matches": "(?i)(action item)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Who has the most action items? Rank team members by their total workload across all meetings.",
+      "assertions": {
+        "response_contains": ["Sarah"],
+        "response_matches": "(?i)(most|rank|workload|assigned)"
+      }
+    },
+    {
+      "user_input": "Are there any conflicting decisions across the meetings? For example, did the design review contradict the sprint plan on anything?",
+      "assertions": {
+        "response_matches": "(?i)(conflict|contradict|inconsisten|Angular|Vue|React|framework)"
+      }
+    },
+    {
+      "user_input": "The stakeholder meeting on Thursday introduced pagination as a P0 requirement. Does this invalidate any existing Sprint 23 items?",
+      "assertions": {
+        "response_matches": "(?i)(pagination|sprint|Angular|migration|reprioritiz|drop|remove)"
+      }
+    },
+    {
+      "user_input": "Create a weekly summary with three sections: (1) decisions made, (2) action items with owners and deadlines, and (3) open questions that still need answers.",
+      "assertions": {
+        "response_matches": "(?i)(decision|action|open question|owner)"
+      }
+    },
+    {
+      "user_input": "Save the weekly summary to the workspace as meetings/weekly-summary-2026-03-09.md.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "earnings-report-analysis",
+  "description": "Multi-turn quarterly earnings analysis requiring code execution for growth rates, margin trends, operating leverage, and linear regression forecasting",
+  "tags": ["financial-analysis", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a financial analyst assistant. When asked to analyze data, always use code execution to compute exact numbers rather than estimating. Present findings clearly with specific figures."
+    },
+    "workspace": {
+      "documents": {
+        "data/earnings.json": "{\"company\": \"TechNova Inc.\", \"currency\": \"USD\", \"quarters\": [{\"quarter\": \"Q1 2024\", \"revenue\": 10000000, \"cogs\": 3800000, \"operating_expenses\": 4200000, \"depreciation\": 350000, \"interest_expense\": 120000, \"tax_rate\": 0.21, \"net_income\": 1209660}, {\"quarter\": \"Q2 2024\", \"revenue\": 10500000, \"cogs\": 3990000, \"operating_expenses\": 4350000, \"depreciation\": 360000, \"interest_expense\": 118000, \"tax_rate\": 0.21, \"net_income\": 1327380}, {\"quarter\": \"Q3 2024\", \"revenue\": 11100000, \"cogs\": 4107000, \"operating_expenses\": 4500000, \"depreciation\": 370000, \"interest_expense\": 115000, \"tax_rate\": 0.21, \"net_income\": 1586320}, {\"quarter\": \"Q4 2024\", \"revenue\": 11900000, \"cogs\": 4403000, \"operating_expenses\": 4600000, \"depreciation\": 380000, \"interest_expense\": 112000, \"tax_rate\": 0.21, \"net_income\": 1901950}, {\"quarter\": \"Q1 2025\", \"revenue\": 12300000, \"cogs\": 4674000, \"operating_expenses\": 4750000, \"depreciation\": 390000, \"interest_expense\": 110000, \"tax_rate\": 0.21, \"net_income\": 1876940}, {\"quarter\": \"Q2 2025\", \"revenue\": 12900000, \"cogs\": 4902000, \"operating_expenses\": 4850000, \"depreciation\": 400000, \"interest_expense\": 108000, \"tax_rate\": 0.21, \"net_income\": 2055200}, {\"quarter\": \"Q3 2025\", \"revenue\": 13600000, \"cogs\": 5168000, \"operating_expenses\": 4980000, \"depreciation\": 410000, \"interest_expense\": 105000, \"tax_rate\": 0.21, \"net_income\": 2310830}, {\"quarter\": \"Q4 2025\", \"revenue\": 14500000, \"cogs\": 5510000, \"operating_expenses\": 5100000, \"depreciation\": 420000, \"interest_expense\": 102000, \"tax_rate\": 0.21, \"net_income\": 2660620}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the earnings data from data/earnings.json and give me a quick summary of Q4 2025 performance.",
+      "assertions": {
+        "tools_used": ["memory_read"],
+        "response_contains": ["Q4 2025", "14"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Calculate the quarter-over-quarter revenue growth rate for each quarter.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["growth"],
+        "response_matches": "\\d+\\.?\\d*%"
+      }
+    },
+    {
+      "user_input": "What's our gross margin trend? Is it improving or declining?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["margin"],
+        "response_matches": "\\d+\\.?\\d*%"
+      }
+    },
+    {
+      "user_input": "Compute the operating leverage - how does operating income change relative to revenue changes between consecutive quarters?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["operating"]
+      }
+    },
+    {
+      "user_input": "Write a Python script to project Q1 and Q2 2026 revenue using linear regression on the 8 quarters of data we have.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["2026"],
+        "response_matches": "\\$?\\d{2,3}[,.]?\\d*\\s*[Mm]"
+      }
+    },
+    {
+      "user_input": "Summarize all findings in a brief executive summary suitable for the CFO.",
+      "assertions": {
+        "response_contains": ["revenue"],
+        "response_matches": "(?i)(CFO|summary|brief|executive)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

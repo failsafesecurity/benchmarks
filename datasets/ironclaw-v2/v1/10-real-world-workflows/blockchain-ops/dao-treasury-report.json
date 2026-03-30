@@ -1,0 +1,58 @@
+{
+  "name": "dao-treasury-report",
+  "description": "Multi-turn DAO treasury analysis requiring total value calculation across multiple chains, asset allocation breakdown, stablecoin runway estimation, illiquid asset exclusion, and quarterly report generation",
+  "tags": ["blockchain-ops", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a DAO treasury analyst. Always use code for calculations. Present values in USD. Be clear about the distinction between liquid and illiquid assets. Format reports for a non-technical governance audience."
+    },
+    "workspace": {
+      "documents": {
+        "data/treasury.json": "[{\"asset\":\"USDC\",\"chain\":\"Ethereum\",\"amount\":1850000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"USDC\",\"chain\":\"Polygon\",\"amount\":420000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"USDC\",\"chain\":\"Arbitrum\",\"amount\":380000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"USDT\",\"chain\":\"Ethereum\",\"amount\":750000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"DAI\",\"chain\":\"Ethereum\",\"amount\":520000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"DAI\",\"chain\":\"Arbitrum\",\"amount\":180000,\"price_usd\":1.00,\"category\":\"stablecoin\",\"liquidity_score\":10},{\"asset\":\"GOV\",\"chain\":\"Ethereum\",\"amount\":8500000,\"price_usd\":2.50,\"category\":\"governance\",\"liquidity_score\":2},{\"asset\":\"GOV\",\"chain\":\"Polygon\",\"amount\":1200000,\"price_usd\":2.50,\"category\":\"governance\",\"liquidity_score\":2},{\"asset\":\"ETH\",\"chain\":\"Ethereum\",\"amount\":450,\"price_usd\":3200.00,\"category\":\"protocol_liquidity\",\"liquidity_score\":9},{\"asset\":\"ETH\",\"chain\":\"Arbitrum\",\"amount\":120,\"price_usd\":3200.00,\"category\":\"protocol_liquidity\",\"liquidity_score\":9},{\"asset\":\"WBTC\",\"chain\":\"Ethereum\",\"amount\":12.5,\"price_usd\":62000.00,\"category\":\"protocol_liquidity\",\"liquidity_score\":8},{\"asset\":\"GOV-ETH LP\",\"chain\":\"Ethereum\",\"amount\":1,\"price_usd\":850000.00,\"category\":\"lp\",\"liquidity_score\":4},{\"asset\":\"GOV-USDC LP\",\"chain\":\"Polygon\",\"amount\":1,\"price_usd\":420000.00,\"category\":\"lp\",\"liquidity_score\":4},{\"asset\":\"USDC-ETH LP\",\"chain\":\"Arbitrum\",\"amount\":1,\"price_usd\":310000.00,\"category\":\"lp\",\"liquidity_score\":6},{\"asset\":\"stETH\",\"chain\":\"Ethereum\",\"amount\":200,\"price_usd\":3180.00,\"category\":\"protocol_liquidity\",\"liquidity_score\":8},{\"asset\":\"ARB\",\"chain\":\"Arbitrum\",\"amount\":500000,\"price_usd\":1.15,\"category\":\"protocol_liquidity\",\"liquidity_score\":7}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the treasury data from data/treasury.json and calculate total value across all chains.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["total"],
+        "response_matches": "(?i)(\\$|\\d+)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "What's our asset allocation? Break down by asset type: stablecoins, governance tokens, LP positions, protocol-owned liquidity.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(stablecoin|governance|LP|liquidity)"
+      }
+    },
+    {
+      "user_input": "Our runway: if we spend $800K/month on operations, how many months of stablecoin runway do we have?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(runway|months)"
+      }
+    },
+    {
+      "user_input": "The governance token (GOV) represents a large portion of our treasury but is illiquid. Recalculate runway excluding GOV tokens.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(exclud|illiquid|month)"
+      }
+    },
+    {
+      "user_input": "Generate a quarterly treasury report for the DAO forum post. Include total value, allocation breakdown, runway analysis, and risk factors.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(report|treasury)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

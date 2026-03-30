@@ -1,0 +1,58 @@
+{
+  "name": "wallet-balance-tracker",
+  "description": "Multi-turn scenario tracking wallet balance over time, identifying peak balance, largest outflows, monthly averages, and net flow trends from transaction history",
+  "tags": ["blockchain-ops", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a blockchain wallet analyst. Always use code for calculations. Present balances in ETH with clear formatting. When analyzing trends, use quantitative data to support conclusions."
+    },
+    "workspace": {
+      "documents": {
+        "data/wallet_history.json": "[{\"hash\":\"0x1a01f29e92bd\",\"type\":\"in\",\"amount\":10.0,\"counterparty\":\"0xCoinbase...a3f2\",\"timestamp\":\"2025-10-01T08:15:00Z\",\"note\":\"Initial deposit from exchange\"},{\"hash\":\"0x2b12a38fa3ce\",\"type\":\"out\",\"amount\":1.5,\"counterparty\":\"0xUniswap...7d4e\",\"timestamp\":\"2025-10-03T14:22:00Z\",\"note\":\"Uniswap swap\"},{\"hash\":\"0x3c23b49gb4df\",\"type\":\"in\",\"amount\":5.2,\"counterparty\":\"0xAave...8e5f\",\"timestamp\":\"2025-10-07T10:30:00Z\",\"note\":\"Aave lending withdrawal\"},{\"hash\":\"0x4d34c5ahc5e0\",\"type\":\"out\",\"amount\":0.8,\"counterparty\":\"0xOpenSea...9f60\",\"timestamp\":\"2025-10-10T16:45:00Z\",\"note\":\"NFT purchase\"},{\"hash\":\"0x5e45d6bid6f1\",\"type\":\"in\",\"amount\":3.0,\"counterparty\":\"0xFriend1...a071\",\"timestamp\":\"2025-10-14T09:00:00Z\",\"note\":\"Payment from Alice\"},{\"hash\":\"0x6f56e7cje7g2\",\"type\":\"out\",\"amount\":8.0,\"counterparty\":\"0xLido...b182\",\"timestamp\":\"2025-10-18T11:30:00Z\",\"note\":\"Lido staking deposit\"},{\"hash\":\"0x7067f8dkf8h3\",\"type\":\"in\",\"amount\":0.5,\"counterparty\":\"0xLido...b182\",\"timestamp\":\"2025-10-25T08:00:00Z\",\"note\":\"stETH rewards\"},{\"hash\":\"0x8178g9elg9i4\",\"type\":\"out\",\"amount\":2.0,\"counterparty\":\"0xBinance...c293\",\"timestamp\":\"2025-10-28T15:20:00Z\",\"note\":\"Transfer to Binance\"},{\"hash\":\"0x9289h0fmh0j5\",\"type\":\"in\",\"amount\":12.0,\"counterparty\":\"0xEmployer...d3a4\",\"timestamp\":\"2025-11-01T09:00:00Z\",\"note\":\"Monthly salary\"},{\"hash\":\"0xa39ai1gni1k6\",\"type\":\"out\",\"amount\":3.5,\"counterparty\":\"0xCompound...e4b5\",\"timestamp\":\"2025-11-04T13:15:00Z\",\"note\":\"Compound supply\"},{\"hash\":\"0xb4abj2hoj2l7\",\"type\":\"out\",\"amount\":0.3,\"counterparty\":\"0xENS...f5c6\",\"timestamp\":\"2025-11-08T10:45:00Z\",\"note\":\"ENS domain renewal\"},{\"hash\":\"0xc5bck3ipk3m8\",\"type\":\"in\",\"amount\":2.8,\"counterparty\":\"0xFriend2...g6d7\",\"timestamp\":\"2025-11-12T17:30:00Z\",\"note\":\"Repayment from Bob\"},{\"hash\":\"0xd6cdl4jql4n9\",\"type\":\"out\",\"amount\":15.0,\"counterparty\":\"0xColdWallet...h7e8\",\"timestamp\":\"2025-11-15T08:00:00Z\",\"note\":\"Transfer to cold storage\"},{\"hash\":\"0xe7dem5krm5o0\",\"type\":\"in\",\"amount\":0.8,\"counterparty\":\"0xCompound...e4b5\",\"timestamp\":\"2025-11-20T14:00:00Z\",\"note\":\"Compound interest\"},{\"hash\":\"0xf8efn6lsn6p1\",\"type\":\"in\",\"amount\":4.0,\"counterparty\":\"0xClient1...i8f9\",\"timestamp\":\"2025-11-25T11:00:00Z\",\"note\":\"Freelance payment\"},{\"hash\":\"0x09fgo7mto7q2\",\"type\":\"out\",\"amount\":1.2,\"counterparty\":\"0x1inch...j9g0\",\"timestamp\":\"2025-11-28T16:30:00Z\",\"note\":\"Token swap via 1inch\"},{\"hash\":\"0x1ag0p8nun8r3\",\"type\":\"in\",\"amount\":12.0,\"counterparty\":\"0xEmployer...d3a4\",\"timestamp\":\"2025-12-01T09:00:00Z\",\"note\":\"Monthly salary\"},{\"hash\":\"0x2bh1q9ovo9s4\",\"type\":\"out\",\"amount\":5.0,\"counterparty\":\"0xGMX...k0h1\",\"timestamp\":\"2025-12-03T14:45:00Z\",\"note\":\"GMX perpetuals margin\"},{\"hash\":\"0x3ci2r0pwp0t5\",\"type\":\"in\",\"amount\":1.5,\"counterparty\":\"0xGMX...k0h1\",\"timestamp\":\"2025-12-06T09:30:00Z\",\"note\":\"GMX trading profit\"},{\"hash\":\"0x4dj3s1qxq1u6\",\"type\":\"out\",\"amount\":0.5,\"counterparty\":\"0xOpenSea...9f60\",\"timestamp\":\"2025-12-10T12:00:00Z\",\"note\":\"NFT purchase\"},{\"hash\":\"0x5ek4t2ryr2v7\",\"type\":\"in\",\"amount\":8.5,\"counterparty\":\"0xCoinbase...a3f2\",\"timestamp\":\"2025-12-14T08:30:00Z\",\"note\":\"Deposit from exchange\"},{\"hash\":\"0x6fl5u3szs3w8\",\"type\":\"out\",\"amount\":20.0,\"counterparty\":\"0xLido...b182\",\"timestamp\":\"2025-12-17T10:00:00Z\",\"note\":\"Additional Lido stake\"},{\"hash\":\"0x7gm6v4t0t4x9\",\"type\":\"in\",\"amount\":1.2,\"counterparty\":\"0xLido...b182\",\"timestamp\":\"2025-12-22T08:00:00Z\",\"note\":\"stETH rewards\"},{\"hash\":\"0x8hn7w5u1u5y0\",\"type\":\"in\",\"amount\":6.0,\"counterparty\":\"0xClient2...l1i2\",\"timestamp\":\"2025-12-25T15:00:00Z\",\"note\":\"Holiday bonus payment\"},{\"hash\":\"0x9io8x6v2v6z1\",\"type\":\"out\",\"amount\":2.5,\"counterparty\":\"0xBinance...c293\",\"timestamp\":\"2025-12-29T11:30:00Z\",\"note\":\"Transfer to Binance\"}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the wallet history from data/wallet_history.json and calculate the current balance.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["balance"],
+        "response_matches": "\\d+\\.?\\d*",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Show me the running balance over time -- when was the peak balance?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["peak"]
+      }
+    },
+    {
+      "user_input": "Identify the largest 5 outflows. What were they for?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Lido"]
+      }
+    },
+    {
+      "user_input": "Calculate the average daily balance for each month (October, November, December).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+\\.?\\d*"
+      }
+    },
+    {
+      "user_input": "Is this wallet accumulating or distributing? What's the net flow trend?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(accumulating|distributing|net)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

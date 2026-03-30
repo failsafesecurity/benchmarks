@@ -1,0 +1,73 @@
+{
+  "name": "invoice-reconciliation",
+  "description": "Adversarial multi-turn invoice-payment reconciliation with mismatches, early-payment discounts, overdue detection, vendor name deduplication, and formal report generation",
+  "tags": ["financial-analysis", "adversarial", "accuracy", "multi-turn", "code-execution", "reconciliation"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an accounts payable reconciliation assistant. Use code to match invoices and payments precisely. Flag discrepancies with specific dollar amounts. Be thorough about edge cases like vendor name variations and partial payments."
+    },
+    "workspace": {
+      "documents": {
+        "data/invoices.json": "{\"invoices\": [{\"id\": \"INV-1001\", \"vendor\": \"Acme Corp\", \"amount\": 12500.00, \"date\": \"2025-09-01\", \"due_date\": \"2025-09-30\", \"description\": \"Q3 consulting services\"}, {\"id\": \"INV-1002\", \"vendor\": \"TechSupply Inc\", \"amount\": 3200.00, \"date\": \"2025-09-03\", \"due_date\": \"2025-10-03\", \"description\": \"Server hardware\"}, {\"id\": \"INV-1003\", \"vendor\": \"CloudHost Pro\", \"amount\": 8750.00, \"date\": \"2025-09-05\", \"due_date\": \"2025-10-05\", \"description\": \"Monthly hosting September\"}, {\"id\": \"INV-1004\", \"vendor\": \"OfficeMax Solutions\", \"amount\": 1890.00, \"date\": \"2025-09-08\", \"due_date\": \"2025-10-08\", \"description\": \"Office supplies Q3\"}, {\"id\": \"INV-1005\", \"vendor\": \"DataSafe Security\", \"amount\": 6400.00, \"date\": \"2025-09-10\", \"due_date\": \"2025-10-10\", \"description\": \"Annual security audit\"}, {\"id\": \"INV-1006\", \"vendor\": \"Green Energy Co\", \"amount\": 2100.00, \"date\": \"2025-09-12\", \"due_date\": \"2025-10-12\", \"description\": \"September utilities\"}, {\"id\": \"INV-1007\", \"vendor\": \"FastShip Logistics\", \"amount\": 4500.00, \"date\": \"2025-09-15\", \"due_date\": \"2025-10-15\", \"description\": \"Shipping and handling September\"}, {\"id\": \"INV-1008\", \"vendor\": \"Legal Eagles LLP\", \"amount\": 15000.00, \"date\": \"2025-09-18\", \"due_date\": \"2025-10-18\", \"description\": \"Patent filing services\"}, {\"id\": \"INV-1009\", \"vendor\": \"CleanPro Services\", \"amount\": 950.00, \"date\": \"2025-09-20\", \"due_date\": \"2025-10-20\", \"description\": \"Monthly janitorial\"}, {\"id\": \"INV-1010\", \"vendor\": \"ACME Corporation\", \"amount\": 12500.00, \"date\": \"2025-09-22\", \"due_date\": \"2025-10-22\", \"description\": \"Q3 consulting services\"}, {\"id\": \"INV-1011\", \"vendor\": \"MarketBoost Agency\", \"amount\": 7800.00, \"date\": \"2025-09-25\", \"due_date\": \"2025-10-25\", \"description\": \"September marketing campaign\"}, {\"id\": \"INV-1012\", \"vendor\": \"TechSupply Inc\", \"amount\": 5600.00, \"date\": \"2025-09-27\", \"due_date\": \"2025-10-27\", \"description\": \"Laptop procurement\"}, {\"id\": \"INV-1013\", \"vendor\": \"CloudHost Pro\", \"amount\": 8750.00, \"date\": \"2025-10-01\", \"due_date\": \"2025-10-31\", \"description\": \"Monthly hosting October\"}, {\"id\": \"INV-1014\", \"vendor\": \"Acme Corp\", \"amount\": 9200.00, \"date\": \"2025-10-03\", \"due_date\": \"2025-11-02\", \"description\": \"October consulting retainer\"}, {\"id\": \"INV-1015\", \"vendor\": \"DataSafe Security\", \"amount\": 3200.00, \"date\": \"2025-10-05\", \"due_date\": \"2025-11-04\", \"description\": \"Penetration testing\"}, {\"id\": \"INV-1016\", \"vendor\": \"Green Energy Co\", \"amount\": 2250.00, \"date\": \"2025-10-08\", \"due_date\": \"2025-11-07\", \"description\": \"October utilities\"}, {\"id\": \"INV-1017\", \"vendor\": \"PrintWorks Digital\", \"amount\": 1450.00, \"date\": \"2025-10-10\", \"due_date\": \"2025-11-09\", \"description\": \"Marketing brochures\"}, {\"id\": \"INV-1018\", \"vendor\": \"FastShip Logistics\", \"amount\": 4200.00, \"date\": \"2025-10-12\", \"due_date\": \"2025-11-11\", \"description\": \"Shipping and handling October\"}, {\"id\": \"INV-1019\", \"vendor\": \"InsureCo Partners\", \"amount\": 11500.00, \"date\": \"2025-10-15\", \"due_date\": \"2025-11-14\", \"description\": \"Quarterly insurance premium\"}, {\"id\": \"INV-1020\", \"vendor\": \"CleanPro Services\", \"amount\": 950.00, \"date\": \"2025-10-20\", \"due_date\": \"2025-11-19\", \"description\": \"Monthly janitorial\"}]}",
+        "data/payments.json": "{\"payments\": [{\"id\": \"PAY-2001\", \"vendor\": \"Acme Corp\", \"amount\": 12500.00, \"date\": \"2025-09-28\", \"invoice_ref\": \"INV-1001\", \"method\": \"wire\"}, {\"id\": \"PAY-2002\", \"vendor\": \"TechSupply Inc\", \"amount\": 3200.00, \"date\": \"2025-10-01\", \"invoice_ref\": \"INV-1002\", \"method\": \"ACH\"}, {\"id\": \"PAY-2003\", \"vendor\": \"CloudHost Pro\", \"amount\": 8750.00, \"date\": \"2025-10-04\", \"invoice_ref\": \"INV-1003\", \"method\": \"ACH\"}, {\"id\": \"PAY-2004\", \"vendor\": \"OfficeMax Solutions\", \"amount\": 1890.00, \"date\": \"2025-10-06\", \"invoice_ref\": \"INV-1004\", \"method\": \"check\"}, {\"id\": \"PAY-2005\", \"vendor\": \"DataSafe Security\", \"amount\": 6208.00, \"date\": \"2025-09-15\", \"invoice_ref\": \"INV-1005\", \"method\": \"wire\", \"note\": \"3% early payment discount applied\"}, {\"id\": \"PAY-2006\", \"vendor\": \"Green Energy Co\", \"amount\": 2100.00, \"date\": \"2025-10-10\", \"invoice_ref\": \"INV-1006\", \"method\": \"ACH\"}, {\"id\": \"PAY-2007\", \"vendor\": \"FastShip Logistics\", \"amount\": 4500.00, \"date\": \"2025-10-14\", \"invoice_ref\": \"INV-1007\", \"method\": \"ACH\"}, {\"id\": \"PAY-2008\", \"vendor\": \"Legal Eagles LLP\", \"amount\": 15000.00, \"date\": \"2025-10-16\", \"invoice_ref\": \"INV-1008\", \"method\": \"wire\"}, {\"id\": \"PAY-2009\", \"vendor\": \"CleanPro Services\", \"amount\": 950.00, \"date\": \"2025-10-18\", \"invoice_ref\": \"INV-1009\", \"method\": \"check\"}, {\"id\": \"PAY-2010\", \"vendor\": \"ACME Corporation\", \"amount\": 12500.00, \"date\": \"2025-10-20\", \"invoice_ref\": \"INV-1010\", \"method\": \"wire\"}, {\"id\": \"PAY-2011\", \"vendor\": \"TechSupply Inc\", \"amount\": 5600.00, \"date\": \"2025-10-25\", \"invoice_ref\": \"INV-1012\", \"method\": \"ACH\"}, {\"id\": \"PAY-2012\", \"vendor\": \"CloudHost Pro\", \"amount\": 8750.00, \"date\": \"2025-10-30\", \"invoice_ref\": \"INV-1013\", \"method\": \"ACH\"}, {\"id\": \"PAY-2013\", \"vendor\": \"Acme Corp\", \"amount\": 9200.00, \"date\": \"2025-10-28\", \"invoice_ref\": \"INV-1014\", \"method\": \"wire\"}, {\"id\": \"PAY-2014\", \"vendor\": \"Green Energy Co\", \"amount\": 2250.00, \"date\": \"2025-11-05\", \"invoice_ref\": \"INV-1016\", \"method\": \"ACH\"}, {\"id\": \"PAY-2015\", \"vendor\": \"MarketBoost Agency\", \"amount\": 7800.00, \"date\": \"2025-10-28\", \"invoice_ref\": null, \"method\": \"wire\", \"note\": \"Advance payment for November campaign\"}, {\"id\": \"PAY-2016\", \"vendor\": \"FastShip Logistics\", \"amount\": 4200.00, \"date\": \"2025-11-08\", \"invoice_ref\": \"INV-1018\", \"method\": \"ACH\"}, {\"id\": \"PAY-2017\", \"vendor\": \"DataSafe Security\", \"amount\": 3200.00, \"date\": \"2025-11-03\", \"invoice_ref\": \"INV-1015\", \"method\": \"wire\"}, {\"id\": \"PAY-2018\", \"vendor\": \"PrintWorks Digital\", \"amount\": 1450.00, \"date\": \"2025-11-07\", \"invoice_ref\": \"INV-1017\", \"method\": \"check\"}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the invoices from data/invoices.json and payments from data/payments.json. Give me an overview: how many invoices, how many payments, total amounts for each.",
+      "assertions": {
+        "tools_used": ["memory_read"],
+        "response_matches": "\\$?[\\d,]+",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Match payments to invoices by invoice reference. Flag any that don't match exactly on amount.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(match|mismatch|discrepanc|INV-)"
+      }
+    },
+    {
+      "user_input": "INV-1005 was invoiced at $6,400 but the payment PAY-2005 was $6,208. The vendor says they applied a 3% early-payment discount. Is the math correct?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(3%|discount|6208|192|correct|match)"
+      }
+    },
+    {
+      "user_input": "Find all invoices with no matching payment. These are potentially overdue. Show them with their due dates and how many days past due they are (use November 20, 2025 as today's date).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(overdue|INV-|no payment|outstanding)"
+      }
+    },
+    {
+      "user_input": "Now find payments with no matching invoice - these could be duplicate payments or advance payments. Show me what you find.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(PAY-|advance|no invoice|unmatched)"
+      }
+    },
+    {
+      "user_input": "I notice two invoices from 'Acme Corp' (INV-1001) and 'ACME Corporation' (INV-1010) for the exact same amount and description. These look like potential duplicates from the same vendor with different name variations. Verify and flag this.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Acme"],
+        "response_matches": "(?i)(duplicate|same vendor|name variation|match)"
+      }
+    },
+    {
+      "user_input": "Generate a complete reconciliation report with these categories: matched (exact), discount-adjusted, overdue invoices, unmatched payments, and potential duplicate invoices. Include totals for each category.",
+      "assertions": {
+        "response_contains": ["reconciliation"],
+        "response_matches": "(?i)(matched|overdue|unmatched|duplicate|discount)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "game-prediction-model",
+  "description": "Build an Elo-style prediction model using NBA team stats, predict game outcomes, backtest against actual results, and assess calibration",
+  "tags": ["sports-analytics", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a sports analytics modeler. Use code for all calculations. Show your methodology. Express predictions as probabilities with confidence intervals when possible."
+    },
+    "workspace": {
+      "documents": {
+        "data/team_stats.json": "{\"teams\": [{\"name\": \"Boston Celtics\", \"abbr\": \"BOS\", \"off_rating\": 122.2, \"def_rating\": 110.6, \"pace\": 99.8, \"wins\": 52, \"losses\": 14, \"home_record\": \"29-4\", \"away_record\": \"23-10\", \"sos\": 0.52}, {\"name\": \"Oklahoma City Thunder\", \"abbr\": \"OKC\", \"off_rating\": 120.1, \"def_rating\": 109.8, \"pace\": 98.5, \"wins\": 50, \"losses\": 16, \"home_record\": \"28-5\", \"away_record\": \"22-11\", \"sos\": 0.48}, {\"name\": \"Denver Nuggets\", \"abbr\": \"DEN\", \"off_rating\": 118.5, \"def_rating\": 112.1, \"pace\": 97.2, \"wins\": 46, \"losses\": 20, \"home_record\": \"27-6\", \"away_record\": \"19-14\", \"sos\": 0.51}, {\"name\": \"Cleveland Cavaliers\", \"abbr\": \"CLE\", \"off_rating\": 117.8, \"def_rating\": 110.2, \"pace\": 96.8, \"wins\": 48, \"losses\": 18, \"home_record\": \"28-5\", \"away_record\": \"20-13\", \"sos\": 0.47}, {\"name\": \"Milwaukee Bucks\", \"abbr\": \"MIL\", \"off_rating\": 118.0, \"def_rating\": 113.5, \"pace\": 100.2, \"wins\": 43, \"losses\": 23, \"home_record\": \"25-8\", \"away_record\": \"18-15\", \"sos\": 0.50}, {\"name\": \"Minnesota Timberwolves\", \"abbr\": \"MIN\", \"off_rating\": 115.2, \"def_rating\": 108.9, \"pace\": 97.0, \"wins\": 47, \"losses\": 19, \"home_record\": \"27-6\", \"away_record\": \"20-13\", \"sos\": 0.49}, {\"name\": \"New York Knicks\", \"abbr\": \"NYK\", \"off_rating\": 116.5, \"def_rating\": 112.8, \"pace\": 98.0, \"wins\": 44, \"losses\": 22, \"home_record\": \"26-7\", \"away_record\": \"18-15\", \"sos\": 0.51}, {\"name\": \"Phoenix Suns\", \"abbr\": \"PHX\", \"off_rating\": 117.0, \"def_rating\": 114.0, \"pace\": 99.5, \"wins\": 41, \"losses\": 25, \"home_record\": \"24-9\", \"away_record\": \"17-16\", \"sos\": 0.52}, {\"name\": \"Dallas Mavericks\", \"abbr\": \"DAL\", \"off_rating\": 118.8, \"def_rating\": 114.5, \"pace\": 99.0, \"wins\": 42, \"losses\": 24, \"home_record\": \"25-8\", \"away_record\": \"17-16\", \"sos\": 0.50}, {\"name\": \"Indiana Pacers\", \"abbr\": \"IND\", \"off_rating\": 119.5, \"def_rating\": 116.0, \"pace\": 103.5, \"wins\": 40, \"losses\": 26, \"home_record\": \"23-10\", \"away_record\": \"17-16\", \"sos\": 0.48}, {\"name\": \"Los Angeles Lakers\", \"abbr\": \"LAL\", \"off_rating\": 115.8, \"def_rating\": 113.2, \"pace\": 98.8, \"wins\": 39, \"losses\": 27, \"home_record\": \"23-10\", \"away_record\": \"16-17\", \"sos\": 0.53}, {\"name\": \"Sacramento Kings\", \"abbr\": \"SAC\", \"off_rating\": 116.2, \"def_rating\": 114.8, \"pace\": 100.0, \"wins\": 38, \"losses\": 28, \"home_record\": \"22-11\", \"away_record\": \"16-17\", \"sos\": 0.49}, {\"name\": \"Philadelphia 76ers\", \"abbr\": \"PHI\", \"off_rating\": 114.5, \"def_rating\": 112.0, \"pace\": 97.5, \"wins\": 37, \"losses\": 29, \"home_record\": \"22-11\", \"away_record\": \"15-18\", \"sos\": 0.51}, {\"name\": \"Miami Heat\", \"abbr\": \"MIA\", \"off_rating\": 112.8, \"def_rating\": 111.5, \"pace\": 96.5, \"wins\": 36, \"losses\": 30, \"home_record\": \"22-11\", \"away_record\": \"14-19\", \"sos\": 0.50}, {\"name\": \"New Orleans Pelicans\", \"abbr\": \"NOP\", \"off_rating\": 114.0, \"def_rating\": 113.8, \"pace\": 99.2, \"wins\": 35, \"losses\": 31, \"home_record\": \"21-12\", \"away_record\": \"14-19\", \"sos\": 0.48}, {\"name\": \"Los Angeles Clippers\", \"abbr\": \"LAC\", \"off_rating\": 113.5, \"def_rating\": 113.0, \"pace\": 97.8, \"wins\": 35, \"losses\": 31, \"home_record\": \"20-13\", \"away_record\": \"15-18\", \"sos\": 0.52}, {\"name\": \"Golden State Warriors\", \"abbr\": \"GSW\", \"off_rating\": 114.8, \"def_rating\": 114.2, \"pace\": 100.5, \"wins\": 34, \"losses\": 32, \"home_record\": \"21-12\", \"away_record\": \"13-20\", \"sos\": 0.51}, {\"name\": \"Houston Rockets\", \"abbr\": \"HOU\", \"off_rating\": 112.0, \"def_rating\": 112.5, \"pace\": 98.0, \"wins\": 33, \"losses\": 33, \"home_record\": \"20-13\", \"away_record\": \"13-20\", \"sos\": 0.47}, {\"name\": \"Chicago Bulls\", \"abbr\": \"CHI\", \"off_rating\": 111.5, \"def_rating\": 113.0, \"pace\": 97.5, \"wins\": 31, \"losses\": 35, \"home_record\": \"19-14\", \"away_record\": \"12-21\", \"sos\": 0.50}, {\"name\": \"Atlanta Hawks\", \"abbr\": \"ATL\", \"off_rating\": 115.0, \"def_rating\": 116.5, \"pace\": 100.8, \"wins\": 30, \"losses\": 36, \"home_record\": \"18-15\", \"away_record\": \"12-21\", \"sos\": 0.49}, {\"name\": \"Orlando Magic\", \"abbr\": \"ORL\", \"off_rating\": 110.2, \"def_rating\": 109.5, \"pace\": 96.0, \"wins\": 37, \"losses\": 29, \"home_record\": \"22-11\", \"away_record\": \"15-18\", \"sos\": 0.48}, {\"name\": \"Brooklyn Nets\", \"abbr\": \"BKN\", \"off_rating\": 110.8, \"def_rating\": 115.0, \"pace\": 98.5, \"wins\": 26, \"losses\": 40, \"home_record\": \"16-17\", \"away_record\": \"10-23\", \"sos\": 0.51}, {\"name\": \"Toronto Raptors\", \"abbr\": \"TOR\", \"off_rating\": 111.0, \"def_rating\": 115.5, \"pace\": 99.0, \"wins\": 25, \"losses\": 41, \"home_record\": \"15-18\", \"away_record\": \"10-23\", \"sos\": 0.50}, {\"name\": \"Utah Jazz\", \"abbr\": \"UTA\", \"off_rating\": 112.5, \"def_rating\": 116.8, \"pace\": 99.5, \"wins\": 27, \"losses\": 39, \"home_record\": \"17-16\", \"away_record\": \"10-23\", \"sos\": 0.48}, {\"name\": \"Portland Trail Blazers\", \"abbr\": \"POR\", \"off_rating\": 109.5, \"def_rating\": 116.0, \"pace\": 98.0, \"wins\": 22, \"losses\": 44, \"home_record\": \"14-19\", \"away_record\": \"8-25\", \"sos\": 0.49}, {\"name\": \"Memphis Grizzlies\", \"abbr\": \"MEM\", \"off_rating\": 110.0, \"def_rating\": 114.5, \"pace\": 99.8, \"wins\": 28, \"losses\": 38, \"home_record\": \"17-16\", \"away_record\": \"11-22\", \"sos\": 0.50}, {\"name\": \"Charlotte Hornets\", \"abbr\": \"CHA\", \"off_rating\": 108.5, \"def_rating\": 116.2, \"pace\": 99.5, \"wins\": 18, \"losses\": 48, \"home_record\": \"12-21\", \"away_record\": \"6-27\", \"sos\": 0.51}, {\"name\": \"San Antonio Spurs\", \"abbr\": \"SAS\", \"off_rating\": 111.8, \"def_rating\": 115.8, \"pace\": 98.2, \"wins\": 24, \"losses\": 42, \"home_record\": \"15-18\", \"away_record\": \"9-24\", \"sos\": 0.49}, {\"name\": \"Detroit Pistons\", \"abbr\": \"DET\", \"off_rating\": 107.5, \"def_rating\": 115.5, \"pace\": 97.0, \"wins\": 17, \"losses\": 49, \"home_record\": \"11-22\", \"away_record\": \"6-27\", \"sos\": 0.50}, {\"name\": \"Washington Wizards\", \"abbr\": \"WAS\", \"off_rating\": 106.8, \"def_rating\": 117.0, \"pace\": 99.2, \"wins\": 14, \"losses\": 52, \"home_record\": \"10-23\", \"away_record\": \"4-29\", \"sos\": 0.51}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the team stats from data/team_stats.json. Calculate the power ranking based on net rating (offensive - defensive rating) adjusted by strength of schedule.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["Celtics", "Thunder"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Build a simple Elo-style prediction model using the provided data. Initialize each team's Elo based on their win percentage and net rating, then use that for game predictions. Explain the model.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Elo|rating|model)"
+      }
+    },
+    {
+      "user_input": "Predict tomorrow's matchup: Lakers (home) vs Celtics. Show the win probability for each team.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Lakers|Celtics).*\\d+%"
+      }
+    },
+    {
+      "user_input": "The model gives Lakers around 42%. But LeBron is listed as questionable. Estimate: how does his absence affect the prediction? Assume a star player absence drops offensive rating by 3.5 points and overall team performance by ~4 Elo points per game.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(LeBron|absence|without|impact|%)"
+      }
+    },
+    {
+      "user_input": "Backtest the model: here are last week's results. Game 1: Celtics beat Knicks 112-105. Game 2: Thunder beat Lakers 118-110. Game 3: Nuggets lost to Cavs 101-108. Game 4: Bucks beat Suns 121-115. Game 5: Mavericks beat Pacers 125-120. How did the model do on these games?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(backtest|correct|accuracy|predicted|right|wrong)"
+      }
+    },
+    {
+      "user_input": "Calibrate: the model predicted roughly 60% for the favored team in each of those 5 games, and the favored team won 4 out of 5. Is the model well-calibrated at the 60% confidence level?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(calibrat|expected|actual|80%|60%|sample)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

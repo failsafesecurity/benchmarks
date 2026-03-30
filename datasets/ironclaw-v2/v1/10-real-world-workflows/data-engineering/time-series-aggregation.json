@@ -1,0 +1,64 @@
+{
+  "name": "time-series-aggregation",
+  "description": "Multi-turn time series analysis of IoT sensor data: frequency detection, resampling, gap filling, spike removal, rolling statistics, and anomaly detection",
+  "tags": ["data-engineering", "edge-case", "accuracy", "multi-turn", "code-execution", "time-series"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data engineer specializing in IoT sensor data. Use code for all time series operations. Always validate data integrity after each transformation step and report exact counts."
+    },
+    "workspace": {
+      "documents": {
+        "data/sensor.json": "[{\"timestamp\": \"2025-08-01T00:00:00Z\", \"value\": 21.3}, {\"timestamp\": \"2025-08-01T00:00:01Z\", \"value\": 21.2}, {\"timestamp\": \"2025-08-01T00:00:02Z\", \"value\": 21.4}, {\"timestamp\": \"2025-08-01T00:00:03Z\", \"value\": 21.3}, {\"timestamp\": \"2025-08-01T00:00:04Z\", \"value\": 21.5}, {\"timestamp\": \"2025-08-01T00:00:05Z\", \"value\": 21.4}, {\"timestamp\": \"2025-08-01T00:00:06Z\", \"value\": 999.9}, {\"timestamp\": \"2025-08-01T00:00:07Z\", \"value\": 21.6}, {\"timestamp\": \"2025-08-01T00:00:08Z\", \"value\": 21.5}, {\"timestamp\": \"2025-08-01T00:00:09Z\", \"value\": 21.7}, {\"timestamp\": \"2025-08-01T00:00:10Z\", \"value\": 21.6}, {\"timestamp\": \"2025-08-01T00:00:11Z\", \"value\": 21.8}, {\"timestamp\": \"2025-08-01T00:00:12Z\", \"value\": 21.7}, {\"timestamp\": \"2025-08-01T00:00:13Z\", \"value\": 21.9}, {\"timestamp\": \"2025-08-01T00:00:14Z\", \"value\": 22.0}, {\"timestamp\": \"2025-08-01T00:00:15Z\", \"value\": 22.1}, {\"timestamp\": \"2025-08-01T00:00:16Z\", \"value\": 22.0}, {\"timestamp\": \"2025-08-01T00:00:17Z\", \"value\": 22.2}, {\"timestamp\": \"2025-08-01T00:00:18Z\", \"value\": 22.1}, {\"timestamp\": \"2025-08-01T00:00:19Z\", \"value\": 22.3}, {\"timestamp\": \"2025-08-01T00:00:20Z\", \"value\": 22.2}, {\"timestamp\": \"2025-08-01T00:00:21Z\", \"value\": 22.4}, {\"timestamp\": \"2025-08-01T00:00:22Z\", \"value\": 22.3}, {\"timestamp\": \"2025-08-01T00:00:23Z\", \"value\": 22.5}, {\"timestamp\": \"2025-08-01T00:00:24Z\", \"value\": 22.4}, {\"timestamp\": \"2025-08-01T00:00:25Z\", \"value\": 22.6}, {\"timestamp\": \"2025-08-01T00:00:26Z\", \"value\": 22.5}, {\"timestamp\": \"2025-08-01T00:00:27Z\", \"value\": 22.7}, {\"timestamp\": \"2025-08-01T00:00:28Z\", \"value\": 22.6}, {\"timestamp\": \"2025-08-01T00:00:29Z\", \"value\": 22.8}, {\"timestamp\": \"2025-08-01T00:00:30Z\", \"value\": 22.7}, {\"timestamp\": \"2025-08-01T00:00:31Z\", \"value\": 22.9}, {\"timestamp\": \"2025-08-01T00:00:32Z\", \"value\": 22.8}, {\"timestamp\": \"2025-08-01T00:00:33Z\", \"value\": 23.0}, {\"timestamp\": \"2025-08-01T00:00:34Z\", \"value\": 22.9}, {\"timestamp\": \"2025-08-01T00:00:35Z\", \"value\": 999.9}, {\"timestamp\": \"2025-08-01T00:00:36Z\", \"value\": 23.2}, {\"timestamp\": \"2025-08-01T00:00:37Z\", \"value\": 23.1}, {\"timestamp\": \"2025-08-01T00:00:38Z\", \"value\": 23.3}, {\"timestamp\": \"2025-08-01T00:00:39Z\", \"value\": 23.2}, {\"timestamp\": \"2025-08-01T00:00:50Z\", \"value\": 23.8}, {\"timestamp\": \"2025-08-01T00:00:51Z\", \"value\": 23.9}, {\"timestamp\": \"2025-08-01T00:00:52Z\", \"value\": 23.7}, {\"timestamp\": \"2025-08-01T00:00:53Z\", \"value\": 24.0}, {\"timestamp\": \"2025-08-01T00:00:54Z\", \"value\": 23.9}, {\"timestamp\": \"2025-08-01T00:00:55Z\", \"value\": 24.1}, {\"timestamp\": \"2025-08-01T00:00:56Z\", \"value\": 24.0}, {\"timestamp\": \"2025-08-01T00:00:57Z\", \"value\": 24.2}, {\"timestamp\": \"2025-08-01T00:00:58Z\", \"value\": 24.1}, {\"timestamp\": \"2025-08-01T00:00:59Z\", \"value\": 24.3}, {\"timestamp\": \"2025-08-01T00:01:00Z\", \"value\": 24.2}, {\"timestamp\": \"2025-08-01T00:01:01Z\", \"value\": 24.4}, {\"timestamp\": \"2025-08-01T00:01:02Z\", \"value\": 24.3}, {\"timestamp\": \"2025-08-01T00:01:03Z\", \"value\": 24.5}, {\"timestamp\": \"2025-08-01T00:01:04Z\", \"value\": 999.9}, {\"timestamp\": \"2025-08-01T00:01:05Z\", \"value\": 24.6}, {\"timestamp\": \"2025-08-01T00:01:06Z\", \"value\": 24.5}, {\"timestamp\": \"2025-08-01T00:01:07Z\", \"value\": 24.7}, {\"timestamp\": \"2025-08-01T00:01:08Z\", \"value\": 24.6}, {\"timestamp\": \"2025-08-01T00:01:09Z\", \"value\": 24.8}, {\"timestamp\": \"2025-08-01T00:01:10Z\", \"value\": 24.7}, {\"timestamp\": \"2025-08-01T00:01:11Z\", \"value\": 24.9}, {\"timestamp\": \"2025-08-01T00:01:12Z\", \"value\": 24.8}, {\"timestamp\": \"2025-08-01T00:01:13Z\", \"value\": 25.0}, {\"timestamp\": \"2025-08-01T00:01:14Z\", \"value\": 24.9}, {\"timestamp\": \"2025-08-01T00:01:15Z\", \"value\": 25.1}, {\"timestamp\": \"2025-08-01T00:01:16Z\", \"value\": 25.0}, {\"timestamp\": \"2025-08-01T00:01:17Z\", \"value\": 25.2}, {\"timestamp\": \"2025-08-01T00:01:18Z\", \"value\": 25.1}, {\"timestamp\": \"2025-08-01T00:01:19Z\", \"value\": 25.3}, {\"timestamp\": \"2025-08-01T00:01:20Z\", \"value\": 25.2}, {\"timestamp\": \"2025-08-01T00:01:21Z\", \"value\": 25.4}, {\"timestamp\": \"2025-08-01T00:01:22Z\", \"value\": 25.3}, {\"timestamp\": \"2025-08-01T00:01:23Z\", \"value\": 25.5}, {\"timestamp\": \"2025-08-01T00:01:24Z\", \"value\": 25.4}, {\"timestamp\": \"2025-08-01T00:01:25Z\", \"value\": 25.6}, {\"timestamp\": \"2025-08-01T00:01:26Z\", \"value\": 25.5}, {\"timestamp\": \"2025-08-01T00:01:27Z\", \"value\": 25.7}, {\"timestamp\": \"2025-08-01T00:01:28Z\", \"value\": 25.6}, {\"timestamp\": \"2025-08-01T00:01:29Z\", \"value\": 25.8}, {\"timestamp\": \"2025-08-01T00:01:30Z\", \"value\": 25.7}, {\"timestamp\": \"2025-08-01T00:01:31Z\", \"value\": 25.9}, {\"timestamp\": \"2025-08-01T00:01:32Z\", \"value\": 25.8}, {\"timestamp\": \"2025-08-01T00:01:33Z\", \"value\": 25.5}, {\"timestamp\": \"2025-08-01T00:01:34Z\", \"value\": 25.3}, {\"timestamp\": \"2025-08-01T00:01:35Z\", \"value\": 25.1}, {\"timestamp\": \"2025-08-01T00:01:36Z\", \"value\": 24.9}, {\"timestamp\": \"2025-08-01T00:01:37Z\", \"value\": 24.7}, {\"timestamp\": \"2025-08-01T00:01:38Z\", \"value\": 24.5}, {\"timestamp\": \"2025-08-01T00:01:39Z\", \"value\": 24.3}, {\"timestamp\": \"2025-08-01T00:01:40Z\", \"value\": 24.1}, {\"timestamp\": \"2025-08-01T00:01:41Z\", \"value\": 23.9}, {\"timestamp\": \"2025-08-01T00:01:42Z\", \"value\": 23.7}, {\"timestamp\": \"2025-08-01T00:01:43Z\", \"value\": 23.5}, {\"timestamp\": \"2025-08-01T00:01:44Z\", \"value\": 23.3}, {\"timestamp\": \"2025-08-01T00:01:45Z\", \"value\": 23.1}, {\"timestamp\": \"2025-08-01T00:01:46Z\", \"value\": 22.9}, {\"timestamp\": \"2025-08-01T00:01:47Z\", \"value\": 22.7}, {\"timestamp\": \"2025-08-01T00:01:48Z\", \"value\": 22.5}, {\"timestamp\": \"2025-08-01T00:01:49Z\", \"value\": 22.3}]"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the sensor data from data/sensor.json. What's the sampling frequency and total duration of readings?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(frequency|second|duration|interval|sample)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Resample to 1-minute averages. How many data points do we have after resampling?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(resample|minute|average|data point)"
+      }
+    },
+    {
+      "user_input": "There are gaps in the data where readings are missing. Identify the gaps and fill them using linear interpolation.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(gap|interpolat|missing|fill)"
+      }
+    },
+    {
+      "user_input": "Some readings spike to 999.9 — those are sensor errors. How many are there? Replace them with interpolated values.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(999|spike|sensor error|replaced|glitch)"
+      }
+    },
+    {
+      "user_input": "Calculate the rolling 5-second average and standard deviation across the cleaned data.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(rolling|average|standard deviation|window)"
+      }
+    },
+    {
+      "user_input": "When did the sensor readings exceed 2 standard deviations from the rolling mean? Identify the anomalous periods.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(anomal|exceed|deviation|outlier|period)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

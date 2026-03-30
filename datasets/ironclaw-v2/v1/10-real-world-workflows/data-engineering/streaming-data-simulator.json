@@ -1,0 +1,59 @@
+{
+  "name": "streaming-data-simulator",
+  "description": "Multi-turn data generator and anomaly detector built from scratch: IoT sensor simulator with realistic patterns, injected anomalies, data generation, anomaly detection pipeline, and precision/recall evaluation",
+  "tags": ["data-engineering", "adversarial", "accuracy", "multi-turn", "code-execution", "simulation", "anomaly-detection"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data engineering assistant. Write production-quality Python code with proper error handling. When building data generators, use realistic distributions and document all parameters."
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Build a Python data generator that simulates IoT temperature sensor readings. It should produce JSON records with: sensor_id, timestamp, temperature, humidity, and battery_level. Start with a basic version that generates random but reasonable values.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(sensor|temperature|humidity|battery|generat|json)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Add realistic patterns: temperature should follow a daily sine wave (cold at night around 15C, warm at midday around 30C), humidity should inversely correlate with temperature, and battery level should slowly decay from 100% over time.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(sine|wave|pattern|daily|diurnal|cycle|correlat)"
+      }
+    },
+    {
+      "user_input": "Add anomalies to the generator: 5% chance of a sensor glitch (temperature spikes to 999.9), 2% chance of a missed reading (null temperature), and 1% chance of duplicate timestamps.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(anomal|glitch|spike|null|miss|duplicate|chance|percent|%)"
+      }
+    },
+    {
+      "user_input": "Generate 200 records across 3 sensors over a simulated 24-hour period and save the data to a file.",
+      "assertions": {
+        "tools_used": ["execute_code", "memory_write"],
+        "response_matches": "(?i)(200|generat|sensor|record|save|file)"
+      }
+    },
+    {
+      "user_input": "Now build a simple anomaly detector that can process this data and flag the injected anomalies. It should detect: temperature spikes (values outside a reasonable range), null readings, and duplicate timestamps.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(detector|detect|anomal|flag|spike|null|duplicate)"
+      }
+    },
+    {
+      "user_input": "Run the detector on the generated data. Does it catch all the planted anomalies? Calculate the precision and recall for each anomaly type.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(precision|recall|detect|caught|found|accuracy)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

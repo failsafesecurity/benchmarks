@@ -1,0 +1,56 @@
+{
+  "name": "player-performance-trend",
+  "description": "Analyze 3 seasons of basketball player stats to identify performance trends, seasonal patterns, and produce a scouting report with data-backed claims",
+  "tags": ["sports-analytics", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NBA analytics assistant. Always compute stats using code. Present numbers with appropriate precision (1 decimal for averages, 1 decimal for percentages). Back every claim with data."
+    },
+    "workspace": {
+      "documents": {
+        "data/player_stats.csv": "season,month,games,points,rebounds,assists,fg_pct,three_pct,ft_pct,minutes\n2022-23,Oct,6,22.3,6.1,5.2,44.2,35.1,81.0,34.5\n2022-23,Nov,14,23.8,6.5,5.8,45.0,36.2,82.5,35.2\n2022-23,Dec,13,24.1,6.8,6.0,45.5,36.8,83.0,35.8\n2022-23,Jan,14,25.0,7.0,6.2,46.1,37.5,84.0,36.0\n2022-23,Feb,11,24.5,6.7,5.9,45.3,36.0,82.8,35.5\n2022-23,Mar,15,23.2,6.3,5.5,44.0,34.5,81.5,34.8\n2022-23,Apr,10,22.0,6.0,5.0,43.5,33.8,80.5,34.0\n2022-23,May,0,0,0,0,0,0,0,0\n2022-23,Jun,0,0,0,0,0,0,0,0\n2022-23,Jul,0,0,0,0,0,0,0,0\n2022-23,Aug,0,0,0,0,0,0,0,0\n2022-23,Sep,0,0,0,0,0,0,0,0\n2023-24,Oct,7,24.5,7.2,6.5,46.0,37.0,83.5,35.5\n2023-24,Nov,13,25.8,7.5,6.8,46.8,38.0,84.2,36.0\n2023-24,Dec,14,26.3,7.8,7.0,47.2,38.5,85.0,36.5\n2023-24,Jan,13,27.0,8.0,7.2,47.8,39.0,85.5,37.0\n2023-24,Feb,12,26.0,7.4,6.7,46.5,37.2,84.0,36.2\n2023-24,Mar,14,25.0,7.0,6.3,45.8,36.5,83.0,35.5\n2023-24,Apr,11,24.2,6.8,6.0,45.0,35.8,82.5,35.0\n2023-24,May,0,0,0,0,0,0,0,0\n2023-24,Jun,0,0,0,0,0,0,0,0\n2023-24,Jul,0,0,0,0,0,0,0,0\n2023-24,Aug,0,0,0,0,0,0,0,0\n2023-24,Sep,0,0,0,0,0,0,0,0\n2024-25,Oct,6,26.0,7.8,7.0,47.5,38.5,85.0,36.0\n2024-25,Nov,14,27.2,8.2,7.5,48.0,39.2,85.8,36.8\n2024-25,Dec,15,28.0,8.5,7.8,48.5,40.0,86.2,37.2\n2024-25,Jan,13,28.5,8.8,8.0,49.0,40.5,86.5,37.5\n2024-25,Feb,12,27.5,8.0,7.3,47.8,39.0,85.5,36.8\n2024-25,Mar,15,26.5,7.5,7.0,47.0,38.0,84.5,36.2\n2024-25,Apr,8,25.8,7.2,6.8,46.5,37.5,84.0,35.8\n2024-25,May,0,0,0,0,0,0,0,0\n2024-25,Jun,0,0,0,0,0,0,0,0\n2024-25,Jul,0,0,0,0,0,0,0,0\n2024-25,Aug,0,0,0,0,0,0,0,0\n2024-25,Sep,0,0,0,0,0,0,0,0"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the player stats from data/player_stats.csv and give me season averages for each of the 3 seasons. Only include months where games were actually played.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_contains": ["2022-23", "2023-24", "2024-25"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Is the player improving or declining? Calculate the trend for points, assists, and FG% across the 3 seasons.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(improv|declin|trend|upward|increasing)"
+      }
+    },
+    {
+      "user_input": "In which months does the player perform best? Check for mid-season fatigue patterns. Is there a consistent drop-off later in the season?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Jan|Dec|fatigue|drop|peak|pattern)"
+      }
+    },
+    {
+      "user_input": "How does the player compare to these benchmarks: All-Star average is 25 points, 7 rebounds, 6 assists on 48% FG. Where does he measure up and where does he fall short?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(All-Star|benchmark|above|below|exceed|short)"
+      }
+    },
+    {
+      "user_input": "Write a scouting report summary with data backing each claim. Include strengths, weaknesses, trajectory, and an overall assessment.",
+      "assertions": {
+        "response_matches": "(strength|weakness|scout|assessment|trajector)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

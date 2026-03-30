@@ -1,0 +1,54 @@
+{
+  "name": "stock-screener-pipeline",
+  "description": "Multi-turn stock screening pipeline with value filtering, composite scoring, sector exclusion, and final picks export",
+  "tags": ["financial-analysis", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an equity research assistant. Use code to screen and rank stocks based on quantitative criteria. Always show your methodology and be transparent about filtering steps."
+    },
+    "workspace": {
+      "documents": {
+        "data/stocks.csv": "ticker,name,sector,pe_ratio,market_cap_B,dividend_yield,revenue_growth_pct,debt_equity\nAAPL,Apple Inc.,Technology,28.5,2890,0.5,8.2,1.73\nMSFT,Microsoft Corp.,Technology,32.1,2750,0.8,12.4,0.42\nJPM,JPMorgan Chase,Financial,11.2,540,2.8,6.1,1.28\nJNJ,Johnson & Johnson,Healthcare,14.8,385,3.1,3.2,0.52\nPG,Procter & Gamble,Consumer Staples,24.6,355,2.5,4.1,0.78\nXOM,Exxon Mobil,Energy,12.3,460,3.4,7.8,0.21\nCVX,Chevron Corp.,Energy,13.1,290,4.1,5.2,0.15\nKO,Coca-Cola Co.,Consumer Staples,23.8,260,3.0,2.8,1.62\nPFE,Pfizer Inc.,Healthcare,10.2,160,5.8,-2.1,0.82\nVZ,Verizon Communications,Telecom,8.9,170,6.7,1.2,1.41\nT,AT&T Inc.,Telecom,7.8,145,6.2,0.8,1.38\nIBM,IBM Corp.,Technology,19.5,178,4.2,3.5,2.31\nINTC,Intel Corp.,Technology,35.2,125,1.5,-8.3,0.47\nBAC,Bank of America,Financial,12.4,310,2.4,4.8,1.12\nWFC,Wells Fargo,Financial,10.8,195,2.9,3.9,0.92\nC,Citigroup Inc.,Financial,8.5,105,3.8,2.1,1.31\nABBV,AbbVie Inc.,Healthcare,13.5,285,3.6,5.5,4.85\nMRK,Merck & Co.,Healthcare,15.2,310,2.7,8.9,0.68\nBMY,Bristol-Myers Squibb,Healthcare,7.1,115,4.8,1.8,1.15\nGILD,Gilead Sciences,Healthcare,12.8,105,3.3,4.2,1.08\nMMM,3M Company,Industrial,11.5,62,5.5,1.1,1.65\nCAT,Caterpillar Inc.,Industrial,16.2,170,1.7,9.5,1.82\nDE,Deere & Company,Industrial,14.2,120,1.4,6.8,2.15\nLMT,Lockheed Martin,Defense,16.8,115,2.6,5.1,2.52\nRTX,RTX Corporation,Defense,14.5,145,2.3,7.2,0.68\nDUK,Duke Energy,Utilities,18.2,82,4.0,2.5,1.35\nSO,Southern Company,Utilities,19.5,88,3.8,3.1,1.52\nNEE,NextEra Energy,Utilities,22.1,142,2.8,8.2,1.18\nMO,Altria Group,Consumer Staples,9.2,78,8.5,-1.5,2.85\nPM,Philip Morris Intl,Consumer Staples,17.8,185,5.2,4.8,0.0"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the stock data from data/stocks.csv. I want value stocks: PE ratio under 15, dividend yield above 2%, and debt-to-equity ratio under 1.5. Screen these for me.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Now rank the filtered stocks by a composite score: 40% weight on dividend yield, 30% weight on revenue growth, and 30% weight on inverse PE (lower PE = higher score). Normalize each metric to 0-1 range before weighting.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+\\.\\d+"
+      }
+    },
+    {
+      "user_input": "Show me the top 5 ranked stocks with all their metrics in a clear format.",
+      "assertions": {
+        "response_matches": "[A-Z]{1,5}"
+      }
+    },
+    {
+      "user_input": "Drop any stocks in the Financial sector - I'm already overweight financials in my other accounts. Show me the updated list.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_not_contains": ["JPM", "BAC", "WFC", "Citigroup"]
+      }
+    },
+    {
+      "user_input": "Save the final stock picks to a file called final_picks.json and give me a one-line investment thesis for each pick.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

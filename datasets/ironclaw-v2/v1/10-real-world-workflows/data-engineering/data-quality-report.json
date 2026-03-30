@@ -1,0 +1,63 @@
+{
+  "name": "data-quality-report",
+  "description": "Multi-turn data quality assessment with planted issues: nulls, duplicates, format errors, outliers, and cross-field inconsistencies requiring detection, quantification, remediation, and scorecard generation",
+  "tags": ["data-engineering", "edge-case", "accuracy", "multi-turn", "code-execution", "data-quality"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data quality engineer. Use code to systematically audit datasets. Always quantify issues with exact counts and percentages. Document every quality rule and its pass/fail status."
+    },
+    "workspace": {
+      "documents": {
+        "data/customers.csv": "id,name,email,phone,state,zip,signup_date,lifetime_value\n1,Alice Johnson,alice.j@example.com,555-0101,CA,94102,2024-01-15,1250.00\n2,Bob Smith,bob.smith@example.com,555-0102,NY,10001,2024-02-20,890.50\n3,Carol Davis,carol.d@example.com,555-0103,TX,75201,2024-03-10,2100.75\n4,David Lee,,555-0104,FL,33101,2024-04-05,675.25\n5,Eve Martinez,eve.m@example.com,555-0105,CA,94110,2024-05-18,1580.00\n6,Frank Wilson,frank.w@example.com,,WA,98101,2024-06-22,430.00\n7,Grace Kim,grace.k@example.com,555-0107,NY,10002,2024-07-14,1890.25\n8,Henry Chen,henry.c@example.com,555-0108,CA,15213,2024-08-30,960.00\n9,Iris Patel,iris.p@example.com,555-0109,IL,60601,2024-09-12,750.50\n10,Jack Brown,jack.b@example.com,555-0110,TX,75202,13/25/2025,-45.00\n11,Karen White,,555-0111,OR,97201,2024-11-08,1120.00\n12,Leo Garcia,leo.g@example.com,555-0112,CA,94103,2024-12-01,2340.00\n13,Mia Robinson,mia.r@example.com,555-0113,NY,10003,2024-01-28,560.75\n14,Noah Taylor,noah.t@example.com,555-0114,FL,33102,2025-01-15,890.00\n15,Olivia Anderson,,555-0115,WA,98102,2025-02-10,1450.25\n16,Paul Thomas,paul.t@example.com,555-0116,TX,75203,2025-03-05,670.50\n17,Quinn Harris,quinn.h@example.com,555-0117,CA,94104,2025-04-12,1780.00\n18,Rachel Clark,rachel.c@example.com,555-0118,IL,60602,02/30/2025,1050.75\n19,Sam Lewis,sam.l@example.com,555-0119,NY,10004,2025-05-20,-120.00\n20,Tina Walker,tina.w@example.com,,CA,94105,2025-06-15,830.25\n21,Alice Johnson,alice.j@example.com,555-0101,CA,94102,2024-01-15,1250.00\n22,Bob Smith,bob.smith@example.com,555-0102,NY,10001,2024-02-20,890.50\n23,Uma Scott,uma.s@example.com,555-0123,FL,33103,2025-07-01,1560.00\n24,Victor Young,victor.y@example.com,555-0124,WA,98103,2025-07-18,720.75\n25,Wendy King,wendy.k@example.com,555-0125,TX,75204,2025-08-05,940.50\n26,Xavier Adams,,555-0126,OR,97202,2025-08-22,1180.00\n27,Yara Baker,yara.b@example.com,555-0127,CA,94106,2025-09-10,2050.25\n28,Zach Cooper,zach.c@example.com,555-0128,NY,10005,2025-09-28,630.00\n29,Amy Dixon,amy.d@example.com,555-0129,IL,60603,2025-10-15,1370.50\n30,Brian Evans,brian.e@example.com,555-0130,FL,33104,2025-10-30,880.75\n31,Carol Davis,carol.d@example.com,555-0103,TX,75201,2024-03-10,2100.75\n32,Diana Foster,diana.f@example.com,555-0132,WA,98104,2025-11-12,1650.00\n33,Ethan Grant,ethan.g@example.com,555-0133,CA,94107,2025-11-28,790.25\n34,Fiona Hill,fiona.h@example.com,555-0134,NY,10006,2025-12-10,1420.50\n35,George Irving,george.i@example.com,555-0135,TX,75205,2025-12-25,1030.00"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the customer data from data/customers.csv and run a comprehensive data quality check. What issues do you find?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(null|missing|duplicate|issue|quality|error|invalid)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Quantify each issue: how many nulls, duplicates, format errors, and outliers are there? Give me exact counts.",
+      "assertions": {
+        "response_matches": "(?i)(null|missing)",
+        "response_contains": ["duplicate"],
+        "response_matches": "\\d+"
+      }
+    },
+    {
+      "user_input": "Which columns have the worst data quality? Rank them by completeness percentage.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(email|phone|completeness|column|worst|rank)"
+      }
+    },
+    {
+      "user_input": "Propose a fix for each issue type: should we drop, impute, correct, or flag for manual review?",
+      "assertions": {
+        "response_matches": "(?i)(drop|impute|correct|manual|review|fix|strategy)"
+      }
+    },
+    {
+      "user_input": "Apply the fixes in code and show me the before/after row counts and a summary of what changed.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(before|after|row|removed|fixed|cleaned)"
+      }
+    },
+    {
+      "user_input": "Generate a data quality scorecard with pass/fail status for each column and an overall data quality score.",
+      "assertions": {
+        "response_matches": "(?i)(scorecard|quality|pass|fail|score)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

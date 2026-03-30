@@ -1,0 +1,57 @@
+{
+  "name": "trade-value-calculator",
+  "description": "Calculate trade values for NBA players using age curves, contract factors, and production metrics, then evaluate proposed trades and identify market opportunities",
+  "tags": ["sports-analytics", "edge-case", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NBA trade analyst. Use code for all value calculations. Be precise about trade math. When assessing fairness, consider both teams' perspectives."
+    },
+    "workspace": {
+      "documents": {
+        "data/player_values.json": "{\"age_multipliers\": {\"20\": 1.35, \"21\": 1.30, \"22\": 1.25, \"23\": 1.20, \"24\": 1.15, \"25\": 1.10, \"26\": 1.05, \"27\": 1.00, \"28\": 0.92, \"29\": 0.84, \"30\": 0.75, \"31\": 0.65, \"32\": 0.55, \"33\": 0.45, \"34\": 0.35, \"35\": 0.25}, \"contract_value_factors\": {\"1_year\": 0.80, \"2_years\": 1.00, \"3_years\": 1.10, \"4_years\": 1.05, \"5_years\": 0.95}, \"draft_pick_values\": {\"unprotected_1st\": 85, \"top_5_protected_1st\": 55, \"top_10_protected_1st\": 40, \"lottery_protected_1st\": 30, \"2nd_round\": 15}, \"players\": [{\"name\": \"Zach LaVine\", \"team\": \"CHI\", \"age\": 29, \"position\": \"SG\", \"production_score\": 72, \"salary\": 43000000, \"years_remaining\": 2}, {\"name\": \"Pascal Siakam\", \"team\": \"IND\", \"age\": 30, \"position\": \"PF\", \"production_score\": 75, \"salary\": 37900000, \"years_remaining\": 3}, {\"name\": \"Brandon Ingram\", \"team\": \"NOP\", \"age\": 27, \"position\": \"SF\", \"production_score\": 70, \"salary\": 36000000, \"years_remaining\": 1}, {\"name\": \"Dejounte Murray\", \"team\": \"NOP\", \"age\": 28, \"position\": \"PG\", \"production_score\": 68, \"salary\": 25300000, \"years_remaining\": 2}, {\"name\": \"OG Anunoby\", \"team\": \"NYK\", \"age\": 27, \"position\": \"SF\", \"production_score\": 73, \"salary\": 35600000, \"years_remaining\": 4}, {\"name\": \"Mikal Bridges\", \"team\": \"NYK\", \"age\": 28, \"position\": \"SF\", \"production_score\": 65, \"salary\": 23300000, \"years_remaining\": 3}, {\"name\": \"Darius Garland\", \"team\": \"CLE\", \"age\": 24, \"position\": \"PG\", \"production_score\": 71, \"salary\": 33000000, \"years_remaining\": 4}, {\"name\": \"Scottie Barnes\", \"team\": \"TOR\", \"age\": 23, \"position\": \"PF\", \"production_score\": 74, \"salary\": 28500000, \"years_remaining\": 5}, {\"name\": \"Franz Wagner\", \"team\": \"ORL\", \"age\": 23, \"position\": \"SF\", \"production_score\": 76, \"salary\": 32500000, \"years_remaining\": 5}, {\"name\": \"Cade Cunningham\", \"team\": \"DET\", \"age\": 23, \"position\": \"PG\", \"production_score\": 73, \"salary\": 30200000, \"years_remaining\": 5}, {\"name\": \"Desmond Bane\", \"team\": \"MEM\", \"age\": 26, \"position\": \"SG\", \"production_score\": 69, \"salary\": 26800000, \"years_remaining\": 4}, {\"name\": \"Tyler Herro\", \"team\": \"MIA\", \"age\": 25, \"position\": \"SG\", \"production_score\": 67, \"salary\": 27000000, \"years_remaining\": 3}, {\"name\": \"Anfernee Simons\", \"team\": \"POR\", \"age\": 25, \"position\": \"PG\", \"production_score\": 64, \"salary\": 25200000, \"years_remaining\": 3}, {\"name\": \"Cam Thomas\", \"team\": \"BKN\", \"age\": 23, \"position\": \"SG\", \"production_score\": 66, \"salary\": 4700000, \"years_remaining\": 1}, {\"name\": \"Jarrett Allen\", \"team\": \"CLE\", \"age\": 26, \"position\": \"C\", \"production_score\": 71, \"salary\": 20000000, \"years_remaining\": 3}, {\"name\": \"Myles Turner\", \"team\": \"IND\", \"age\": 28, \"position\": \"C\", \"production_score\": 63, \"salary\": 19900000, \"years_remaining\": 1}, {\"name\": \"Nikola Vucevic\", \"team\": \"CHI\", \"age\": 34, \"position\": \"C\", \"production_score\": 60, \"salary\": 20000000, \"years_remaining\": 1}, {\"name\": \"Julius Randle\", \"team\": \"MIN\", \"age\": 29, \"position\": \"PF\", \"production_score\": 69, \"salary\": 28900000, \"years_remaining\": 3}, {\"name\": \"Khris Middleton\", \"team\": \"MIL\", \"age\": 33, \"position\": \"SF\", \"production_score\": 55, \"salary\": 31700000, \"years_remaining\": 1}, {\"name\": \"D'Angelo Russell\", \"team\": \"LAL\", \"age\": 28, \"position\": \"PG\", \"production_score\": 58, \"salary\": 17300000, \"years_remaining\": 1}, {\"name\": \"Jalen Green\", \"team\": \"HOU\", \"age\": 22, \"position\": \"SG\", \"production_score\": 65, \"salary\": 11500000, \"years_remaining\": 2}, {\"name\": \"Alperen Sengun\", \"team\": \"HOU\", \"age\": 22, \"position\": \"C\", \"production_score\": 72, \"salary\": 4100000, \"years_remaining\": 1}, {\"name\": \"Immanuel Quickley\", \"team\": \"TOR\", \"age\": 25, \"position\": \"PG\", \"production_score\": 62, \"salary\": 13400000, \"years_remaining\": 4}, {\"name\": \"Jalen Suggs\", \"team\": \"ORL\", \"age\": 23, \"position\": \"SG\", \"production_score\": 60, \"salary\": 5800000, \"years_remaining\": 1}, {\"name\": \"Herbert Jones\", \"team\": \"NOP\", \"age\": 26, \"position\": \"SF\", \"production_score\": 61, \"salary\": 9500000, \"years_remaining\": 4}, {\"name\": \"Keldon Johnson\", \"team\": \"SAS\", \"age\": 25, \"position\": \"SF\", \"production_score\": 56, \"salary\": 20000000, \"years_remaining\": 3}, {\"name\": \"Jordan Poole\", \"team\": \"WAS\", \"age\": 25, \"position\": \"SG\", \"production_score\": 52, \"salary\": 27300000, \"years_remaining\": 3}, {\"name\": \"RJ Barrett\", \"team\": \"TOR\", \"age\": 24, \"position\": \"SF\", \"production_score\": 63, \"salary\": 23800000, \"years_remaining\": 4}, {\"name\": \"Buddy Hield\", \"team\": \"GSW\", \"age\": 31, \"position\": \"SG\", \"production_score\": 55, \"salary\": 9000000, \"years_remaining\": 1}, {\"name\": \"Kyle Kuzma\", \"team\": \"WAS\", \"age\": 29, \"position\": \"PF\", \"production_score\": 59, \"salary\": 23500000, \"years_remaining\": 2}, {\"name\": \"Jerami Grant\", \"team\": \"POR\", \"age\": 30, \"position\": \"PF\", \"production_score\": 62, \"salary\": 30900000, \"years_remaining\": 3}, {\"name\": \"Jonas Valanciunas\", \"team\": \"WAS\", \"age\": 32, \"position\": \"C\", \"production_score\": 57, \"salary\": 10500000, \"years_remaining\": 1}, {\"name\": \"Bojan Bogdanovic\", \"team\": \"NYK\", \"age\": 35, \"position\": \"SF\", \"production_score\": 50, \"salary\": 19000000, \"years_remaining\": 1}, {\"name\": \"Brook Lopez\", \"team\": \"MIL\", \"age\": 36, \"position\": \"C\", \"production_score\": 58, \"salary\": 23000000, \"years_remaining\": 1}, {\"name\": \"Harrison Barnes\", \"team\": \"SAS\", \"age\": 32, \"position\": \"SF\", \"production_score\": 53, \"salary\": 18000000, \"years_remaining\": 1}, {\"name\": \"Terry Rozier\", \"team\": \"MIA\", \"age\": 30, \"position\": \"PG\", \"production_score\": 60, \"salary\": 24800000, \"years_remaining\": 2}, {\"name\": \"Jonathan Kuminga\", \"team\": \"GSW\", \"age\": 22, \"position\": \"PF\", \"production_score\": 63, \"salary\": 5800000, \"years_remaining\": 1}, {\"name\": \"Jabari Smith Jr.\", \"team\": \"HOU\", \"age\": 22, \"position\": \"PF\", \"production_score\": 61, \"salary\": 9800000, \"years_remaining\": 2}, {\"name\": \"Mark Williams\", \"team\": \"CHA\", \"age\": 23, \"position\": \"C\", \"production_score\": 64, \"salary\": 4100000, \"years_remaining\": 1}, {\"name\": \"Keegan Murray\", \"team\": \"SAC\", \"age\": 24, \"position\": \"SF\", \"production_score\": 62, \"salary\": 5500000, \"years_remaining\": 2}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the player values data from data/player_values.json. Calculate the trade value for each player using the formula: production_score * age_multiplier * contract_value_factor. Rank them from highest to lowest.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(trade value|rank|highest|score)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Proposed trade: Team A (Chicago) sends Zach LaVine and an unprotected 1st round pick for Team B (New York's) OG Anunoby. Is this a fair trade based on the value model?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(fair|unfair|lopsided|balanced|value)"
+      }
+    },
+    {
+      "user_input": "What if Chicago offers a top-5 protected 1st round pick instead of unprotected? Recalculate the trade values.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(protected|value|difference|gap)"
+      }
+    },
+    {
+      "user_input": "Find the most lopsided trades possible where one team gets 2x the value. Show the top 3 most unbalanced but salary-matchable trades (within 125% of each other's salary for trade rules).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(lopsided|unbalanced|2x|value|trade)"
+      }
+    },
+    {
+      "user_input": "Generate a trade board: top 10 most tradeable players and their value, considering both trade value score and likelihood of being moved (expiring contracts, rebuilding teams, bad fits).",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(trade board|tradeable|available)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

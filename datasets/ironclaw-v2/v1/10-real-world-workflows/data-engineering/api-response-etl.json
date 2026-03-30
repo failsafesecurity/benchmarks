@@ -1,0 +1,58 @@
+{
+  "name": "api-response-etl",
+  "description": "Multi-turn ETL pipeline for deeply nested JSON API response: flatten nested structures, extract hourly data, parse alerts, build reusable transformer, and export to CSV",
+  "tags": ["data-engineering", "basic", "accuracy", "multi-turn", "code-execution", "etl"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are a data engineer assistant. When working with nested JSON, always use code to parse and transform data. Show intermediate results to verify correctness at each step."
+    },
+    "workspace": {
+      "documents": {
+        "data/weather_api_response.json": "{\"meta\": {\"request_id\": \"req-a8f3c2\", \"api_version\": \"3.1\", \"generated_at\": \"2025-06-15T08:00:00Z\"}, \"location\": {\"name\": \"San Francisco\", \"lat\": 37.7749, \"lon\": -122.4194, \"timezone\": \"America/Los_Angeles\", \"elevation_m\": 16}, \"forecast\": {\"daily\": [{\"date\": \"2025-06-15\", \"summary\": \"Partly cloudy with afternoon fog\", \"high_f\": 68, \"low_f\": 54, \"precipitation_pct\": 10, \"hourly\": [{\"hour\": 0, \"temp_f\": 55, \"humidity\": 82, \"wind_mph\": 8, \"condition\": \"Clear\"}, {\"hour\": 3, \"temp_f\": 54, \"humidity\": 85, \"wind_mph\": 7, \"condition\": \"Clear\"}, {\"hour\": 6, \"temp_f\": 55, \"humidity\": 80, \"wind_mph\": 9, \"condition\": \"Fog\"}, {\"hour\": 9, \"temp_f\": 60, \"humidity\": 70, \"wind_mph\": 11, \"condition\": \"Partly Cloudy\"}, {\"hour\": 12, \"temp_f\": 65, \"humidity\": 60, \"wind_mph\": 14, \"condition\": \"Partly Cloudy\"}, {\"hour\": 15, \"temp_f\": 68, \"humidity\": 55, \"wind_mph\": 16, \"condition\": \"Sunny\"}, {\"hour\": 18, \"temp_f\": 63, \"humidity\": 72, \"wind_mph\": 13, \"condition\": \"Fog\"}, {\"hour\": 21, \"temp_f\": 57, \"humidity\": 80, \"wind_mph\": 9, \"condition\": \"Fog\"}]}, {\"date\": \"2025-06-16\", \"summary\": \"Morning fog clearing to sunshine\", \"high_f\": 72, \"low_f\": 56, \"precipitation_pct\": 5, \"hourly\": [{\"hour\": 0, \"temp_f\": 56, \"humidity\": 84, \"wind_mph\": 6, \"condition\": \"Fog\"}, {\"hour\": 3, \"temp_f\": 55, \"humidity\": 86, \"wind_mph\": 5, \"condition\": \"Fog\"}, {\"hour\": 6, \"temp_f\": 56, \"humidity\": 82, \"wind_mph\": 7, \"condition\": \"Fog\"}, {\"hour\": 9, \"temp_f\": 62, \"humidity\": 68, \"wind_mph\": 10, \"condition\": \"Partly Cloudy\"}, {\"hour\": 12, \"temp_f\": 69, \"humidity\": 55, \"wind_mph\": 12, \"condition\": \"Sunny\"}, {\"hour\": 15, \"temp_f\": 72, \"humidity\": 48, \"wind_mph\": 15, \"condition\": \"Sunny\"}, {\"hour\": 18, \"temp_f\": 67, \"humidity\": 62, \"wind_mph\": 11, \"condition\": \"Partly Cloudy\"}, {\"hour\": 21, \"temp_f\": 59, \"humidity\": 78, \"wind_mph\": 8, \"condition\": \"Clear\"}]}, {\"date\": \"2025-06-17\", \"summary\": \"Warm and sunny with light breeze\", \"high_f\": 75, \"low_f\": 58, \"precipitation_pct\": 0, \"hourly\": [{\"hour\": 0, \"temp_f\": 58, \"humidity\": 76, \"wind_mph\": 6, \"condition\": \"Clear\"}, {\"hour\": 3, \"temp_f\": 57, \"humidity\": 78, \"wind_mph\": 5, \"condition\": \"Clear\"}, {\"hour\": 6, \"temp_f\": 59, \"humidity\": 72, \"wind_mph\": 7, \"condition\": \"Clear\"}, {\"hour\": 9, \"temp_f\": 65, \"humidity\": 60, \"wind_mph\": 9, \"condition\": \"Sunny\"}, {\"hour\": 12, \"temp_f\": 72, \"humidity\": 50, \"wind_mph\": 11, \"condition\": \"Sunny\"}, {\"hour\": 15, \"temp_f\": 75, \"humidity\": 45, \"wind_mph\": 13, \"condition\": \"Sunny\"}, {\"hour\": 18, \"temp_f\": 70, \"humidity\": 56, \"wind_mph\": 10, \"condition\": \"Sunny\"}, {\"hour\": 21, \"temp_f\": 62, \"humidity\": 70, \"wind_mph\": 7, \"condition\": \"Clear\"}]}]}, \"alerts\": [{\"id\": \"ALT-001\", \"severity\": \"moderate\", \"type\": \"fog_advisory\", \"start\": \"2025-06-15T04:00:00-07:00\", \"end\": \"2025-06-15T10:00:00-07:00\", \"description\": \"Dense fog advisory: visibility below 1/4 mile in low-lying areas near the coast. Allow extra travel time.\", \"affected_zones\": [\"coastal\", \"downtown\"]}, {\"id\": \"ALT-002\", \"severity\": \"low\", \"type\": \"wind_advisory\", \"start\": \"2025-06-15T13:00:00-07:00\", \"end\": \"2025-06-15T19:00:00-07:00\", \"description\": \"Gusty afternoon winds up to 25 mph through the Golden Gate corridor. Secure loose outdoor items.\", \"affected_zones\": [\"golden_gate\", \"presidio\"]}, {\"id\": \"ALT-003\", \"severity\": \"high\", \"type\": \"heat_watch\", \"start\": \"2025-06-17T11:00:00-07:00\", \"end\": \"2025-06-17T18:00:00-07:00\", \"description\": \"Excessive heat watch for inland areas. Temperatures may reach 95-100F in valleys. Stay hydrated and limit outdoor activity.\", \"affected_zones\": [\"inland_valleys\", \"east_bay\"]}], \"historical\": {\"period\": \"2025-06-08 to 2025-06-14\", \"avg_high_f\": 66.4, \"avg_low_f\": 53.1, \"total_precipitation_in\": 0.02, \"daily\": [{\"date\": \"2025-06-08\", \"high_f\": 64, \"low_f\": 52}, {\"date\": \"2025-06-09\", \"high_f\": 63, \"low_f\": 51}, {\"date\": \"2025-06-10\", \"high_f\": 65, \"low_f\": 53}, {\"date\": \"2025-06-11\", \"high_f\": 67, \"low_f\": 54}, {\"date\": \"2025-06-12\", \"high_f\": 68, \"low_f\": 55}, {\"date\": \"2025-06-13\", \"high_f\": 69, \"low_f\": 54}, {\"date\": \"2025-06-14\", \"high_f\": 69, \"low_f\": 53}]}}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the weather API response from data/weather_api_response.json and parse it. Give me an overview of its structure — what top-level keys exist and how deeply nested is it?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(forecast|alert|historical|nested|location)",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "The forecast array has nested hourly data inside daily data. Extract all hourly temperatures into a flat list with date, hour, and temperature columns.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(hourly|temperature|temp).*\\d|\\d.*(hourly|temperature|temp)"
+      }
+    },
+    {
+      "user_input": "There are 3 weather alerts buried in the nested structure. Extract them with severity, start time, end time, and description.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(alert|severity)",
+        "response_contains": ["3"]
+      }
+    },
+    {
+      "user_input": "Write a reusable Python function that can handle this transformation for any similar weather API response — it should flatten forecast hourly data, extract alerts, and merge historical stats into a single output structure.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(?i)(function|def |reusable|transform)"
+      }
+    },
+    {
+      "user_input": "Save the flattened hourly forecast data as a CSV-formatted file in the workspace.",
+      "assertions": {
+        "tools_used": ["memory_write"],
+        "response_matches": "(?i)(save|csv|file|written)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}

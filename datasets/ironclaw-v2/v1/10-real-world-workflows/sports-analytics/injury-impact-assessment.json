@@ -1,0 +1,57 @@
+{
+  "name": "injury-impact-assessment",
+  "description": "Assess the impact of a star player injury on team performance using on/off splits, schedule analysis, and trade options",
+  "tags": ["sports-analytics", "basic", "accuracy", "multi-turn", "code-execution"],
+  "setup": {
+    "tools": ["execute_code", "memory_read", "memory_write", "memory_search"],
+    "identity": {
+      "SOUL.md": "You are an NBA analytics consultant. Use code for all statistical analysis. Be direct about projections while noting uncertainty. Present win-loss records in standard format."
+    },
+    "workspace": {
+      "documents": {
+        "data/team_splits.json": "{\"team\": \"Philadelphia 76ers\", \"star_player\": \"Joel Embiid\", \"season_record\": \"37-29\", \"with_embiid\": {\"games\": 39, \"wins\": 28, \"losses\": 11, \"off_rating\": 118.5, \"def_rating\": 110.2, \"net_rating\": 8.3, \"pace\": 97.8, \"pts_per_game\": 115.2, \"opp_pts_per_game\": 107.5, \"reb_per_game\": 46.8, \"ast_per_game\": 26.5, \"fg_pct\": 48.2, \"three_pct\": 37.5}, \"without_embiid\": {\"games\": 27, \"wins\": 9, \"losses\": 18, \"off_rating\": 110.8, \"def_rating\": 114.5, \"net_rating\": -3.7, \"pace\": 99.2, \"pts_per_game\": 108.3, \"opp_pts_per_game\": 112.8, \"reb_per_game\": 42.1, \"ast_per_game\": 24.8, \"fg_pct\": 44.5, \"three_pct\": 34.2}, \"backup_players\": [{\"name\": \"Andre Drummond\", \"position\": \"C\", \"minutes_as_starter\": 18, \"pts\": 8.5, \"reb\": 9.2, \"ast\": 1.8, \"fg_pct\": 52.1, \"plus_minus\": -4.2}, {\"name\": \"Paul Reed\", \"position\": \"C\", \"minutes_as_starter\": 6, \"pts\": 6.8, \"reb\": 5.5, \"ast\": 1.2, \"fg_pct\": 48.8, \"plus_minus\": -7.1}, {\"name\": \"Nicolas Batum\", \"position\": \"PF\", \"minutes_as_starter\": 3, \"pts\": 5.2, \"reb\": 4.8, \"ast\": 2.5, \"fg_pct\": 41.0, \"plus_minus\": -2.8}], \"cap_info\": {\"current_cap_space\": 5200000, \"trade_exception\": 8500000, \"luxury_tax_room\": -12000000}}",
+        "data/upcoming_schedule.json": "{\"games\": [{\"game\": 1, \"opponent\": \"Boston Celtics\", \"location\": \"away\", \"opp_win_pct\": 0.788}, {\"game\": 2, \"opponent\": \"Cleveland Cavaliers\", \"location\": \"home\", \"opp_win_pct\": 0.727}, {\"game\": 3, \"opponent\": \"Brooklyn Nets\", \"location\": \"home\", \"opp_win_pct\": 0.394}, {\"game\": 4, \"opponent\": \"Charlotte Hornets\", \"location\": \"away\", \"opp_win_pct\": 0.273}, {\"game\": 5, \"opponent\": \"Orlando Magic\", \"location\": \"home\", \"opp_win_pct\": 0.561}, {\"game\": 6, \"opponent\": \"New York Knicks\", \"location\": \"away\", \"opp_win_pct\": 0.667}, {\"game\": 7, \"opponent\": \"Toronto Raptors\", \"location\": \"home\", \"opp_win_pct\": 0.379}, {\"game\": 8, \"opponent\": \"Miami Heat\", \"location\": \"away\", \"opp_win_pct\": 0.545}, {\"game\": 9, \"opponent\": \"Indiana Pacers\", \"location\": \"home\", \"opp_win_pct\": 0.606}, {\"game\": 10, \"opponent\": \"Milwaukee Bucks\", \"location\": \"away\", \"opp_win_pct\": 0.652}, {\"game\": 11, \"opponent\": \"Detroit Pistons\", \"location\": \"home\", \"opp_win_pct\": 0.258}, {\"game\": 12, \"opponent\": \"Atlanta Hawks\", \"location\": \"home\", \"opp_win_pct\": 0.455}, {\"game\": 13, \"opponent\": \"Chicago Bulls\", \"location\": \"away\", \"opp_win_pct\": 0.470}, {\"game\": 14, \"opponent\": \"Washington Wizards\", \"location\": \"home\", \"opp_win_pct\": 0.212}, {\"game\": 15, \"opponent\": \"Boston Celtics\", \"location\": \"home\", \"opp_win_pct\": 0.788}]}"
+      }
+    }
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Load the team splits data from data/team_splits.json. Compare the team's stats with Embiid vs without him. What's the on/off split impact?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(with|without|on|off).*Embiid",
+        "response_not_contains": ["LLM error"]
+      }
+    },
+    {
+      "user_input": "Embiid is out for 6 weeks, which covers the next 15 games in the schedule (data/upcoming_schedule.json). Based on the without-Embiid win rate and opponent strength, calculate the expected wins and losses during the absence.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "\\d+-\\d+"
+      }
+    },
+    {
+      "user_input": "Which backup player's stats suggest they can fill the gap best? Analyze each backup's per-game production and plus/minus when starting.",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(Drummond|Reed|Batum|backup|starter)"
+      }
+    },
+    {
+      "user_input": "If we trade for a replacement center, how much cap space do we have (including trade exceptions) and what caliber of player can we realistically get at that price?",
+      "assertions": {
+        "tools_used": ["execute_code"],
+        "response_matches": "(cap|trade exception|\\$|million|salary)"
+      }
+    },
+    {
+      "user_input": "Summarize the full injury impact assessment: predicted record change during absence, projected season record, playoff probability impact, and your recommended actions.",
+      "assertions": {
+        "response_matches": "(playoff|record|recommend)",
+        "response_not_contains": ["LLM error"]
+      }
+    }
+  ]
+}
