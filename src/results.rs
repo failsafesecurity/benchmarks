@@ -54,6 +54,19 @@ pub struct TaskResult {
     pub config_label: String,
     #[serde(default)]
     pub error: Option<String>,
+    /// Tags from the benchmark task definition (category, difficulty, etc.).
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
+/// Per-category (tag) breakdown of results.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CategoryResult {
+    pub pass_rate: f64,
+    pub avg_score: f64,
+    pub total_tasks: usize,
+    pub total_cost_usd: f64,
+    pub total_wall_time_ms: u64,
 }
 
 /// Aggregate results for a full benchmark run.
@@ -89,6 +102,9 @@ pub struct RunResult {
     pub total_wall_time_ms: u64,
     pub started_at: DateTime<Utc>,
     pub finished_at: DateTime<Utc>,
+    /// Per-category breakdown keyed by the first tag of each task.
+    #[serde(default)]
+    pub categories: std::collections::BTreeMap<String, CategoryResult>,
 }
 
 impl RunResult {
@@ -121,6 +137,38 @@ impl RunResult {
         let total_cost: f64 = tasks.iter().map(|t| t.trace.estimated_cost_usd).sum();
         let total_wall: u64 = tasks.iter().map(|t| t.trace.wall_time_ms).sum();
 
+        // Build per-category breakdown from the first tag of each task.
+        let mut cat_tasks: std::collections::BTreeMap<String, Vec<&TaskResult>> =
+            std::collections::BTreeMap::new();
+        for task in tasks {
+            let category = task.tags.first().cloned().unwrap_or_default();
+            if !category.is_empty() {
+                cat_tasks.entry(category).or_default().push(task);
+            }
+        }
+        let categories = cat_tasks
+            .into_iter()
+            .map(|(cat, cat_results)| {
+                let n = cat_results.len();
+                let passes = cat_results.iter().filter(|t| t.score.value >= 1.0).count();
+                let cat_result = CategoryResult {
+                    pass_rate: if n == 0 { 0.0 } else { passes as f64 / n as f64 },
+                    avg_score: if n == 0 {
+                        0.0
+                    } else {
+                        cat_results.iter().map(|t| t.score.value).sum::<f64>() / n as f64
+                    },
+                    total_tasks: n,
+                    total_cost_usd: cat_results
+                        .iter()
+                        .map(|t| t.trace.estimated_cost_usd)
+                        .sum(),
+                    total_wall_time_ms: cat_results.iter().map(|t| t.trace.wall_time_ms).sum(),
+                };
+                (cat, cat_result)
+            })
+            .collect();
+
         Self {
             run_id,
             suite_id: suite_id.to_string(),
@@ -140,6 +188,7 @@ impl RunResult {
             total_wall_time_ms: total_wall,
             started_at,
             finished_at: Utc::now(),
+            categories,
         }
     }
 }
@@ -312,6 +361,33 @@ pub fn print_results_table(tasks: &[TaskResult], run: &RunResult) {
             task.trace.wall_time_ms as f64 / 1000.0,
         );
     }
+
+    // Per-category breakdown
+    if !run.categories.is_empty() {
+        println!();
+        println!(
+            "{:<25} {:>6} {:>7} {:>6} {:>10} {:>8}",
+            "Category", "Pass%", "Avg", "Tasks", "Cost", "Time"
+        );
+        println!("{}", "-".repeat(66));
+        for (cat, cr) in &run.categories {
+            let cat_display = if cat.len() > 23 {
+                let truncated: String = cat.chars().take(20).collect();
+                format!("{truncated}...")
+            } else {
+                cat.clone()
+            };
+            println!(
+                "{:<25} {:>5.1}% {:>7.3} {:>6} {:>10.4} {:>7.1}s",
+                cat_display,
+                cr.pass_rate * 100.0,
+                cr.avg_score,
+                cr.total_tasks,
+                cr.total_cost_usd,
+                cr.total_wall_time_ms as f64 / 1000.0,
+            );
+        }
+    }
     println!();
 }
 
@@ -346,6 +422,7 @@ mod tests {
                 finished_at: Utc::now(),
                 config_label: "default".to_string(),
                 error: None,
+                tags: vec!["cat-a".to_string()],
             },
             TaskResult {
                 task_id: "t2".to_string(),
@@ -371,6 +448,7 @@ mod tests {
                 finished_at: Utc::now(),
                 config_label: "default".to_string(),
                 error: None,
+                tags: vec!["cat-b".to_string()],
             },
         ];
 
@@ -394,6 +472,15 @@ mod tests {
         assert_eq!(run.completed_tasks, 2);
         assert!((run.total_cost_usd - 0.03).abs() < f64::EPSILON);
         assert_eq!(run.total_wall_time_ms, 3000);
+
+        // Verify per-category breakdown
+        assert_eq!(run.categories.len(), 2);
+        let cat_a = &run.categories["cat-a"];
+        assert_eq!(cat_a.pass_rate, 1.0); // t1 passed
+        assert_eq!(cat_a.total_tasks, 1);
+        let cat_b = &run.categories["cat-b"];
+        assert_eq!(cat_b.pass_rate, 0.0); // t2 failed
+        assert_eq!(cat_b.total_tasks, 1);
     }
 
     #[test]
@@ -421,6 +508,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "test".to_string(),
             error: None,
+            tags: vec![],
         };
 
         append_task_result(&path, &result).expect("append");
@@ -456,6 +544,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "test".to_string(),
             error: None,
+            tags: vec![],
         };
         append_task_result(&path, &result).expect("append");
 
@@ -494,6 +583,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "default".to_string(),
             error: None,
+            tags: vec![],
         };
         append_task_result(&path, &pending).expect("append");
 

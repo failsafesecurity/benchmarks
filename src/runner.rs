@@ -601,6 +601,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         finished_at: Utc::now(),
         config_label: config_label.to_string(),
         error,
+        tags: task.tags.clone(),
     }
 }
 
@@ -631,6 +632,7 @@ pub(crate) fn make_error_result(
         finished_at: Utc::now(),
         config_label: config_label.to_string(),
         error: Some(reason.to_string()),
+        tags: task.tags.clone(),
     }
 }
 

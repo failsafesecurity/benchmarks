@@ -225,6 +225,7 @@ mod tests {
             tool_name: "shell".to_string(),
             description: "run ls".to_string(),
             parameters: serde_json::json!({}),
+            allow_always: false,
         };
         channel
             .send_status(status, &serde_json::Value::Null)
@@ -247,6 +248,8 @@ mod tests {
         let status = StatusUpdate::ToolCompleted {
             name: "echo".to_string(),
             success: true,
+            error: None,
+            parameters: None,
         };
         channel
             .send_status(status, &serde_json::Value::Null)

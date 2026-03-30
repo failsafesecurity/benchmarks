@@ -75,6 +75,14 @@ enum Commands {
         #[arg(long, default_value = "")]
         framework_version: String,
 
+        /// Build against a specific ironclaw git ref (branch, tag, or commit SHA).
+        ///
+        /// When set, patches Cargo.toml, rebuilds the harness, and re-executes
+        /// the run with the new binary. The original Cargo.toml is restored after
+        /// the build. framework_version is auto-set to the resolved SHA.
+        #[arg(long)]
+        ironclaw_rev: Option<String>,
+
         /// Resume a previous run by ID.
         #[arg(long)]
         resume: Option<Uuid>,
@@ -229,8 +237,14 @@ async fn main() -> anyhow::Result<()> {
             results_dir,
             framework,
             framework_version,
+            ironclaw_rev,
             resume,
         } => {
+            // If --ironclaw-rev is set, rebuild with that ref and re-exec.
+            if let Some(ref rev) = ironclaw_rev {
+                return rebuild_and_exec(rev);
+            }
+
             // Load or create config
             let mut bench_config = if let Some(ref path) = config_path {
                 BenchConfig::from_file(path)?
@@ -248,6 +262,12 @@ async fn main() -> anyhow::Result<()> {
             bench_config.framework = framework;
             if !framework_version.is_empty() {
                 bench_config.framework_version = framework_version;
+            } else if bench_config.framework == "ironclaw" {
+                // Auto-populate from the compile-time resolved git SHA.
+                let sha = env!("IRONCLAW_GIT_SHA");
+                if !sha.is_empty() {
+                    bench_config.framework_version = sha.to_string();
+                }
             }
             if let Some(ref dir) = results_dir {
                 bench_config.results_dir = dir.clone();
@@ -426,11 +446,151 @@ async fn main() -> anyhow::Result<()> {
                 "{:<20} {:>12} {:>12}",
                 "Model", baseline_run.model, comparison_run.model,
             );
+
+            // Show framework versions if they differ (useful for A/B testing)
+            let base_ver = short_version(&baseline_run.framework_version);
+            let comp_ver = short_version(&comparison_run.framework_version);
+            if !base_ver.is_empty() || !comp_ver.is_empty() {
+                println!(
+                    "{:<20} {:>12} {:>12}",
+                    "Framework ver", base_ver, comp_ver,
+                );
+            }
+
+            // Per-category comparison
+            let all_cats: std::collections::BTreeSet<String> = baseline_run
+                .categories
+                .keys()
+                .chain(comparison_run.categories.keys())
+                .cloned()
+                .collect();
+
+            if !all_cats.is_empty() {
+                println!();
+                println!(
+                    "{:<25} {:>8} {:>8} {:>8}",
+                    "Category", "Base%", "Comp%", "Delta"
+                );
+                println!("{}", "-".repeat(52));
+                for cat in &all_cats {
+                    let b = baseline_run.categories.get(cat);
+                    let c = comparison_run.categories.get(cat);
+                    let bp = b.map_or(0.0, |r| r.pass_rate * 100.0);
+                    let cp = c.map_or(0.0, |r| r.pass_rate * 100.0);
+                    let cat_display = if cat.len() > 23 {
+                        let truncated: String = cat.chars().take(20).collect();
+                        format!("{truncated}...")
+                    } else {
+                        cat.clone()
+                    };
+                    println!(
+                        "{:<25} {:>7.1}% {:>7.1}% {:>+7.1}%",
+                        cat_display,
+                        bp,
+                        cp,
+                        cp - bp,
+                    );
+                }
+            }
             println!();
         }
     }
 
     Ok(())
+}
+
+/// Patch Cargo.toml to use a specific ironclaw git ref, rebuild, and re-exec.
+///
+/// 1. Reads the current Cargo.toml and saves a backup.
+/// 2. Replaces the ironclaw git dependency line with `rev = "<ref>"`.
+/// 3. Runs `cargo build --release`.
+/// 4. Restores the original Cargo.toml.
+/// 5. Re-executes the freshly built binary with the same args, minus `--ironclaw-rev`.
+fn rebuild_and_exec(rev: &str) -> anyhow::Result<()> {
+    let cargo_toml = PathBuf::from("Cargo.toml");
+    let original = std::fs::read_to_string(&cargo_toml)?;
+
+    // Determine if the ref looks like a full SHA, short SHA, or branch/tag name.
+    // For branches/tags we use `branch =` or `tag =`, for anything else `rev =`.
+    let new_dep = if rev.len() >= 7 && rev.chars().all(|c| c.is_ascii_hexdigit()) {
+        // Looks like a commit SHA (short or full)
+        format!(
+            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", rev = "{rev}" }}"#
+        )
+    } else if rev.starts_with("v") && rev[1..].contains('.') {
+        // Looks like a version tag (v0.22.0)
+        format!(
+            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", tag = "{rev}" }}"#
+        )
+    } else {
+        // Treat as a branch name
+        format!(
+            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", branch = "{rev}" }}"#
+        )
+    };
+
+    // Replace the ironclaw dependency line
+    let patched = regex::Regex::new(r#"(?m)^ironclaw\s*=\s*\{[^}]+\}\s*$"#)
+        .expect("valid regex")
+        .replace(&original, new_dep.as_str())
+        .to_string();
+
+    if patched == original {
+        anyhow::bail!(
+            "Could not find ironclaw dependency line in Cargo.toml to patch.\n\
+             Expected a line like: ironclaw = {{ git = \"...\", ... }}"
+        );
+    }
+
+    eprintln!("Patching Cargo.toml to use ironclaw @ {rev}");
+    std::fs::write(&cargo_toml, &patched)?;
+
+    // Build
+    eprintln!("Building with ironclaw @ {rev} ...");
+    let build_status = std::process::Command::new("cargo")
+        .args(["build", "--release"])
+        .status();
+
+    // Always restore the original Cargo.toml, even if build fails
+    std::fs::write(&cargo_toml, &original)?;
+    eprintln!("Restored original Cargo.toml");
+
+    let status = build_status?;
+    if !status.success() {
+        anyhow::bail!("cargo build failed for ironclaw @ {rev}");
+    }
+
+    // Re-exec with the freshly built binary, removing --ironclaw-rev from args
+    let args: Vec<String> = std::env::args().collect();
+    let mut new_args: Vec<&str> = Vec::new();
+    let mut skip_next = false;
+    for (i, arg) in args.iter().enumerate() {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if arg == "--ironclaw-rev" {
+            // Skip this flag and its value
+            skip_next = true;
+            continue;
+        }
+        if arg.starts_with("--ironclaw-rev=") {
+            continue;
+        }
+        if i == 0 {
+            continue; // Skip the binary name, we'll use the release binary
+        }
+        new_args.push(arg);
+    }
+
+    let binary = PathBuf::from("target/release/nearai-bench");
+    eprintln!("Re-executing: {} {}", binary.display(), new_args.join(" "));
+
+    let status = std::process::Command::new(&binary)
+        .args(&new_args)
+        .status()?;
+
+    std::process::exit(status.code().unwrap_or(1));
 }
 
 /// Handle mission management commands
@@ -530,6 +690,19 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+/// Truncate a git SHA or version string to a short display form.
+fn short_version(v: &str) -> String {
+    if v.is_empty() {
+        return String::new();
+    }
+    // If it looks like a full 40-char hex SHA, truncate to 10
+    if v.len() >= 40 && v.chars().all(|c| c.is_ascii_hexdigit()) {
+        return v[..10].to_string();
+    }
+    // Already short or a semver — keep as-is
+    v.to_string()
 }
 
 /// Find the results base directory containing the most recent run.
