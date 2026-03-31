@@ -1,0 +1,7 @@
+# Reduce memory pressure during linking
+[build]
+jobs = 2
+
+[profile.dev]
+# Split debuginfo into a separate file to reduce linker memory usage
+split-debuginfo = "unpacked"

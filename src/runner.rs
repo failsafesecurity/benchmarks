@@ -12,7 +12,7 @@ use ironclaw::config::AgentConfig;
 use ironclaw::db::libsql::LibSqlBackend;
 use ironclaw::db::Database;
 use ironclaw::llm::LlmProvider;
-use ironclaw::safety::SafetyLayer;
+use ironclaw_safety::SafetyLayer;
 use ironclaw::tools::ToolRegistry;
 use ironclaw::workspace::Workspace;
 

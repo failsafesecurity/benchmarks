@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 ironclaw = { git = "https://github.com/nearai/ironclaw.git", branch = "staging" }
-
+ironclaw_safety = { git = "https://github.com/nearai/ironclaw.git", branch = "staging" }
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "0.1", features = ["sync"] }

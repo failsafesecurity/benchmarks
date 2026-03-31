@@ -322,7 +322,7 @@ async fn main() -> anyhow::Result<()> {
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to create LLM provider: {e}"))?;
                 let safety =
-                    Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
+                    Arc::new(ironclaw_safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }
             };
 
@@ -510,29 +510,28 @@ fn rebuild_and_exec(rev: &str) -> anyhow::Result<()> {
     let cargo_toml = PathBuf::from("Cargo.toml");
     let original = std::fs::read_to_string(&cargo_toml)?;
 
-    // Determine if the ref looks like a full SHA, short SHA, or branch/tag name.
-    // For branches/tags we use `branch =` or `tag =`, for anything else `rev =`.
-    let new_dep = if rev.len() >= 7 && rev.chars().all(|c| c.is_ascii_hexdigit()) {
-        // Looks like a commit SHA (short or full)
-        format!(
-            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", rev = "{rev}" }}"#
-        )
-    } else if rev.starts_with("v") && rev[1..].contains('.') {
-        // Looks like a version tag (v0.22.0)
-        format!(
-            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", tag = "{rev}" }}"#
-        )
-    } else {
-        // Treat as a branch name
-        format!(
-            r#"ironclaw = {{ git = "https://github.com/nearai/ironclaw.git", branch = "{rev}" }}"#
-        )
-    };
+    // Replace both ironclaw dependency lines (ironclaw and ironclaw_safety)
+    let ironclaw_re = regex::Regex::new(r#"(?m)^(ironclaw(?:_safety)?)\s*=\s*\{[^}]+\}\s*$"#)
+        .expect("valid regex");
 
-    // Replace the ironclaw dependency line
-    let patched = regex::Regex::new(r#"(?m)^ironclaw\s*=\s*\{[^}]+\}\s*$"#)
-        .expect("valid regex")
-        .replace(&original, new_dep.as_str())
+    // Build replacement that preserves the crate name
+    let patched = ironclaw_re
+        .replace_all(&original, |caps: &regex::Captures| {
+            let crate_name = &caps[1];
+            if rev.len() >= 7 && rev.chars().all(|c| c.is_ascii_hexdigit()) {
+                format!(
+                    r#"{crate_name} = {{ git = "https://github.com/nearai/ironclaw.git", rev = "{rev}" }}"#
+                )
+            } else if rev.starts_with("v") && rev[1..].contains('.') {
+                format!(
+                    r#"{crate_name} = {{ git = "https://github.com/nearai/ironclaw.git", tag = "{rev}" }}"#
+                )
+            } else {
+                format!(
+                    r#"{crate_name} = {{ git = "https://github.com/nearai/ironclaw.git", branch = "{rev}" }}"#
+                )
+            }
+        })
         .to_string();
 
     if patched == original {
@@ -545,10 +544,10 @@ fn rebuild_and_exec(rev: &str) -> anyhow::Result<()> {
     eprintln!("Patching Cargo.toml to use ironclaw @ {rev}");
     std::fs::write(&cargo_toml, &patched)?;
 
-    // Build
+    // Build (debug profile to reduce memory pressure; release builds OOM on constrained machines)
     eprintln!("Building with ironclaw @ {rev} ...");
     let build_status = std::process::Command::new("cargo")
-        .args(["build", "--release"])
+        .args(["build"])
         .status();
 
     // Always restore the original Cargo.toml, even if build fails
@@ -583,7 +582,7 @@ fn rebuild_and_exec(rev: &str) -> anyhow::Result<()> {
         new_args.push(arg);
     }
 
-    let binary = PathBuf::from("target/release/nearai-bench");
+    let binary = PathBuf::from("target/debug/nearai-bench");
     eprintln!("Re-executing: {} {}", binary.display(), new_args.join(" "));
 
     let status = std::process::Command::new(&binary)
