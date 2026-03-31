@@ -54,3 +54,7 @@ tempfile = "3"
 
 # Environment
 dotenvy = "0.15"
+
+[lints.rust]
+# Set by build.rs when ironclaw has engine_v2 field in AgentConfig.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ironclaw_engine_v2)'] }

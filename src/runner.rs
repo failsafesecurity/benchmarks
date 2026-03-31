@@ -439,28 +439,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     }
 
     // Build agent config (minimal, headless)
-    let agent_config = AgentConfig {
-        name: format!("bench-{}", task.id),
-        max_parallel_jobs: 1,
-        job_timeout: timeout,
-        stuck_threshold: timeout,
-        repair_check_interval: timeout + std::time::Duration::from_secs(999),
-        max_repair_attempts: 0,
-        use_planning: false,
-        session_idle_timeout: timeout,
-        allow_local_tools: true,
-        max_cost_per_day_cents: None,
-        max_actions_per_hour: None,
-        max_cost_per_user_per_day_cents: None,
-        max_tool_iterations: 50,
-        auto_approve_tools: true,
-        default_timezone: "UTC".to_string(),
-        max_jobs_per_user: None,
-        max_tokens_per_job: 100_000,
-        multi_tenant: false,
-        max_llm_concurrent_per_user: None,
-        max_jobs_concurrent_per_user: None,
-    };
+    let agent_config = bench_agent_config(&task.id, timeout);
 
     let cost_guard = Arc::new(ironclaw::agent::cost_guard::CostGuard::new(
         ironclaw::agent::cost_guard::CostGuardConfig::default(),
@@ -683,6 +662,37 @@ async fn create_seeded_workspace(
     );
 
     Ok(Some((Arc::new(workspace), tmp)))
+}
+
+/// Build a headless AgentConfig suitable for benchmark tasks.
+///
+/// Uses `#[cfg(ironclaw_engine_v2)]` to include the `engine_v2` field
+/// when building against the v2-architecture branch.
+fn bench_agent_config(task_id: &str, timeout: std::time::Duration) -> AgentConfig {
+    AgentConfig {
+        name: format!("bench-{task_id}"),
+        max_parallel_jobs: 1,
+        job_timeout: timeout,
+        stuck_threshold: timeout,
+        repair_check_interval: timeout + std::time::Duration::from_secs(999),
+        max_repair_attempts: 0,
+        use_planning: false,
+        session_idle_timeout: timeout,
+        allow_local_tools: true,
+        max_cost_per_day_cents: None,
+        max_actions_per_hour: None,
+        max_cost_per_user_per_day_cents: None,
+        max_tool_iterations: 50,
+        auto_approve_tools: true,
+        default_timezone: "UTC".to_string(),
+        max_jobs_per_user: None,
+        max_tokens_per_job: 100_000,
+        multi_tenant: false,
+        max_llm_concurrent_per_user: None,
+        max_jobs_concurrent_per_user: None,
+        #[cfg(ironclaw_engine_v2)]
+        engine_v2: false,
+    }
 }
 
 /// Get the short git commit hash of HEAD, or "unknown" if not in a repo.

@@ -31,9 +31,7 @@
     {
       "user_input": "I'm about to submit a PR. Any guidelines I should follow?",
       "assertions": {
-        "response_matches": [
-          "low confidence|outdated|stale|verify|old"
-        ],
+        "response_matches": "(?i)(low confidence|outdated|stale|verify|old)",
         "response_not_contains": [
           "LLM error"
         ]

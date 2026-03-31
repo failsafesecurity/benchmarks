@@ -27,9 +27,8 @@
     {
       "user_input": "Quantify each issue: how many nulls, duplicates, format errors, and outliers are there? Give me exact counts.",
       "assertions": {
-        "response_matches": "(?i)(null|missing)",
-        "response_contains": ["duplicate"],
-        "response_matches": "\\d+"
+        "response_matches": "\\d+",
+        "response_contains": ["duplicate"]
       }
     },
     {

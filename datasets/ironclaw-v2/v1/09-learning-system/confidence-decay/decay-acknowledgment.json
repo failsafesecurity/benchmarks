@@ -32,9 +32,7 @@
         "response_contains": [
           "100"
         ],
-        "response_matches": [
-          "verify|outdated|stale|confirm|old"
-        ],
+        "response_matches": "(?i)(verify|outdated|stale|confirm|old)",
         "min_tool_calls": 1,
         "response_not_contains": [
           "LLM error"

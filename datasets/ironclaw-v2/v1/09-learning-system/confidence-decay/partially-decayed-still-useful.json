@@ -29,9 +29,7 @@
     {
       "user_input": "What's our SLA error budget?",
       "assertions": {
-        "response_matches": [
-          "0\\.1%|99\\.9%"
-        ],
+        "response_matches": "(?i)(0\\.1%|99\\.9%)",
         "min_tool_calls": 1,
         "response_not_contains": [
           "LLM error"

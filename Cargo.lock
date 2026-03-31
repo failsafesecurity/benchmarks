@@ -2976,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "ironclaw"
 version = "0.22.0"
-source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#ef46d4370e552fadb859823237ceed20ad2047aa"
+source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#0b0f11afd819fe412bd1eb47ffceea5d3f55d37c"
 dependencies = [
  "aes-gcm",
  "aho-corasick",
@@ -3069,7 +3069,7 @@ dependencies = [
 [[package]]
 name = "ironclaw_common"
 version = "0.1.0"
-source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#ef46d4370e552fadb859823237ceed20ad2047aa"
+source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#0b0f11afd819fe412bd1eb47ffceea5d3f55d37c"
 dependencies = [
  "serde",
  "serde_json",
@@ -3078,7 +3078,7 @@ dependencies = [
 [[package]]
 name = "ironclaw_engine"
 version = "0.1.0"
-source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#ef46d4370e552fadb859823237ceed20ad2047aa"
+source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#0b0f11afd819fe412bd1eb47ffceea5d3f55d37c"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3095,7 +3095,7 @@ dependencies = [
 [[package]]
 name = "ironclaw_safety"
 version = "0.2.0"
-source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#ef46d4370e552fadb859823237ceed20ad2047aa"
+source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#0b0f11afd819fe412bd1eb47ffceea5d3f55d37c"
 dependencies = [
  "aho-corasick",
  "regex",
@@ -3108,7 +3108,7 @@ dependencies = [
 [[package]]
 name = "ironclaw_skills"
 version = "0.1.0"
-source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#ef46d4370e552fadb859823237ceed20ad2047aa"
+source = "git+https://github.com/nearai/ironclaw.git?branch=v2-architecture#0b0f11afd819fe412bd1eb47ffceea5d3f55d37c"
 dependencies = [
  "chrono",
  "futures",

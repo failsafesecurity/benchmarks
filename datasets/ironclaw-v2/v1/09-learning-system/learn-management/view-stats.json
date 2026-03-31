@@ -36,9 +36,7 @@
         "response_contains": [
           "5"
         ],
-        "response_matches": [
-          "high.*[0-9]|low.*[0-9]|average|total"
-        ],
+        "response_matches": "(?i)(high.*[0-9]|low.*[0-9]|average|total)",
         "min_tool_calls": 1
       }
     }

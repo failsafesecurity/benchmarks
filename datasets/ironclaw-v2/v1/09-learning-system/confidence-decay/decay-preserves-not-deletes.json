@@ -26,9 +26,7 @@
     {
       "user_input": "Do we have any record of a legacy payment API endpoint?",
       "assertions": {
-        "response_matches": [
-          "api\\.old\\.example\\.com|legacy|payment"
-        ],
+        "response_matches": "(?i)(api\\.old\\.example\\.com|legacy|payment)",
         "min_tool_calls": 1,
         "response_not_contains": [
           "LLM error"

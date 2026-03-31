@@ -36,9 +36,7 @@
           "approval",
           "test"
         ],
-        "response_matches": [
-          "#{1,3}|\\*|\\-"
-        ],
+        "response_matches": "(?i)(#{1,3}|\\*|\\-)",
         "min_tool_calls": 1
       }
     }

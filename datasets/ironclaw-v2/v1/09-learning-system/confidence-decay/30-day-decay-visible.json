@@ -1,9 +1,19 @@
 {
   "name": "30-day-decay-visible",
   "description": "A learning exactly 30 days old should show reduced confidence compared to a fresh one",
-  "tags": ["learning-system", "confidence-decay", "edge-case", "accuracy"],
+  "tags": [
+    "learning-system",
+    "confidence-decay",
+    "edge-case",
+    "accuracy"
+  ],
   "setup": {
-    "tools": ["memory_write", "memory_read", "memory_search", "memory_tree"],
+    "tools": [
+      "memory_write",
+      "memory_read",
+      "memory_search",
+      "memory_tree"
+    ],
     "workspace": {
       "documents": {
         "learnings/cache-ttl.md": "---\ncreated_at: 2026-02-27\nconfidence: 7\noriginal_confidence: 10\n---\n\nRedis cache TTL for session data: 3600s",
@@ -15,12 +25,17 @@
   "max_tool_iterations": 12,
   "turns": [
     {
-      "user_input": "Tell me about our caching setup — TTL and strategy.",
+      "user_input": "Tell me about our caching setup \u2014 TTL and strategy.",
       "assertions": {
-        "response_contains": ["3600", "write-through"],
-        "response_matches": ["stale|older|aged|reduced|lower confidence|less confident|outdated|verify"],
+        "response_contains": [
+          "3600",
+          "write-through"
+        ],
+        "response_matches": "(?i)(stale|older|aged|reduced|lower confidence|less confident|outdated|verify)",
         "min_tool_calls": 1,
-        "response_not_contains": ["LLM error"]
+        "response_not_contains": [
+          "LLM error"
+        ]
       }
     }
   ]
