@@ -182,7 +182,8 @@ mod tests {
                 input_tokens: 100,
                 output_tokens: 50,
                 finish_reason: FinishReason::Stop,
-                response_id: None,
+                cache_read_input_tokens: 0,
+                cache_creation_input_tokens: 0,
             })
         }
 
@@ -196,7 +197,8 @@ mod tests {
                 input_tokens: 200,
                 output_tokens: 100,
                 finish_reason: FinishReason::Stop,
-                response_id: None,
+                cache_read_input_tokens: 0,
+                cache_creation_input_tokens: 0,
             })
         }
     }

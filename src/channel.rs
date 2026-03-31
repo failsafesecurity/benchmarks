@@ -107,7 +107,9 @@ impl Channel for BenchChannel {
         let mut cap = self.capture.lock().await;
 
         match status {
-            StatusUpdate::ToolCompleted { ref name, success } => {
+            StatusUpdate::ToolCompleted {
+                ref name, success, ..
+            } => {
                 cap.tool_calls.push(TraceToolCall {
                     name: name.clone(),
                     duration_ms: 0, // We don't have precise per-tool timing here
@@ -166,6 +168,11 @@ impl Channel for BenchChannel {
                     "auth_completed: {extension_name} success={success}"
                 ));
             }
+            _ => {
+                // ImageGenerated, Suggestions, ReasoningUpdate, TurnCost, etc.
+                cap.status_log
+                    .push(format!("other_status: {:?}", status));
+            }
         }
         Ok(())
     }
@@ -222,6 +229,7 @@ mod tests {
             tool_name: "shell".to_string(),
             description: "run ls".to_string(),
             parameters: serde_json::json!({}),
+            allow_always: false,
         };
         channel
             .send_status(status, &serde_json::Value::Null)
@@ -244,6 +252,8 @@ mod tests {
         let status = StatusUpdate::ToolCompleted {
             name: "echo".to_string(),
             success: true,
+            error: None,
+            parameters: None,
         };
         channel
             .send_status(status, &serde_json::Value::Null)

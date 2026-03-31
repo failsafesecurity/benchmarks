@@ -1,0 +1,60 @@
+{
+  "name": "cmo-001-campaign-review",
+  "description": "CMO reviews March campaign performance and makes budget allocation decisions for April",
+  "tags": ["cmo", "basic", "metrics", "spreadsheet"],
+  "persona": "CMO",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "email", "sheets", "docs", "notion"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for Sarah Kim, CMO of Acme Technologies. Today is March 29, 2026. Help Sarah make data-driven marketing decisions. When analyzing metrics, always include the 'so what' — what the numbers mean for strategy. Use the workspace APIs to pull campaign data and communicate with the team."
+    }
+  },
+  "scoring": {
+    "weights": {
+      "information_synthesis": 0.25,
+      "decision_quality": 0.25,
+      "communication_clarity": 0.20,
+      "tool_efficiency": 0.10,
+      "delegation_ownership": 0.20
+    },
+    "llm_judge_dimensions": ["decision_quality", "communication_clarity"]
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 20,
+  "turns": [
+    {
+      "user_input": "Pull the March campaign metrics and give me a summary. Which campaigns are performing well and which need adjustment?",
+      "assertions": {
+        "http_calls_contain": ["GET /api/sheets/"],
+        "response_contains": ["MQL", "cost per"],
+        "min_http_calls": 1
+      },
+      "scoring_hints": {
+        "information_synthesis": "Should identify that email campaigns have the best cost per MQL ($10.70) while conference sponsorship is the most expensive ($100). Should note overall MQL growth of 23%.",
+        "decision_quality": "Should recommend shifting budget toward email/content (best ROI) and questioning conference sponsorship ROI."
+      }
+    },
+    {
+      "user_input": "Good analysis. Draft a message to James and Emma about April campaign priorities based on what we learned. We should double down on what's working.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/slack/"],
+        "response_contains": ["April", "email"]
+      },
+      "scoring_hints": {
+        "delegation_ownership": "Message should include specific action items for James (growth) and Emma (content) with clear ownership.",
+        "communication_clarity": "Should reference specific numbers from the analysis, not vague 'improve performance'."
+      }
+    },
+    {
+      "user_input": "One more thing — check the content calendar and make sure we have the enterprise auth launch covered in April.",
+      "assertions": {
+        "http_calls_contain": ["/api/notion/"],
+        "response_contains": ["auth", "April"]
+      },
+      "scoring_hints": {
+        "information_synthesis": "Should identify that the content calendar has 'API v3 preview' in Week 1 but no specific enterprise auth launch content. Should flag this gap."
+      }
+    }
+  ]
+}

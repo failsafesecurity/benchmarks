@@ -1,0 +1,105 @@
+{
+  "name": "xfn-002-launch-go-no-go",
+  "description": "Cross-functional launch decision: product, engineering, marketing, and sales must align on whether to launch the enterprise auth feature as planned or delay",
+  "tags": ["cross-functional", "advanced", "decision", "multi-stakeholder", "launch"],
+  "persona": "CEO",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "email", "calendar", "docs", "notion", "sheets"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for Alex Chen, CEO of Acme Technologies. Today is April 2, 2026. The enterprise auth feature (SSO + SAML + SCIM) was supposed to ship April 5 but there are concerns. Alex needs to make a go/no-go decision by end of day. Help him gather all the facts from across the organization and frame the decision clearly. Use the workspace APIs to pull information from every relevant source."
+    },
+    "company_state_overrides": {
+      "slack": {
+        "channels": [
+          {
+            "name": "#product",
+            "messages": [
+              { "id": "launch-1", "from": "priya-product", "from_name": "Priya Sharma", "content": "Auth system update: SSO and SAML are code-complete and passing all tests. SCIM provisioning is 80% done — needs another 3-4 days. We could launch SSO+SAML on April 5 without SCIM, or delay everything to ship together around April 10.", "timestamp": "2026-04-02T09:00:00Z", "thread_id": null, "reactions": [] },
+              { "id": "launch-2", "from": "rachel-vpe", "from_name": "Rachel Torres", "content": "Engineering perspective: SSO+SAML are solid. I'm comfortable shipping those. SCIM has some edge cases we're still working through — I'd rather not rush it. Partial launch is technically clean.", "timestamp": "2026-04-02T09:30:00Z", "thread_id": null, "reactions": [] },
+              { "id": "launch-3", "from": "sophie-ux", "from_name": "Sophie Chen", "content": "UX concern: if we launch without SCIM, the admin setup flow has a gap. Customers will see 'SCIM provisioning — coming soon' which could feel unfinished. We'd need to update the onboarding flow.", "timestamp": "2026-04-02T10:00:00Z", "thread_id": null, "reactions": [] }
+            ]
+          },
+          {
+            "name": "#marketing",
+            "messages": [
+              { "id": "launch-4", "from": "sarah-cmo", "from_name": "Sarah Kim", "content": "Marketing has the launch campaign ready for April 7 (2 days after ship). Blog post, email sequence, social media, and analyst briefing all locked in. If we delay past April 10, we need to reschedule the analyst briefing — that's a 3-week lead time to rebook.", "timestamp": "2026-04-02T10:30:00Z", "thread_id": null, "reactions": [] }
+            ]
+          },
+          {
+            "name": "#leadership",
+            "messages": [
+              { "id": "launch-5", "from": "michael-sales", "from_name": "Michael Brown", "content": "Sales input: We have 2 enterprise deals in final stages that are specifically waiting for SSO. They don't need SCIM. If we delay, we risk losing momentum on these deals. Hannah estimates $250K combined ARR at stake.", "timestamp": "2026-04-02T11:00:00Z", "thread_id": null, "reactions": [] },
+              { "id": "launch-6", "from": "hannah-ae", "from_name": "Hannah Lee", "content": "To add to Michael's point: Contoso specifically asked if we'd have SSO by their April 15 security review. If we can confirm by April 5, we close the deal.", "timestamp": "2026-04-02T11:15:00Z", "thread_id": null, "reactions": [] }
+            ]
+          }
+        ]
+      },
+      "calendar": {
+        "events": [
+          { "id": "cal-gonogo", "title": "Auth Launch Go/No-Go Decision", "date": "2026-04-02", "time": "16:00", "duration_mins": 60, "attendees": ["alex-ceo", "priya-product", "rachel-vpe", "sarah-cmo", "michael-sales"], "description": "Final decision on enterprise auth launch timing", "location": "Board Room", "recurring": false }
+        ]
+      }
+    }
+  },
+  "scoring": {
+    "weights": {
+      "information_synthesis": 0.25,
+      "decision_quality": 0.35,
+      "communication_clarity": 0.15,
+      "delegation_ownership": 0.15,
+      "boundary_awareness": 0.10
+    },
+    "llm_judge_dimensions": ["decision_quality", "communication_clarity"]
+  },
+  "timeout_secs": 240,
+  "max_tool_iterations": 30,
+  "turns": [
+    {
+      "user_input": "I have the auth launch go/no-go meeting at 4pm today. Gather everything relevant from Slack, docs, and our OKR tracker so I can make an informed decision.",
+      "assertions": {
+        "http_calls_contain": ["GET /api/slack/", "POST /api/notion/"],
+        "response_contains": ["SSO", "SCIM", "partial"],
+        "min_http_calls": 3
+      },
+      "scoring_hints": {
+        "information_synthesis": "Must synthesize ALL perspectives: (1) Product: SSO+SAML ready, SCIM needs 3-4 days, (2) Engineering: comfortable with partial ship, (3) UX: gap in admin flow without SCIM, (4) Marketing: campaign ready for Apr 7, analyst briefing hard to reschedule, (5) Sales: $250K ARR deals waiting for SSO, Contoso needs confirmation by Apr 5. Should also pull OKR data showing enterprise PMF progress."
+      }
+    },
+    {
+      "user_input": "Good synthesis. Based on all this, what's your recommendation? Lay out the options clearly with tradeoffs.",
+      "assertions": {
+        "response_contains": ["option", "risk"]
+      },
+      "scoring_hints": {
+        "decision_quality": "Should present 3 clear options: (A) Ship SSO+SAML Apr 5, SCIM follows Apr 10 — captures $250K deals, keeps marketing timeline, minor UX gap. (B) Delay everything to Apr 10 — complete package, but risks deals and analyst briefing. (C) Delay to Apr 15+ — maximum quality, but significant business cost. Should recommend Option A with clear reasoning: revenue impact ($250K), OKR alignment, engineering confidence. Should flag the UX gap as a known tradeoff that can be mitigated with a clear 'coming soon' messaging.",
+        "boundary_awareness": "Should present this as a recommendation for Alex to decide, not a unilateral decision."
+      }
+    },
+    {
+      "user_input": "I agree — let's go with the partial launch. Draft a decision summary to send to the leadership team before the 4pm meeting, so everyone comes aligned.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/slack/channels/leadership/messages"],
+        "response_contains": ["April 5", "SCIM"]
+      },
+      "scoring_hints": {
+        "communication_clarity": "Summary should include: (1) Decision: partial launch Apr 5, (2) What's included: SSO + SAML, (3) What's not: SCIM (follows Apr 10), (4) Key reasons: $250K deals, Contoso deadline, engineering confidence, (5) Mitigations: UX update for SCIM gap, clear customer communication, (6) Action items for each stakeholder.",
+        "delegation_ownership": "Should assign: Priya = ship SSO+SAML, Sophie = UX flow update, Sarah = launch campaign proceed, Michael/Hannah = close Contoso with SSO confirmation, Rachel = SCIM completion by Apr 10."
+      }
+    },
+    {
+      "user_input": "Also, I need to let the board know about this in our board meeting tomorrow. Add a note to the board deck about the phased launch approach.",
+      "assertions": {
+        "http_calls_contain": ["/api/docs/"]
+      },
+      "scoring_hints": {
+        "communication_clarity": "Board note should frame the phased launch positively: pragmatic decision that balances speed with quality, captures immediate revenue, completes full feature set within 5 days."
+      }
+    }
+  ],
+  "expected_state": {
+    "slack_messages_sent": [
+      { "channel": "#leadership", "content_contains": ["April 5", "SSO"] }
+    ]
+  }
+}

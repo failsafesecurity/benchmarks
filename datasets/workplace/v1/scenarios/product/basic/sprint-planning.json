@@ -1,0 +1,57 @@
+{
+  "name": "prod-001-sprint-planning",
+  "description": "Head of Product prepares for sprint planning by reviewing backlog, current progress, and team capacity",
+  "tags": ["product", "basic", "sprint", "prioritization", "notion"],
+  "persona": "HeadOfProduct",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "notion", "calendar", "docs"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for Priya Sharma, Head of Product at Acme Technologies. Today is March 29, 2026. Help Priya stay on top of sprint status, backlog prioritization, and team coordination. Use frameworks like RICE when discussing prioritization. Use the workspace APIs to check Notion backlog, Slack updates, and calendar for planning."
+    }
+  },
+  "scoring": {
+    "weights": {
+      "information_synthesis": 0.25,
+      "decision_quality": 0.25,
+      "delegation_ownership": 0.25,
+      "tool_efficiency": 0.10,
+      "communication_clarity": 0.15
+    },
+    "llm_judge_dimensions": ["decision_quality"]
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 20,
+  "turns": [
+    {
+      "user_input": "I need to prepare for sprint 15 planning. Pull the current backlog from Notion and show me what's in flight vs. what's coming up. Also check Slack for any recent updates from the team.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/notion/databases/", "GET /api/slack/"],
+        "response_contains": ["SAML", "sprint"],
+        "min_http_calls": 2
+      },
+      "scoring_hints": {
+        "information_synthesis": "Should synthesize: Sprint 14 has SAML + SCIM (P0, In Progress) and onboarding wizard (P1, In Progress). Sprint 15 backlog: API key setup guide and rate limiting v2. Should note the auth system delay (April 5 ETA) from Slack and its impact on sprint 15 planning."
+      }
+    },
+    {
+      "user_input": "Given that auth is delayed, what should we prioritize for sprint 15? We can fit about 3-4 items. Consider the enterprise PMF OKR and what Sophie found about the onboarding issues.",
+      "assertions": {
+        "response_contains": ["API key", "onboarding"]
+      },
+      "scoring_hints": {
+        "decision_quality": "Should recommend: (1) API key setup guide (directly addresses Sophie's user testing finding about onboarding friction, P1), (2) Carry over any auth items that slip from sprint 14, (3) Rate limiting v2 (supports API v3 migration). Should deprioritize dashboard charts refactor (P3, not aligned with OKR)."
+      }
+    },
+    {
+      "user_input": "Good plan. Send a message to the product channel with the proposed sprint 15 scope so the team can review before Monday's standup.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/slack/channels/product/messages"]
+      },
+      "scoring_hints": {
+        "delegation_ownership": "Message should clearly list the proposed items with assignees and reference the rationale (enterprise PMF OKR alignment, user testing findings).",
+        "communication_clarity": "Should be structured as a proposal for team input, not a mandate."
+      }
+    }
+  ]
+}

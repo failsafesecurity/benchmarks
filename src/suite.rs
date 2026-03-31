@@ -151,4 +151,13 @@ pub trait BenchSuite: Send + Sync {
     ) -> Result<Option<String>, BenchError> {
         Ok(None)
     }
+
+    /// Optional: provide an HTTP interceptor for the current task.
+    /// Called after `setup_task()` and before agent execution.
+    /// The interceptor routes the agent's HTTP calls (e.g., to mock servers).
+    fn http_interceptor(
+        &self,
+    ) -> Option<Arc<dyn ironclaw::llm::recording::HttpInterceptor>> {
+        None
+    }
 }

@@ -35,6 +35,7 @@ struct TaskRunParams<'a> {
     safety: Arc<SafetyLayer>,
     timeout: std::time::Duration,
     additional_tools: &'a [Arc<dyn ironclaw::tools::Tool>],
+    http_interceptor: Option<Arc<dyn ironclaw::llm::recording::HttpInterceptor>>,
 }
 
 /// Framework-specific dependencies. Each variant carries exactly what
@@ -193,6 +194,7 @@ impl BenchRunner {
                             safety: Arc::clone(safety),
                             timeout,
                             additional_tools: &additional_tools,
+                            http_interceptor: self.suite.http_interceptor(),
                         };
                         run_task_isolated(params).await
                     }
@@ -269,6 +271,7 @@ impl BenchRunner {
                                 safety: Arc::clone(safety),
                                 timeout,
                                 additional_tools: &additional_tools,
+                                http_interceptor: suite.http_interceptor(),
                             };
                             run_task_isolated(params).await
                         }
@@ -417,6 +420,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         safety,
         timeout,
         additional_tools,
+        http_interceptor,
     } = params;
 
     let started_at = Utc::now();
@@ -451,6 +455,15 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         allow_local_tools: true,
         max_cost_per_day_cents: None,
         max_actions_per_hour: None,
+        max_cost_per_user_per_day_cents: None,
+        max_tool_iterations: 50,
+        auto_approve_tools: true,
+        default_timezone: "UTC".to_string(),
+        max_jobs_per_user: None,
+        max_tokens_per_job: 0,
+        multi_tenant: false,
+        max_llm_concurrent_per_user: None,
+        max_jobs_concurrent_per_user: None,
     };
 
     let cost_guard = Arc::new(ironclaw::agent::cost_guard::CostGuard::new(
@@ -468,6 +481,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     };
 
     let deps = AgentDeps {
+        owner_id: "bench".to_string(),
         store: None,
         llm: instrumented.clone() as Arc<dyn LlmProvider>,
         cheap_llm: None,
@@ -476,15 +490,33 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         workspace,
         extension_manager: None,
         skill_registry: None,
+        skill_catalog: None,
         skills_config: ironclaw::config::SkillsConfig::default(),
         hooks: Arc::new(ironclaw::hooks::HookRegistry::new()),
         cost_guard,
+        sse_tx: None,
+        http_interceptor,
+        transcription: None,
+        document_extraction: None,
+        sandbox_readiness: ironclaw::agent::routine_engine::SandboxReadiness::DisabledByConfig,
+        builder: None,
+        llm_backend: "bench".to_string(),
+        tenant_rates: Arc::new(ironclaw::tenant::TenantRateRegistry::new(1, 1)),
     };
 
-    let mut channels = ChannelManager::new();
-    channels.add(Box::new(bench_channel));
+    let channels = ChannelManager::new();
+    channels.add(Box::new(bench_channel)).await;
 
-    let agent = Agent::new(agent_config, deps, channels, None, None, None, None, None);
+    let agent = Agent::new(
+        agent_config,
+        deps,
+        Arc::new(channels),
+        None,
+        None,
+        None,
+        None,
+        None,
+    );
 
     // Build the full prompt with context
     let full_prompt = if let Some(ref ctx) = task.context {

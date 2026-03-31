@@ -1,0 +1,87 @@
+{
+  "name": "ceo-001-morning-briefing",
+  "description": "CEO morning triage: synthesize overnight communications, identify priorities, and take initial actions",
+  "tags": ["ceo", "basic", "triage", "synthesis", "multi-tool"],
+  "persona": "CEO",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "email", "calendar", "docs"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for Alex Chen, CEO of Acme Technologies. Today is March 29, 2026. Your job is to help Alex stay on top of everything happening across the company. Be proactive, concise, and action-oriented. Use the workspace APIs to read messages, emails, and calendar, then synthesize what matters most."
+    },
+    "company_state_overrides": {
+      "slack": {
+        "channels": [
+          {
+            "name": "#leadership",
+            "messages": [
+              { "id": "overnight-1", "from": "sarah-cmo", "from_name": "Sarah Kim", "content": "Heads up: DevTools Weekly just published a piece about Buildify launching a product that directly competes with our enterprise auth feature. Their pricing undercuts us significantly. We need to discuss our positioning ASAP.", "timestamp": "2026-03-28T22:15:00Z", "thread_id": null, "reactions": [] },
+              { "id": "overnight-2", "from": "david-cfo", "from_name": "David Park", "content": "March burn rate came in at $450K — that's 12.5% over our $400K target. Main driver is the $8K cloud overage plus $26K in unplanned contractor costs for the security review. Need to discuss at leadership sync.", "timestamp": "2026-03-28T23:30:00Z", "thread_id": null, "reactions": [] }
+            ]
+          }
+        ]
+      },
+      "email": {
+        "inbox": [
+          { "id": "em-urgent-1", "from": "board-member@sequoia.com", "to": ["alex@acme.tech"], "cc": [], "subject": "Re: Q1 Board Deck", "body": "Alex, the board deck looks solid overall. Two asks: (1) Add a cohort analysis slide for customer retention — the board will want to see Q4 vs Q1 cohort behavior. (2) Include a competitive landscape update given recent market moves. Board meeting is April 3 — need the updated deck by April 1. Best, Jennifer", "timestamp": "2026-03-29T06:00:00Z", "read": false, "attachments": [] },
+          { "id": "em-urgent-2", "from": "cto@northwind.com", "to": ["alex@acme.tech"], "cc": ["michael@acme.tech"], "subject": "Urgent: API Integration Issues", "body": "Alex, our team has been experiencing repeated API timeouts since the March 25 deployment. This is affecting our production systems. We need this resolved within 48 hours or we'll need to evaluate alternatives. This is impacting our confidence in the Acme platform. — Tom Chen, CTO, Northwind Traders", "timestamp": "2026-03-29T05:30:00Z", "read": false, "attachments": [] }
+        ]
+      }
+    }
+  },
+  "scoring": {
+    "weights": {
+      "information_synthesis": 0.20,
+      "decision_quality": 0.25,
+      "timeliness": 0.15,
+      "communication_clarity": 0.15,
+      "delegation_ownership": 0.15,
+      "tool_efficiency": 0.10
+    },
+    "llm_judge_dimensions": ["decision_quality", "communication_clarity"]
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 25,
+  "turns": [
+    {
+      "user_input": "Good morning. Walk me through what happened overnight and what I need to focus on today.",
+      "assertions": {
+        "http_calls_contain": ["GET /api/slack/", "GET /api/email/", "GET /api/calendar/"],
+        "response_contains": ["competitor", "burn rate", "board"],
+        "min_http_calls": 3
+      },
+      "scoring_hints": {
+        "information_synthesis": "Agent should connect: (1) competitor launch to product roadmap urgency, (2) burn rate overrun to Series C prep, (3) Northwind API issue to customer retention risk",
+        "decision_quality": "Northwind API issue is the most time-sensitive — 48h deadline, risk of losing a customer. Should be flagged as top priority."
+      }
+    },
+    {
+      "user_input": "The Northwind issue sounds critical. Draft a response to their CTO that shows we're taking this seriously, and flag this to Rachel in engineering. Also, update the leadership sync agenda to include the competitor discussion and budget overrun.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/email/send", "POST /api/slack/"],
+        "response_contains": ["Northwind", "Rachel"]
+      },
+      "scoring_hints": {
+        "communication_clarity": "Email to Northwind CTO should be empathetic, specific about next steps, and commit to a resolution timeline. Not generic 'we'll look into it'.",
+        "delegation_ownership": "Should clearly assign Rachel as owner of the API investigation with a specific deadline."
+      }
+    },
+    {
+      "user_input": "What should my top 3 talking points be for the leadership sync on Monday?",
+      "assertions": {
+        "response_contains": ["Northwind", "competitor", "budget"]
+      },
+      "scoring_hints": {
+        "decision_quality": "Talking points should be strategic, not just informational. E.g., not just 'discuss budget' but 'decide on cloud cost mitigation plan before Series C due diligence'."
+      }
+    }
+  ],
+  "expected_state": {
+    "slack_messages_sent": [
+      { "channel": "#engineering", "content_contains": ["API", "Northwind"] }
+    ],
+    "emails_sent": [
+      { "to_contains": "cto@northwind.com", "subject_contains": "API" }
+    ]
+  }
+}

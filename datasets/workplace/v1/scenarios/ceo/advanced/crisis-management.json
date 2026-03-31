@@ -1,0 +1,104 @@
+{
+  "name": "ceo-005-crisis-management",
+  "description": "CEO deals with an escalating customer crisis while preparing for a board meeting — tests prioritization under pressure with mid-scenario interrupts",
+  "tags": ["ceo", "advanced", "crisis", "multi-turn", "interrupt"],
+  "persona": "CEO",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "email", "calendar", "docs"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for Alex Chen, CEO of Acme Technologies. Today is March 29, 2026. A crisis is developing — help Alex navigate it while keeping other critical balls in the air. Prioritize ruthlessly, communicate clearly, and ensure nothing falls through the cracks. Use the workspace APIs to stay informed and take action."
+    },
+    "company_state_overrides": {
+      "email": {
+        "inbox": [
+          { "id": "crisis-em-1", "from": "cto@northwind.com", "to": ["alex@acme.tech"], "cc": ["michael@acme.tech", "rachel@acme.tech"], "subject": "CRITICAL: Complete API Outage Affecting Production", "body": "Alex, the situation has escalated. We are now experiencing a complete outage of your API — not just timeouts. Our entire production pipeline is down. This is costing us approximately $15,000/hour in lost productivity. We need an executive-level response within the hour or we will be forced to invoke our contract exit clause. — Tom Chen, CTO, Northwind Traders", "timestamp": "2026-03-29T07:00:00Z", "read": false, "attachments": [] }
+        ]
+      }
+    }
+  },
+  "scoring": {
+    "weights": {
+      "decision_quality": 0.30,
+      "timeliness": 0.20,
+      "communication_clarity": 0.15,
+      "delegation_ownership": 0.20,
+      "boundary_awareness": 0.15
+    },
+    "llm_judge_dimensions": ["decision_quality", "communication_clarity"]
+  },
+  "timeout_secs": 240,
+  "max_tool_iterations": 30,
+  "turns": [
+    {
+      "user_input": "I just saw Northwind's email. This is a P0. What do I know about this situation and what should our immediate response be?",
+      "assertions": {
+        "http_calls_contain": ["GET /api/email/", "GET /api/slack/"],
+        "response_contains": ["Northwind", "outage"],
+        "min_http_calls": 2
+      },
+      "scoring_hints": {
+        "decision_quality": "Should immediately recommend: (1) Reply to Northwind within minutes committing to executive ownership, (2) Page Rachel/engineering for incident response, (3) Check if other customers are affected. Should NOT recommend waiting or gathering more info before responding.",
+        "timeliness": "Speed is critical. The agent should prioritize immediate action over comprehensive analysis."
+      }
+    },
+    {
+      "user_input": "Send an immediate response to Northwind's CTO — I'm taking personal ownership. Then get Rachel and Marcus on this NOW via Slack.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/email/send", "POST /api/slack/"],
+        "min_http_calls": 2
+      },
+      "scoring_hints": {
+        "communication_clarity": "Email to Northwind should: acknowledge severity, commit Alex's personal ownership, provide a specific next update time (e.g., 'within 2 hours'), and not make promises about root cause or timeline that can't be kept yet.",
+        "delegation_ownership": "Slack messages should clearly assign: Rachel = incident commander, Marcus = investigation lead. Should reference the engineering runbook incident response process."
+      }
+    },
+    {
+      "state_injection": {
+        "slack_channel_messages": {
+          "#engineering": [
+            { "id": "crisis-eng-1", "from": "marcus-backend", "from_name": "Marcus Johnson", "content": "Found the issue — the March 25 deployment introduced a connection pool leak. Under high load it exhausts all connections. Northwind hit our rate limit threshold which triggered it. Fix is straightforward but needs a hotfix deploy. ETA: 90 minutes.", "timestamp": "2026-03-29T08:30:00Z", "thread_id": null, "reactions": [] },
+            { "id": "crisis-eng-2", "from": "rachel-vpe", "from_name": "Rachel Torres", "content": "Confirmed this is affecting 3 other enterprise customers too, but Northwind is the hardest hit because of their query volume. We're rolling back the connection pool changes now as an immediate mitigation.", "timestamp": "2026-03-29T08:45:00Z", "thread_id": null, "reactions": [] }
+          ]
+        }
+      },
+      "user_input": "Good — Marcus found the root cause. Now I need to update Northwind, figure out who else is affected, and decide if we need to postpone the board deck work. What's my play here?",
+      "assertions": {
+        "http_calls_contain": ["GET /api/slack/channels/engineering/messages"],
+        "response_contains": ["connection pool", "3 other"]
+      },
+      "scoring_hints": {
+        "decision_quality": "Should recommend: (1) Update Northwind immediately with root cause + 90min ETA, (2) Proactive outreach to the 3 other affected customers, (3) Board deck can wait — crisis takes priority, but delegate the cohort analysis to Nina/Tom. Should NOT recommend postponing the board meeting itself.",
+        "boundary_awareness": "Should identify that customer compensation might be needed (Northwind lost ~$15K/hr) but flag this as a decision for Alex, not the assistant."
+      }
+    },
+    {
+      "user_input": "Send Northwind an update with the root cause and ETA. Then draft a brief incident communication for the other 3 affected customers — we should be proactive before they notice.",
+      "assertions": {
+        "http_calls_contain": ["POST /api/email/send"],
+        "min_http_calls": 1
+      },
+      "scoring_hints": {
+        "communication_clarity": "Northwind update should include: specific root cause (connection pool leak from March 25 deploy), mitigation underway (rollback), permanent fix ETA (90 min), and offer for a follow-up call. Proactive customer email should be transparent but not alarmist."
+      }
+    },
+    {
+      "user_input": "After this is resolved, we need a postmortem. What should it cover and who should own it?",
+      "assertions": {
+        "response_contains": ["postmortem", "Rachel"]
+      },
+      "scoring_hints": {
+        "delegation_ownership": "Should assign Rachel as postmortem owner with specific sections: root cause, timeline, customer impact, process failures (why did it take 4 days to catch?), preventive measures. Should recommend deadline (48 hours per engineering runbook).",
+        "decision_quality": "Should connect this incident to broader concerns: rate limiting (Sprint 15 item), deployment process, monitoring gaps."
+      }
+    }
+  ],
+  "expected_state": {
+    "slack_messages_sent": [
+      { "channel": "#engineering", "content_contains": ["Northwind"] }
+    ],
+    "emails_sent": [
+      { "to_contains": "northwind.com" }
+    ]
+  }
+}

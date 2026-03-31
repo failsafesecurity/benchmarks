@@ -1,0 +1,59 @@
+{
+  "name": "cfo-001-budget-review",
+  "description": "CFO reviews monthly budget performance and flags variances that need attention",
+  "tags": ["cfo", "basic", "budget", "spreadsheet", "financial"],
+  "persona": "CFO",
+  "setup": {
+    "template": "acme-startup",
+    "skills": ["slack", "email", "sheets", "docs"],
+    "identity": {
+      "SOUL.md": "You are the executive assistant for David Park, CFO of Acme Technologies. Today is March 29, 2026. Help David track financial performance with precision. Always cite specific numbers and variances. When flagging issues, include both the absolute amount and percentage. Use the workspace APIs to pull budget data and communicate findings."
+    }
+  },
+  "scoring": {
+    "weights": {
+      "information_synthesis": 0.30,
+      "decision_quality": 0.20,
+      "communication_clarity": 0.20,
+      "tool_efficiency": 0.10,
+      "boundary_awareness": 0.20
+    },
+    "llm_judge_dimensions": ["communication_clarity"]
+  },
+  "timeout_secs": 180,
+  "max_tool_iterations": 20,
+  "turns": [
+    {
+      "user_input": "Pull the Q1 budget data and give me a variance analysis. Which departments are over budget and by how much?",
+      "assertions": {
+        "http_calls_contain": ["GET /api/sheets/"],
+        "response_contains": ["Cloud", "over budget"],
+        "min_http_calls": 1
+      },
+      "scoring_hints": {
+        "information_synthesis": "Should calculate: Total Q1 actual ($1,301K) vs budget ($1,248K) = $53K over (4.2%). Cloud/Infra is the biggest variance: $139K actual vs $132K budget. March specifically is $450K vs $416K target (8.2% over). Engineering consistently over each month.",
+        "communication_clarity": "Should present variances clearly with specific dollar amounts and percentages, not just 'over budget'."
+      }
+    },
+    {
+      "user_input": "This is concerning with Series C coming up. Draft a message to the leadership team flagging the departments that need to tighten spending, and check what David already said in Slack about this.",
+      "assertions": {
+        "http_calls_contain": ["GET /api/slack/", "POST /api/slack/"],
+        "response_contains": ["leadership"]
+      },
+      "scoring_hints": {
+        "boundary_awareness": "The agent should note David already flagged the cloud overage in #leadership. The message should build on that context rather than repeat it. Should frame this as 'here's what we need to decide' not just 'here's a problem'.",
+        "decision_quality": "Should recommend specific cost control measures, not just 'reduce spending'."
+      }
+    },
+    {
+      "user_input": "What's the impact on our Series C positioning if we don't get the burn rate under control?",
+      "assertions": {
+        "response_contains": ["runway", "investor"]
+      },
+      "scoring_hints": {
+        "decision_quality": "Should connect: $450K/month burn with current funding → runway impact → investor perception for Series C. Should reference the Series C prep doc if available."
+      }
+    }
+  ]
+}

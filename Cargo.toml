@@ -12,7 +12,7 @@ name = "nearai-bench"
 path = "src/main.rs"
 
 [dependencies]
-ironclaw = { git = "https://github.com/nearai/ironclaw.git" }
+ironclaw = { git = "https://github.com/nearai/ironclaw.git", branch = "staging" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -51,3 +51,7 @@ reqwest = { version = "0.12", features = ["json"] }
 
 # Temp files (used for per-task in-memory workspace DBs)
 tempfile = "3"
+
+# Mock web server (workplace simulation suite)
+axum = "0.8"
+tower = "0.5"

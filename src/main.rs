@@ -205,21 +205,16 @@ async fn main() -> anyhow::Result<()> {
                 })?;
 
                 let session =
-                    ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
-                        auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
-                        session_path: ironclaw_config.llm.nearai.session_path.clone(),
-                    })
-                    .await;
+                    ironclaw::llm::create_session_manager(ironclaw_config.llm.session.clone())
+                        .await;
 
-                let is_nearai = matches!(
-                    ironclaw_config.llm.backend,
-                    ironclaw::config::LlmBackend::NearAi
-                );
+                let is_nearai = ironclaw_config.llm.backend == "nearai";
                 if is_nearai {
                     session.ensure_authenticated().await?;
                 }
 
-                let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
+                let llm =
+                    ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session).await?;
                 let safety =
                     Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }

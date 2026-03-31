@@ -1,0 +1,306 @@
+{
+  "company": {
+    "name": "Acme Technologies",
+    "stage": "Series B",
+    "headcount": 48,
+    "industry": "B2B SaaS (Developer Tools)",
+    "founded": "2022",
+    "revenue_arr": "$3.2M"
+  },
+  "people": [
+    { "id": "alex-ceo", "name": "Alex Chen", "role": "CEO", "department": "Executive", "email": "alex@acme.tech", "slack_handle": "@alex", "reports_to": null },
+    { "id": "sarah-cmo", "name": "Sarah Kim", "role": "CMO", "department": "Marketing", "email": "sarah@acme.tech", "slack_handle": "@sarah", "reports_to": "alex-ceo" },
+    { "id": "david-cfo", "name": "David Park", "role": "CFO", "department": "Finance", "email": "david@acme.tech", "slack_handle": "@david", "reports_to": "alex-ceo" },
+    { "id": "priya-product", "name": "Priya Sharma", "role": "Head of Product", "department": "Product", "email": "priya@acme.tech", "slack_handle": "@priya", "reports_to": "alex-ceo" },
+    { "id": "rachel-vpe", "name": "Rachel Torres", "role": "VP Engineering", "department": "Engineering", "email": "rachel@acme.tech", "slack_handle": "@rachel", "reports_to": "alex-ceo" },
+    { "id": "michael-sales", "name": "Michael Brown", "role": "VP Sales", "department": "Sales", "email": "michael@acme.tech", "slack_handle": "@michael", "reports_to": "alex-ceo" },
+    { "id": "marcus-backend", "name": "Marcus Johnson", "role": "Sr Backend Engineer", "department": "Engineering", "email": "marcus@acme.tech", "slack_handle": "@marcus", "reports_to": "rachel-vpe" },
+    { "id": "lisa-frontend", "name": "Lisa Wang", "role": "Sr Frontend Engineer", "department": "Engineering", "email": "lisa@acme.tech", "slack_handle": "@lisa", "reports_to": "rachel-vpe" },
+    { "id": "james-growth", "name": "James Wilson", "role": "Growth Lead", "department": "Marketing", "email": "james@acme.tech", "slack_handle": "@james", "reports_to": "sarah-cmo" },
+    { "id": "emma-content", "name": "Emma Davis", "role": "Content Lead", "department": "Marketing", "email": "emma@acme.tech", "slack_handle": "@emma", "reports_to": "sarah-cmo" },
+    { "id": "tom-controller", "name": "Tom Anderson", "role": "Controller", "department": "Finance", "email": "tom@acme.tech", "slack_handle": "@tom", "reports_to": "david-cfo" },
+    { "id": "nina-analyst", "name": "Nina Patel", "role": "Financial Analyst", "department": "Finance", "email": "nina@acme.tech", "slack_handle": "@nina", "reports_to": "david-cfo" },
+    { "id": "ryan-pm", "name": "Ryan Mitchell", "role": "Product Manager", "department": "Product", "email": "ryan@acme.tech", "slack_handle": "@ryan", "reports_to": "priya-product" },
+    { "id": "sophie-ux", "name": "Sophie Chen", "role": "UX Lead", "department": "Product", "email": "sophie@acme.tech", "slack_handle": "@sophie", "reports_to": "priya-product" },
+    { "id": "hannah-ae", "name": "Hannah Lee", "role": "Enterprise AE", "department": "Sales", "email": "hannah@acme.tech", "slack_handle": "@hannah", "reports_to": "michael-sales" }
+  ],
+  "okrs": [
+    {
+      "objective": "Achieve product-market fit in enterprise segment",
+      "key_results": [
+        "Close 5 enterprise deals >$100K ARR",
+        "Achieve NPS > 50 from enterprise customers",
+        "Reduce enterprise onboarding time to <2 weeks"
+      ],
+      "owner": "priya-product",
+      "progress": 0.4
+    },
+    {
+      "objective": "Hit $5M ARR run rate by end of Q2",
+      "key_results": [
+        "Grow MRR from $267K to $417K",
+        "Reduce monthly churn to under 3%",
+        "Close 3 new enterprise logos per month"
+      ],
+      "owner": "michael-sales",
+      "progress": 0.35
+    },
+    {
+      "objective": "Build brand as thought leader in dev tools space",
+      "key_results": [
+        "Publish 12 technical blog posts",
+        "Speak at 4 industry conferences",
+        "Grow developer community to 5,000 members"
+      ],
+      "owner": "sarah-cmo",
+      "progress": 0.5
+    },
+    {
+      "objective": "Maintain burn rate under $400K/month",
+      "key_results": [
+        "Reduce cloud costs by 15%",
+        "Renegotiate top 3 vendor contracts",
+        "Keep actual vs plan variance under 10%"
+      ],
+      "owner": "david-cfo",
+      "progress": 0.6
+    }
+  ],
+  "projects": [
+    {
+      "name": "Enterprise Auth System",
+      "status": "in_progress",
+      "owner": "priya-product",
+      "sprint": 14,
+      "eta": "2026-04-05",
+      "blockers": ["Security review findings from March 20"],
+      "description": "SSO, SAML, SCIM provisioning for enterprise customers"
+    },
+    {
+      "name": "Marketing Site Redesign",
+      "status": "in_progress",
+      "owner": "emma-content",
+      "sprint": 12,
+      "eta": "2026-03-31",
+      "blockers": [],
+      "description": "New landing pages, case studies, enterprise messaging"
+    },
+    {
+      "name": "Series C Preparation",
+      "status": "planning",
+      "owner": "david-cfo",
+      "sprint": null,
+      "eta": null,
+      "blockers": ["Need final Q1 numbers"],
+      "description": "Financial model, data room, investor deck, due diligence prep"
+    },
+    {
+      "name": "Self-Serve Onboarding",
+      "status": "in_progress",
+      "owner": "ryan-pm",
+      "sprint": 14,
+      "eta": "2026-04-15",
+      "blockers": [],
+      "description": "Interactive setup wizard, sample projects, guided tours"
+    },
+    {
+      "name": "API v3 Migration",
+      "status": "in_progress",
+      "owner": "marcus-backend",
+      "sprint": 13,
+      "eta": "2026-04-20",
+      "blockers": [],
+      "description": "New REST API with GraphQL, rate limiting, versioned schemas"
+    },
+    {
+      "name": "Annual Customer Conference",
+      "status": "planning",
+      "owner": "sarah-cmo",
+      "sprint": null,
+      "eta": "2026-06-15",
+      "blockers": [],
+      "description": "AcmeCon 2026 — venue, speakers, sponsor packages, registration"
+    }
+  ],
+  "slack": {
+    "channels": [
+      {
+        "name": "#leadership",
+        "members": ["alex-ceo", "sarah-cmo", "david-cfo", "priya-product", "rachel-vpe", "michael-sales"],
+        "messages": [
+          { "id": "ls-001", "from": "alex-ceo", "from_name": "Alex Chen", "content": "Reminder: leadership sync Monday 9am. Please come prepared with your department updates.", "timestamp": "2026-03-28T08:00:00Z", "thread_id": null, "reactions": ["thumbsup"] },
+          { "id": "ls-002", "from": "michael-sales", "from_name": "Michael Brown", "content": "Good news — Contoso signed the $120K deal. That's our 2nd enterprise logo this quarter.", "timestamp": "2026-03-28T14:30:00Z", "thread_id": null, "reactions": ["tada", "fire"] },
+          { "id": "ls-003", "from": "david-cfo", "from_name": "David Park", "content": "Heads up: March cloud costs came in at $52K, about $8K over budget. The unplanned migration to the new region is the main driver.", "timestamp": "2026-03-28T16:00:00Z", "thread_id": null, "reactions": [] }
+        ]
+      },
+      {
+        "name": "#engineering",
+        "members": ["rachel-vpe", "marcus-backend", "lisa-frontend", "priya-product", "ryan-pm"],
+        "messages": [
+          { "id": "eng-001", "from": "rachel-vpe", "from_name": "Rachel Torres", "content": "Sprint 14 kickoff tomorrow at 10am. Focus areas: auth system final push and onboarding wizard.", "timestamp": "2026-03-28T09:00:00Z", "thread_id": null, "reactions": [] },
+          { "id": "eng-002", "from": "marcus-backend", "from_name": "Marcus Johnson", "content": "API v3 schema validation is passing all tests. Starting the migration scripts next week.", "timestamp": "2026-03-28T15:00:00Z", "thread_id": null, "reactions": ["thumbsup"] }
+        ]
+      },
+      {
+        "name": "#marketing",
+        "members": ["sarah-cmo", "james-growth", "emma-content", "michael-sales", "hannah-ae"],
+        "messages": [
+          { "id": "mkt-001", "from": "james-growth", "from_name": "James Wilson", "content": "March campaign results: 847 MQLs, up 23% from Feb. LinkedIn ads driving most of the increase.", "timestamp": "2026-03-28T11:00:00Z", "thread_id": null, "reactions": ["chart_with_upwards_trend"] },
+          { "id": "mkt-002", "from": "emma-content", "from_name": "Emma Davis", "content": "New case study with Northwind Traders is live on the blog. Getting good engagement so far.", "timestamp": "2026-03-28T13:00:00Z", "thread_id": null, "reactions": [] }
+        ]
+      },
+      {
+        "name": "#finance",
+        "members": ["david-cfo", "tom-controller", "nina-analyst", "alex-ceo"],
+        "messages": [
+          { "id": "fin-001", "from": "tom-controller", "from_name": "Tom Anderson", "content": "March books are 90% closed. Expecting final numbers by end of week.", "timestamp": "2026-03-28T10:00:00Z", "thread_id": null, "reactions": [] },
+          { "id": "fin-002", "from": "nina-analyst", "from_name": "Nina Patel", "content": "Updated the revenue dashboard with latest MRR figures: $272K as of March 28.", "timestamp": "2026-03-28T14:00:00Z", "thread_id": null, "reactions": [] }
+        ]
+      },
+      {
+        "name": "#product",
+        "members": ["priya-product", "ryan-pm", "sophie-ux", "rachel-vpe", "marcus-backend", "lisa-frontend"],
+        "messages": [
+          { "id": "prd-001", "from": "priya-product", "from_name": "Priya Sharma", "content": "Sprint 14 retro: shipped 3/5 planned features. Auth system delayed due to security review findings. New ETA: April 5.", "timestamp": "2026-03-28T18:00:00Z", "thread_id": null, "reactions": [] },
+          { "id": "prd-002", "from": "sophie-ux", "from_name": "Sophie Chen", "content": "Onboarding redesign user testing results are in. Major finding: users struggle with the API key setup step. Proposing a guided flow.", "timestamp": "2026-03-28T16:30:00Z", "thread_id": null, "reactions": ["eyes"] }
+        ]
+      },
+      {
+        "name": "#general",
+        "members": ["alex-ceo", "sarah-cmo", "david-cfo", "priya-product", "rachel-vpe", "michael-sales", "marcus-backend", "lisa-frontend", "james-growth", "emma-content", "tom-controller", "nina-analyst", "ryan-pm", "sophie-ux", "hannah-ae"],
+        "messages": [
+          { "id": "gen-001", "from": "alex-ceo", "from_name": "Alex Chen", "content": "Congrats to the sales team on the Contoso deal! Great work everyone who supported the technical evaluation.", "timestamp": "2026-03-28T15:00:00Z", "thread_id": null, "reactions": ["tada", "rocket"] }
+        ]
+      }
+    ],
+    "direct_messages": []
+  },
+  "email": {
+    "inbox": [
+      { "id": "em-001", "from": "newsletter@techcrunch.com", "to": ["alex@acme.tech"], "cc": [], "subject": "TechCrunch Daily — March 29, 2026", "body": "Today's top stories: AI agent frameworks race heats up...", "timestamp": "2026-03-29T06:00:00Z", "read": false, "attachments": [] },
+      { "id": "em-002", "from": "accounts@aws.amazon.com", "to": ["finance@acme.tech"], "cc": ["david@acme.tech"], "subject": "AWS Invoice — March 2026", "body": "Your March 2026 invoice for $48,200 is ready. Due date: April 15, 2026.", "timestamp": "2026-03-28T22:00:00Z", "read": false, "attachments": ["march-2026-invoice.pdf"] },
+      { "id": "em-003", "from": "partnerships@bigcorp.com", "to": ["alex@acme.tech"], "cc": ["michael@acme.tech"], "subject": "Re: Integration Partnership Discussion", "body": "Hi Alex, thanks for the demo last week. Our team is interested in exploring a deeper integration. Can we schedule a follow-up call next week? Best, Jennifer", "timestamp": "2026-03-28T20:00:00Z", "read": false, "attachments": [] }
+    ],
+    "sent": [],
+    "drafts": []
+  },
+  "calendar": {
+    "events": [
+      { "id": "cal-001", "title": "Leadership Sync", "date": "2026-03-31", "time": "09:00", "duration_mins": 60, "attendees": ["alex-ceo", "sarah-cmo", "david-cfo", "priya-product", "rachel-vpe", "michael-sales"], "description": "Weekly leadership alignment. Each leader shares top 3 priorities and blockers.", "location": "Zoom", "recurring": true },
+      { "id": "cal-002", "title": "Product Standup", "date": "2026-03-31", "time": "10:30", "duration_mins": 30, "attendees": ["priya-product", "ryan-pm", "sophie-ux", "rachel-vpe"], "description": "Sprint 14 daily standup", "location": "Slack huddle", "recurring": true },
+      { "id": "cal-003", "title": "1:1 Alex / Priya", "date": "2026-03-31", "time": "11:30", "duration_mins": 30, "attendees": ["alex-ceo", "priya-product"], "description": "Weekly product sync", "location": null, "recurring": true },
+      { "id": "cal-004", "title": "Marketing Review", "date": "2026-04-01", "time": "14:00", "duration_mins": 45, "attendees": ["sarah-cmo", "james-growth", "emma-content"], "description": "March campaign retrospective and April planning", "location": "Conference Room B", "recurring": false },
+      { "id": "cal-005", "title": "Board Meeting", "date": "2026-04-03", "time": "10:00", "duration_mins": 120, "attendees": ["alex-ceo", "david-cfo", "sarah-cmo"], "description": "Q1 2026 board meeting. Deck due April 1.", "location": "Board Room", "recurring": false },
+      { "id": "cal-006", "title": "All Hands", "date": "2026-04-04", "time": "15:00", "duration_mins": 60, "attendees": ["alex-ceo"], "description": "Monthly all-hands. Theme: Q1 retrospective and Q2 roadmap preview.", "location": "Main Hall + Zoom", "recurring": true }
+    ]
+  },
+  "docs": [
+    { "id": "doc-001", "title": "Q1 2026 Strategy", "content": "# Acme Technologies — Q1 2026 Strategy\n\n## Mission\nMake enterprise developer tooling seamless.\n\n## Strategic Pillars\n1. Enterprise PMF — ship auth, reduce onboarding friction\n2. Revenue growth — hit $5M ARR run rate\n3. Brand building — establish thought leadership\n4. Operational efficiency — control burn rate\n\n## Key Metrics\n- MRR: $267K (target: $417K by June)\n- Enterprise NPS: 42 (target: 50+)\n- Burn rate: $385K/mo (target: <$400K)\n- Headcount: 48 (no new hires planned Q1)", "owner": "alex-ceo", "last_modified": "2026-01-15", "shared_with": ["sarah-cmo", "david-cfo", "priya-product"] },
+    { "id": "doc-002", "title": "Product Roadmap Q1-Q2 2026", "content": "# Product Roadmap\n\n## Q1 (In Progress)\n- Enterprise Auth System (SSO, SAML, SCIM) — ETA April 5\n- Self-Serve Onboarding Wizard — ETA April 15\n- API v3 Migration — ETA April 20\n\n## Q2 (Planned)\n- Advanced Analytics Dashboard\n- Team Collaboration Features\n- Marketplace for Extensions\n- Mobile App (Beta)\n\n## Backlog\n- AI-powered code suggestions\n- Custom workflow builder\n- Audit logging improvements", "owner": "priya-product", "last_modified": "2026-03-15", "shared_with": ["alex-ceo", "rachel-vpe", "ryan-pm"] },
+    { "id": "doc-003", "title": "Marketing Plan 2026", "content": "# Marketing Plan 2026\n\n## Budget: $720K annually ($60K/month)\n\n## Channels\n- Content Marketing (40%): Blog, case studies, whitepapers\n- Paid Acquisition (30%): LinkedIn, Google Ads, dev community sponsorships\n- Events (20%): AcmeCon, conference sponsorships, meetups\n- PR/Comms (10%): Press releases, analyst briefings\n\n## Q1 Results\n- MQLs: 2,400 (target: 2,000) ✓\n- Blog posts: 8/12\n- Conference talks: 2/4\n- Community: 3,200/5,000 members", "owner": "sarah-cmo", "last_modified": "2026-03-20", "shared_with": ["alex-ceo", "james-growth"] },
+    { "id": "doc-004", "title": "Series C Preparation Checklist", "content": "# Series C Prep\n\n## Financial Materials (David)\n- [ ] 3-year financial model\n- [ ] Cap table update\n- [x] Monthly financial statements (through Feb)\n- [ ] March financials (pending close)\n- [ ] Unit economics analysis\n\n## Data Room (David + Tom)\n- [x] Corporate docs\n- [x] Employee agreements\n- [ ] Customer contracts (top 10)\n- [ ] IP documentation\n\n## Narrative (Alex + Sarah)\n- [ ] Investor deck v1\n- [ ] Product demo video\n- [ ] Customer testimonials (3+)\n\n## Timeline\n- April: Finalize materials\n- May: Soft outreach to target funds\n- June-July: Formal process", "owner": "david-cfo", "last_modified": "2026-03-25", "shared_with": ["alex-ceo", "tom-controller"] }
+  ],
+  "notion": {
+    "pages": [
+      { "id": "np-001", "title": "Company Wiki", "content": "Welcome to Acme Technologies wiki.\n\n## Quick Links\n- Product Roadmap: see doc-002\n- OKR Tracker: see database okr-tracker\n- Engineering Runbook: see np-002\n- Marketing Calendar: see np-003\n\n## Company Values\n1. Ship with quality\n2. Customer obsession\n3. Radical transparency\n4. Move fast, learn faster", "parent_id": null, "properties": {}, "last_edited": "2026-03-01" },
+      { "id": "np-002", "title": "Engineering Runbook", "content": "# Engineering Runbook\n\n## On-Call Rotation\nWeek of March 29: Marcus Johnson\n\n## Incident Response\n1. Acknowledge in #engineering within 5 min\n2. Page on-call via PagerDuty\n3. Post status update every 30 min\n4. Write postmortem within 48 hours\n\n## Deploy Process\n- PRs require 2 approvals\n- CI must pass (tests + lint)\n- Deploy to staging first, then production\n- Feature flags for all new features", "parent_id": "np-001", "properties": {}, "last_edited": "2026-03-15" },
+      { "id": "np-003", "title": "Marketing Content Calendar", "content": "# Content Calendar — April 2026\n\nWeek 1 (Apr 1-4):\n- Blog: API v3 preview post\n- Social: Contoso case study promotion\n\nWeek 2 (Apr 7-11):\n- Blog: Enterprise security best practices\n- Webinar: Building with Acme APIs\n\nWeek 3 (Apr 14-18):\n- Blog: Self-serve onboarding announcement\n- Email: Product update newsletter\n\nWeek 4 (Apr 21-25):\n- Blog: Developer community spotlight\n- Social: AcmeCon early bird registration", "parent_id": "np-001", "properties": {}, "last_edited": "2026-03-27" }
+    ],
+    "databases": [
+      {
+        "id": "ndb-001",
+        "title": "Product Backlog",
+        "columns": [
+          { "name": "Title", "column_type": "text" },
+          { "name": "Priority", "column_type": "select" },
+          { "name": "Status", "column_type": "select" },
+          { "name": "Sprint", "column_type": "number" },
+          { "name": "Assignee", "column_type": "text" }
+        ],
+        "rows": [
+          { "Title": "SAML integration", "Priority": "P0", "Status": "In Progress", "Sprint": 14, "Assignee": "marcus-backend" },
+          { "Title": "SCIM provisioning", "Priority": "P0", "Status": "In Progress", "Sprint": 14, "Assignee": "lisa-frontend" },
+          { "Title": "Onboarding wizard - step 1", "Priority": "P1", "Status": "In Progress", "Sprint": 14, "Assignee": "ryan-pm" },
+          { "Title": "API key setup guide", "Priority": "P1", "Status": "To Do", "Sprint": 15, "Assignee": "sophie-ux" },
+          { "Title": "Rate limiting v2", "Priority": "P2", "Status": "To Do", "Sprint": 15, "Assignee": "marcus-backend" },
+          { "Title": "Dashboard charts refactor", "Priority": "P3", "Status": "Backlog", "Sprint": null, "Assignee": null }
+        ]
+      },
+      {
+        "id": "ndb-002",
+        "title": "OKR Tracker",
+        "columns": [
+          { "name": "Objective", "column_type": "text" },
+          { "name": "Key Result", "column_type": "text" },
+          { "name": "Owner", "column_type": "text" },
+          { "name": "Progress", "column_type": "number" },
+          { "name": "Status", "column_type": "select" }
+        ],
+        "rows": [
+          { "Objective": "Enterprise PMF", "Key Result": "5 enterprise deals >$100K", "Owner": "michael-sales", "Progress": 0.4, "Status": "On Track" },
+          { "Objective": "Enterprise PMF", "Key Result": "NPS > 50", "Owner": "priya-product", "Progress": 0.3, "Status": "At Risk" },
+          { "Objective": "Enterprise PMF", "Key Result": "Onboarding <2 weeks", "Owner": "ryan-pm", "Progress": 0.2, "Status": "Behind" },
+          { "Objective": "$5M ARR run rate", "Key Result": "MRR $267K to $417K", "Owner": "michael-sales", "Progress": 0.35, "Status": "On Track" },
+          { "Objective": "$5M ARR run rate", "Key Result": "Churn under 3%", "Owner": "hannah-ae", "Progress": 0.5, "Status": "On Track" },
+          { "Objective": "Thought leadership", "Key Result": "12 blog posts", "Owner": "emma-content", "Progress": 0.67, "Status": "On Track" },
+          { "Objective": "Thought leadership", "Key Result": "4 conference talks", "Owner": "sarah-cmo", "Progress": 0.5, "Status": "On Track" },
+          { "Objective": "Burn rate <$400K", "Key Result": "Cloud costs -15%", "Owner": "rachel-vpe", "Progress": 0.4, "Status": "At Risk" },
+          { "Objective": "Burn rate <$400K", "Key Result": "Vendor renegotiation", "Owner": "tom-controller", "Progress": 0.33, "Status": "On Track" }
+        ]
+      }
+    ]
+  },
+  "spreadsheets": [
+    {
+      "id": "ss-001",
+      "name": "Q1 2026 Budget",
+      "sheets": [
+        {
+          "name": "Monthly",
+          "data": [
+            ["Department", "Jan Actual", "Jan Budget", "Feb Actual", "Feb Budget", "Mar Actual", "Mar Budget"],
+            ["Engineering", 165000, 160000, 168000, 160000, 172000, 160000],
+            ["Marketing", 58000, 60000, 62000, 60000, 64000, 60000],
+            ["Sales", 45000, 45000, 47000, 45000, 48000, 45000],
+            ["Finance", 22000, 22000, 22000, 22000, 23000, 22000],
+            ["Product", 35000, 35000, 35000, 35000, 36000, 35000],
+            ["G&A", 52000, 50000, 53000, 50000, 55000, 50000],
+            ["Cloud/Infra", 42000, 44000, 45000, 44000, 52000, 44000],
+            ["Total", 419000, 416000, 432000, 416000, 450000, 416000]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ss-002",
+      "name": "Marketing Metrics",
+      "sheets": [
+        {
+          "name": "Campaigns",
+          "data": [
+            ["Campaign", "Channel", "Spend", "Impressions", "Clicks", "MQLs", "Cost per MQL"],
+            ["Enterprise Launch", "LinkedIn", 12000, 185000, 4200, 312, 38.46],
+            ["Dev Community", "Google Ads", 8000, 120000, 3100, 198, 40.40],
+            ["Case Study Push", "Email", 2000, 45000, 5600, 187, 10.70],
+            ["Conference Sponsorship", "Events", 15000, 50000, null, 150, 100.00]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ss-003",
+      "name": "Revenue Dashboard",
+      "sheets": [
+        {
+          "name": "MRR",
+          "data": [
+            ["Month", "MRR", "New MRR", "Churned MRR", "Net New", "Customers", "Churn Rate"],
+            ["Jan 2026", 256000, 18000, 7000, 11000, 142, "2.7%"],
+            ["Feb 2026", 267000, 16000, 5000, 11000, 148, "1.9%"],
+            ["Mar 2026", 272000, 14000, 9000, 5000, 151, "3.3%"]
+          ]
+        }
+      ]
+    }
+  ]
+}
