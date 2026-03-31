@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-`nearai-bench` — a Rust benchmarking harness for evaluating AI agents across multiple suite types (trajectory, spot, custom, gaia, tau_bench, swe_bench). Extracted from the [ironclaw](https://github.com/nearai/ironclaw) agent framework and depends on it as a library.
+`nearai-bench` — a Rust benchmarking harness for evaluating AI agents across multiple suite types (trajectory, spot, custom, gaia, tau_bench, swe_bench, terminal_bench). Extracted from the [ironclaw](https://github.com/nearai/ironclaw) agent framework and depends on it as a library.
 
 ## Build & Run
 
@@ -65,6 +65,7 @@ Auto-deploys on push to `main` when `results/`, `baselines/`, or `site/` change 
 - `instrumented_llm.rs` — Wraps an `LlmProvider` to track token counts and costs.
 - `channel.rs` — `BenchChannel` implements ironclaw's channel interface to capture agent responses and tool calls.
 - `openclaw.rs` — Docker lifecycle management and HTTP client for running tasks against an OpenClaw gateway container. Creates per-task containers with identity files and auth profiles.
+- `docker.rs` — Shared Docker utilities (build, run, exec, cleanup) used by the Terminal Bench adapter.
 
 **Data layout:**
 - `datasets/{suite}/v{N}/` — versioned benchmark data (JSONL or directories)
@@ -120,6 +121,55 @@ Optional `[openclaw]` section in suite TOML to override defaults:
 image = "openclaw:local"       # Docker image (default: openclaw:local)
 gateway_token = "my-token"     # Gateway auth token (default: bench-token)
 ```
+
+### Terminal Bench
+
+[Terminal Bench](https://github.com/harbor-framework/terminal-bench) evaluates agents on real terminal tasks (compiling code, training models, setting up servers). Each task runs in its own Docker container. The harness builds the container, the agent executes shell commands inside it via `docker exec`, then a test script verifies success.
+
+**Prerequisites:** Docker must be installed and running.
+
+**Dataset setup:**
+```bash
+# Clone Terminal Bench tasks into the datasets directory
+git clone --depth 1 https://github.com/harbor-framework/terminal-bench /tmp/terminal-bench
+cp -r /tmp/terminal-bench/tasks datasets/terminal-bench/v1
+
+# Or point dataset_path directly at a local checkout
+```
+
+Both Harbor/TB2 format (`task.toml` + `instruction.md` + `environment/Dockerfile`) and legacy format (`task.yaml` + `docker-compose.yaml`) are supported.
+
+**Running with ironclaw:**
+```bash
+cargo run -- run --suite terminal_bench --config suites/terminal-bench.toml
+```
+
+The agent gets `shell`, `read_file`, and `write_file` tools that execute inside the task's Docker container transparently.
+
+**Running with openclaw:**
+```bash
+cargo run -- run --suite terminal_bench \
+  --config suites/terminal-bench.toml \
+  --framework openclaw \
+  --model openrouter/anthropic/claude-sonnet-4
+```
+
+For openclaw, the Docker socket is mounted into the openclaw container and the prompt is prepended with instructions to use `docker exec` targeting the task container.
+
+**Suite config options (`suites/terminal-bench.toml`):**
+```toml
+task_timeout = "600s"       # Default per-task timeout
+parallelism = 1             # Docker builds are heavy; keep low
+
+[suite_config]
+dataset_path = "datasets/terminal-bench/v1"
+rebuild_images = false      # Set true to force Docker image rebuilds
+verifier_timeout = "300s"   # Timeout for test scripts
+```
+
+**Scoring:** Tasks are scored via reward files written by test scripts:
+- `/logs/verifier/reward.txt` — single numeric value (1 = pass, 0 = fail)
+- `/logs/verifier/reward.json` — JSON with `{"reward": float}` for fractional scores
 
 ### Comparing Frameworks
 

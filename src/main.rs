@@ -1,6 +1,7 @@
 mod adapters;
 mod channel;
 mod config;
+mod docker;
 mod error;
 mod instrumented_llm;
 mod openclaw;
@@ -204,12 +205,11 @@ async fn main() -> anyhow::Result<()> {
                     )
                 })?;
 
-                let session =
-                    ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
-                        auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
-                        session_path: ironclaw_config.llm.nearai.session_path.clone(),
-                    })
-                    .await;
+                let session = ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
+                    auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
+                    session_path: ironclaw_config.llm.nearai.session_path.clone(),
+                })
+                .await;
 
                 let is_nearai = matches!(
                     ironclaw_config.llm.backend,
@@ -220,13 +220,11 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
-                let safety =
-                    Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
+                let safety = Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }
             };
 
-            let runner =
-                runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
+            let runner = runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
 
             // Run for each matrix entry
             for matrix_entry in &bench_config.matrix {

@@ -142,6 +142,16 @@ pub trait BenchSuite: Send + Sync {
         vec![]
     }
 
+    /// Optional: extra metadata to merge into a task before openclaw execution.
+    /// Used by suites that manage their own containers (e.g., Terminal Bench)
+    /// to pass container IDs to the openclaw runner.
+    async fn openclaw_task_metadata(
+        &self,
+        _task: &BenchTask,
+    ) -> Option<serde_json::Map<String, serde_json::Value>> {
+        None
+    }
+
     /// Multi-turn: generate next simulated user message based on conversation so far.
     /// Return `None` to end the conversation.
     async fn next_user_message(

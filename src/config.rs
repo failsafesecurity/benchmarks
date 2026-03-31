@@ -151,7 +151,7 @@ where
     parse_duration(&s).map_err(serde::de::Error::custom)
 }
 
-fn parse_duration(s: &str) -> Result<Duration, String> {
+pub fn parse_duration(s: &str) -> Result<Duration, String> {
     let s = s.trim();
     if let Some(secs) = s.strip_suffix('s') {
         secs.trim()
