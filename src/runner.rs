@@ -454,14 +454,33 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     let (bench_channel, msg_tx) = BenchChannel::new();
     let capture = bench_channel.capture();
 
+    // Create an isolated working directory for this task so agent-created
+    // files don't pollute the repo root. The temp dir lives until task completion.
+    let task_workdir = tempfile::tempdir().ok();
+    if let Some(ref dir) = task_workdir {
+        tracing::debug!("Task workdir: {}", dir.path().display());
+    }
+
     // Build tool registry
     let tools = Arc::new(ToolRegistry::new());
     tools.register_builtin_tools();
 
-    // Register additional suite-specific tools
+    // Register additional suite-specific tools, replacing ShellTool with one
+    // that uses the isolated working directory.
     for tool in additional_tools {
+        if tool.name() == "shell" {
+            // Skip the adapter's shell — we'll register our own below.
+            continue;
+        }
         tools.register(Arc::clone(tool)).await;
     }
+
+    // Register a ShellTool pointing at the isolated workdir.
+    let mut shell = ironclaw::tools::builtin::ShellTool::new();
+    if let Some(ref dir) = task_workdir {
+        shell = shell.with_working_dir(dir.path().to_path_buf());
+    }
+    tools.register(Arc::new(shell)).await;
 
     // Build agent config (minimal, headless)
     let agent_config = bench_agent_config(&task.id, timeout);
