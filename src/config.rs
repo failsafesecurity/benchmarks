@@ -39,6 +39,10 @@ pub struct BenchConfig {
     #[serde(default = "default_suite_config")]
     pub suite_config: toml::Value,
 
+    /// Automatically generate a post-mortem report after a run with failures.
+    #[serde(default)]
+    pub auto_post_mortem: bool,
+
     /// OpenClaw-specific configuration (only used when framework = "openclaw").
     #[serde(default)]
     pub openclaw: Option<OpenClawConfig>,
@@ -99,6 +103,7 @@ impl BenchConfig {
             parallelism: default_parallelism(),
             framework: default_framework(),
             framework_version: String::new(),
+            auto_post_mortem: false,
             matrix: vec![MatrixEntry { label, model }],
             suite_config: toml::Value::Table(toml::map::Map::new()),
             openclaw: None,

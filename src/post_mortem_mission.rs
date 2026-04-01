@@ -91,6 +91,7 @@ pub enum PostMortemState {
 pub struct PostMortemMission {
     pub id: String,
     pub state: Arc<tokio::sync::RwLock<PostMortemState>>,
+    #[allow(dead_code)]
     pub log_directory: PathBuf,
     pub analysis_config: AnalysisConfig,
     pub event_history: Arc<tokio::sync::RwLock<Vec<DeploymentEvent>>>,
@@ -144,11 +145,13 @@ impl PostMortemMission {
     }
 
     /// Get mission ID
+    #[allow(dead_code)]
     pub fn id(&self) -> &str {
         &self.id
     }
 
     /// Get current state
+    #[allow(dead_code)]
     pub async fn state(&self) -> PostMortemState {
         self.state.read().await.clone()
     }
@@ -611,6 +614,7 @@ impl PostMortemMission {
     }
 
     /// Archive a completed post-mortem report
+    #[allow(dead_code)]
     pub async fn archive_report(&self, report: &PostMortemReport) -> Result<PathBuf, BenchError> {
         let archive_dir = self.log_directory.join("archived");
         fs::create_dir_all(&archive_dir)
@@ -637,11 +641,13 @@ impl PostMortemMission {
     }
 
     /// Get event history
+    #[allow(dead_code)]
     pub async fn get_event_history(&self) -> Vec<DeploymentEvent> {
         self.event_history.read().await.clone()
     }
 
     /// Clear event history
+    #[allow(dead_code)]
     pub async fn clear_history(&self) {
         let mut history = self.event_history.write().await;
         history.clear();
@@ -651,12 +657,14 @@ impl PostMortemMission {
 /// Event-triggered post-mortem analysis handler
 ///
 /// This struct manages the event-driven mission creation and execution
+#[allow(dead_code)]
 pub struct PostMortemEventHandler {
     log_directory: PathBuf,
     config: AnalysisConfig,
     active_missions: Arc<tokio::sync::RwLock<HashMap<String, PostMortemMission>>>,
 }
 
+#[allow(dead_code)]
 impl PostMortemEventHandler {
     /// Create a new event handler
     pub fn new(log_directory: &str) -> Self {
@@ -727,6 +735,7 @@ impl PostMortemEventHandler {
 }
 
 /// Factory function to create a post-mortem mission from event data
+#[allow(dead_code)]
 pub fn create_post_mortem_mission_from_event(
     event: &DeploymentEvent,
     log_dir: &str,
@@ -737,6 +746,250 @@ pub fn create_post_mortem_mission_from_event(
     };
 
     PostMortemMission::new(&mission_id, log_dir)
+}
+
+// ---------------------------------------------------------------------------
+// Benchmark failure analysis bridge
+// ---------------------------------------------------------------------------
+
+use std::collections::BTreeMap;
+use uuid::Uuid;
+
+use crate::results::{RunResult, TaskResult};
+
+/// Aggregate post-mortem analysis for an entire benchmark run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BenchPostMortemReport {
+    pub run_id: Uuid,
+    pub suite_id: String,
+    pub model: String,
+    pub analysis_timestamp: String,
+    pub total_tasks: usize,
+    pub failed_tasks: usize,
+    pub failure_rate: f64,
+    /// Per-task post-mortem reports (only for failures).
+    pub task_reports: Vec<PostMortemReport>,
+    /// Aggregated failure stage counts (timeout, setup, execution, scoring).
+    pub failure_breakdown: BTreeMap<String, usize>,
+    /// Top recommendations across all failures (deduplicated).
+    pub top_recommendations: Vec<String>,
+    /// Failure rates grouped by first tag / category.
+    pub category_failure_rates: BTreeMap<String, f64>,
+}
+
+/// Convert benchmark task failures into DeploymentEvents for analysis.
+fn task_failures_to_events(tasks: &[TaskResult]) -> Vec<DeploymentEvent> {
+    tasks
+        .iter()
+        .filter(|t| t.score.value < 1.0 || t.error.is_some())
+        .map(|t| {
+            let error_message = build_error_summary(t);
+            let pipeline_stage = categorize_failure_stage(t);
+            DeploymentEvent::Failure {
+                deployment_id: t.task_id.clone(),
+                error_message,
+                pipeline_stage,
+                timestamp: t.finished_at.to_rfc3339(),
+                log_path: None,
+            }
+        })
+        .collect()
+}
+
+fn build_error_summary(task: &TaskResult) -> String {
+    let mut parts = Vec::new();
+
+    if let Some(ref err) = task.error {
+        parts.push(format!("Error: {err}"));
+    }
+    if let Some(ref details) = task.score.details {
+        parts.push(format!("Score details: {details}"));
+    }
+    if task.trace.hit_timeout {
+        parts.push(format!("Hit timeout after {}ms", task.trace.wall_time_ms));
+    }
+    if task.trace.hit_iteration_limit {
+        parts.push("Hit iteration limit".to_string());
+    }
+    if !task.response.is_empty() {
+        let truncated: String = task.response.chars().take(300).collect();
+        parts.push(format!("Response (truncated): {truncated}"));
+    }
+    if parts.is_empty() {
+        format!(
+            "Score {:.2} ({}), no error details",
+            task.score.value, task.score.label
+        )
+    } else {
+        parts.join("\n")
+    }
+}
+
+fn categorize_failure_stage(task: &TaskResult) -> String {
+    if task.trace.hit_timeout {
+        "timeout".to_string()
+    } else if task.error.is_some() && task.trace.llm_calls == 0 {
+        "setup".to_string()
+    } else if task.error.is_some() {
+        "execution".to_string()
+    } else {
+        "scoring".to_string()
+    }
+}
+
+/// Run post-mortem analysis on a completed benchmark run.
+pub async fn analyze_benchmark_run(
+    run: &RunResult,
+    tasks: &[TaskResult],
+    config: &AnalysisConfig,
+) -> BenchPostMortemReport {
+    let events = task_failures_to_events(tasks);
+
+    if events.is_empty() {
+        return BenchPostMortemReport {
+            run_id: run.run_id,
+            suite_id: run.suite_id.clone(),
+            model: run.model.clone(),
+            analysis_timestamp: chrono::Utc::now().to_rfc3339(),
+            total_tasks: run.total_tasks,
+            failed_tasks: 0,
+            failure_rate: 0.0,
+            task_reports: vec![],
+            failure_breakdown: BTreeMap::new(),
+            top_recommendations: vec![],
+            category_failure_rates: BTreeMap::new(),
+        };
+    }
+
+    let mission = PostMortemMission::with_config(
+        &format!("bench-pm-{}", run.run_id),
+        ".", // log dir unused for benchmark analysis
+        config.clone(),
+    );
+
+    let mut task_reports = Vec::new();
+    for event in events {
+        match mission.handle_event(event).await {
+            Ok(report) => task_reports.push(report),
+            Err(e) => tracing::warn!("Post-mortem analysis failed for event: {e}"),
+        }
+    }
+
+    // Aggregate failure stages
+    let mut failure_breakdown: BTreeMap<String, usize> = BTreeMap::new();
+    for report in &task_reports {
+        if let DeploymentEvent::Failure { pipeline_stage, .. } = &report.event {
+            *failure_breakdown.entry(pipeline_stage.clone()).or_default() += 1;
+        }
+    }
+
+    // Deduplicated top recommendations (max 10)
+    let mut seen_recs = std::collections::HashSet::new();
+    let mut top_recommendations = Vec::new();
+    for report in &task_reports {
+        for rec in &report.recommendations {
+            if seen_recs.insert(rec.clone()) {
+                top_recommendations.push(rec.clone());
+                if top_recommendations.len() >= 10 {
+                    break;
+                }
+            }
+        }
+        if top_recommendations.len() >= 10 {
+            break;
+        }
+    }
+
+    // Per-category failure rates from task tags
+    let mut cat_total: BTreeMap<String, usize> = BTreeMap::new();
+    let mut cat_fail: BTreeMap<String, usize> = BTreeMap::new();
+    for task in tasks {
+        let cat = task.tags.first().cloned().unwrap_or_default();
+        if cat.is_empty() {
+            continue;
+        }
+        *cat_total.entry(cat.clone()).or_default() += 1;
+        if task.score.value < 1.0 {
+            *cat_fail.entry(cat).or_default() += 1;
+        }
+    }
+    let category_failure_rates: BTreeMap<String, f64> = cat_total
+        .into_iter()
+        .map(|(cat, total)| {
+            let fails = *cat_fail.get(&cat).unwrap_or(&0);
+            (cat, fails as f64 / total as f64)
+        })
+        .collect();
+
+    BenchPostMortemReport {
+        run_id: run.run_id,
+        suite_id: run.suite_id.clone(),
+        model: run.model.clone(),
+        analysis_timestamp: chrono::Utc::now().to_rfc3339(),
+        total_tasks: run.total_tasks,
+        failed_tasks: task_reports.len(),
+        failure_rate: if run.total_tasks == 0 {
+            0.0
+        } else {
+            task_reports.len() as f64 / run.total_tasks as f64
+        },
+        task_reports,
+        failure_breakdown,
+        top_recommendations,
+        category_failure_rates,
+    }
+}
+
+/// Print a human-readable post-mortem summary to stdout.
+pub fn print_post_mortem_summary(report: &BenchPostMortemReport) {
+    println!();
+    println!(
+        "Post-Mortem: {} | Suite: {} | Model: {}",
+        report.run_id, report.suite_id, report.model
+    );
+    println!(
+        "Failures: {}/{} ({:.1}%)",
+        report.failed_tasks,
+        report.total_tasks,
+        report.failure_rate * 100.0
+    );
+
+    if !report.failure_breakdown.is_empty() {
+        println!();
+        println!("{:<20} {:>6} {:>8}", "Failure Stage", "Count", "Pct");
+        println!("{}", "-".repeat(36));
+        for (stage, count) in &report.failure_breakdown {
+            let pct = if report.failed_tasks > 0 {
+                *count as f64 / report.failed_tasks as f64 * 100.0
+            } else {
+                0.0
+            };
+            println!("{:<20} {:>6} {:>7.1}%", stage, count, pct);
+        }
+    }
+
+    if !report.category_failure_rates.is_empty() {
+        println!();
+        println!("{:<25} {:>8}", "Category", "Fail%");
+        println!("{}", "-".repeat(35));
+        for (cat, rate) in &report.category_failure_rates {
+            let display = if cat.len() > 23 {
+                format!("{}...", &cat[..20])
+            } else {
+                cat.clone()
+            };
+            println!("{:<25} {:>7.1}%", display, rate * 100.0);
+        }
+    }
+
+    if !report.top_recommendations.is_empty() {
+        println!();
+        println!("Top Recommendations:");
+        for (i, rec) in report.top_recommendations.iter().enumerate() {
+            println!("  {}. {}", i + 1, rec);
+        }
+    }
+    println!();
 }
 
 #[cfg(test)]

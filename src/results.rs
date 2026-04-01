@@ -277,6 +277,11 @@ pub fn run_json_path(base: &Path, run_id: Uuid) -> PathBuf {
     run_dir(base, run_id).join("run.json")
 }
 
+/// Get the post-mortem JSON path for a run.
+pub fn post_mortem_json_path(base: &Path, run_id: Uuid) -> PathBuf {
+    run_dir(base, run_id).join("post_mortem.json")
+}
+
 /// Find the latest run directory by the modification time of its `run.json`.
 ///
 /// Falls back to `tasks.jsonl` mtime, then directory mtime. This avoids the

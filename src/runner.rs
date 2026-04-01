@@ -388,6 +388,34 @@ impl BenchRunner {
             run_result.total_cost_usd,
         );
 
+        // Auto post-mortem hook
+        if self.config.auto_post_mortem && run_result.pass_rate < 1.0 {
+            tracing::info!("Generating post-mortem analysis...");
+            let pm_config = crate::post_mortem_mission::AnalysisConfig {
+                confidence_threshold: 0.3,
+                ..Default::default()
+            };
+            let pm_report = crate::post_mortem_mission::analyze_benchmark_run(
+                &run_result,
+                &all_for_aggregate,
+                &pm_config,
+            )
+            .await;
+
+            let pm_path = dir.join("post_mortem.json");
+            match serde_json::to_string_pretty(&pm_report) {
+                Ok(json) => {
+                    if let Err(e) = std::fs::write(&pm_path, json) {
+                        tracing::warn!("Failed to write post-mortem: {e}");
+                    } else {
+                        tracing::info!("Post-mortem written to {}", pm_path.display());
+                        crate::post_mortem_mission::print_post_mortem_summary(&pm_report);
+                    }
+                }
+                Err(e) => tracing::warn!("Failed to serialize post-mortem: {e}"),
+            }
+        }
+
         Ok(run_id)
     }
 }

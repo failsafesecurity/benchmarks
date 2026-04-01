@@ -6,7 +6,6 @@ mod instrumented_llm;
 #[allow(dead_code)]
 mod mission;
 mod openclaw;
-#[allow(dead_code)]
 mod post_mortem_mission;
 mod results;
 mod runner;
@@ -85,9 +84,32 @@ enum Commands {
         #[arg(long)]
         ironclaw_rev: Option<String>,
 
+        /// Auto-generate post-mortem analysis if there are failures.
+        #[arg(long)]
+        auto_post_mortem: bool,
+
         /// Resume a previous run by ID.
         #[arg(long)]
         resume: Option<Uuid>,
+    },
+
+    /// Analyze failures from a completed benchmark run.
+    PostMortem {
+        /// Run ID or "latest".
+        #[arg(default_value = "latest")]
+        run_id: String,
+
+        /// Output format.
+        #[arg(long, default_value = "table")]
+        format: PostMortemFormat,
+
+        /// Override results directory.
+        #[arg(long)]
+        results_dir: Option<PathBuf>,
+
+        /// Force re-analysis even if post_mortem.json already exists.
+        #[arg(long)]
+        force: bool,
     },
 
     /// Show results for a run.
@@ -199,6 +221,12 @@ enum ResultsFormat {
     Csv,
 }
 
+#[derive(Clone, Debug, clap::ValueEnum)]
+enum PostMortemFormat {
+    Table,
+    Json,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Load .env from current directory before anything else.
@@ -240,6 +268,7 @@ async fn main() -> anyhow::Result<()> {
             framework,
             framework_version,
             ironclaw_rev,
+            auto_post_mortem,
             resume,
         } => {
             // If --ironclaw-rev is set, rebuild with that ref and re-exec.
@@ -276,6 +305,10 @@ async fn main() -> anyhow::Result<()> {
             } else {
                 bench_config.results_dir =
                     PathBuf::from(format!("./results/{}", bench_config.framework));
+            }
+
+            if auto_post_mortem {
+                bench_config.auto_post_mortem = true;
             }
 
             // If model override specified and we have matrix entries, update them
@@ -385,6 +418,51 @@ async fn main() -> anyhow::Result<()> {
                             task.trace.wall_time_ms as f64 / 1000.0,
                         );
                     }
+                }
+            }
+        }
+        Commands::PostMortem {
+            run_id,
+            format,
+            results_dir,
+            force,
+        } => {
+            let base = results_dir.unwrap_or_else(|| find_results_base("./results"));
+            let uuid = if run_id == "latest" {
+                results::find_latest_run(&base)?
+                    .ok_or_else(|| anyhow::anyhow!("No runs found in {}", base.display()))?
+            } else {
+                Uuid::parse_str(&run_id)?
+            };
+
+            let pm_path = results::post_mortem_json_path(&base, uuid);
+
+            // Use cached report unless --force
+            let report = if pm_path.exists() && !force {
+                tracing::info!("Loading cached post-mortem from {}", pm_path.display());
+                let json = std::fs::read_to_string(&pm_path)?;
+                serde_json::from_str(&json)?
+            } else {
+                let run = results::read_run_result(&results::run_json_path(&base, uuid))?;
+                let tasks = results::read_task_results(&results::tasks_jsonl_path(&base, uuid))?;
+                let config = post_mortem_mission::AnalysisConfig {
+                    confidence_threshold: 0.3,
+                    ..Default::default()
+                };
+                let pm = post_mortem_mission::analyze_benchmark_run(&run, &tasks, &config).await;
+
+                // Cache for next time
+                let json = serde_json::to_string_pretty(&pm)?;
+                std::fs::write(&pm_path, json)?;
+                pm
+            };
+
+            match format {
+                PostMortemFormat::Table => {
+                    post_mortem_mission::print_post_mortem_summary(&report);
+                }
+                PostMortemFormat::Json => {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
                 }
             }
         }
