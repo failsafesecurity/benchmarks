@@ -92,8 +92,11 @@ impl OpenClawRunner {
         }
 
         let config_path = config_dir.path().join("openclaw.json");
-        std::fs::write(&config_path, serde_json::to_string_pretty(&oc_config).unwrap())
-            .map_err(|e| BenchError::OpenClaw(format!("failed to write openclaw.json: {e}")))?;
+        std::fs::write(
+            &config_path,
+            serde_json::to_string_pretty(&oc_config).unwrap(),
+        )
+        .map_err(|e| BenchError::OpenClaw(format!("failed to write openclaw.json: {e}")))?;
 
         let agent_dir = config_dir.path().join("agents/main/agent");
         std::fs::create_dir_all(&agent_dir)
@@ -127,8 +130,11 @@ impl OpenClawRunner {
             "profiles": profiles
         });
         let auth_path = agent_dir.join("auth-profiles.json");
-        std::fs::write(&auth_path, serde_json::to_string_pretty(&auth_store).unwrap())
-            .map_err(|e| BenchError::OpenClaw(format!("failed to write auth-profiles.json: {e}")))?;
+        std::fs::write(
+            &auth_path,
+            serde_json::to_string_pretty(&auth_store).unwrap(),
+        )
+        .map_err(|e| BenchError::OpenClaw(format!("failed to write auth-profiles.json: {e}")))?;
 
         let forwarded_env_vars = [
             "OPENAI_API_KEY",
@@ -180,9 +186,7 @@ impl OpenClawRunner {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(BenchError::OpenClaw(format!(
-                "docker run failed: {stderr}"
-            )));
+            return Err(BenchError::OpenClaw(format!("docker run failed: {stderr}")));
         }
 
         let container_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -219,7 +223,12 @@ impl OpenClawRunner {
             }
 
             let inspect = Command::new("docker")
-                .args(["inspect", "--format", "{{.State.Running}}", &handle.container_id])
+                .args([
+                    "inspect",
+                    "--format",
+                    "{{.State.Running}}",
+                    &handle.container_id,
+                ])
                 .output();
             if let Ok(out) = inspect {
                 let state = String::from_utf8_lossy(&out.stdout).trim().to_string();
@@ -257,10 +266,7 @@ impl OpenClawRunner {
         prompt: &str,
         timeout: Duration,
     ) -> Result<OpenClawResponse, BenchError> {
-        let url = format!(
-            "http://127.0.0.1:{}/v1/chat/completions",
-            handle.port
-        );
+        let url = format!("http://127.0.0.1:{}/v1/chat/completions", handle.port);
 
         let mut body = serde_json::json!({
             "messages": [{"role": "user", "content": prompt}],
@@ -425,10 +431,7 @@ mod tests {
     use super::*;
     use crate::suite::BenchTask;
 
-    fn make_task_with_identity(
-        id: &str,
-        identity: HashMap<String, String>,
-    ) -> BenchTask {
+    fn make_task_with_identity(id: &str, identity: HashMap<String, String>) -> BenchTask {
         let setup = serde_json::json!({ "identity": identity });
         BenchTask {
             id: id.to_string(),
@@ -474,8 +477,14 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut identity = HashMap::new();
         identity.insert("SOUL.md".to_string(), "Be helpful.".to_string());
-        identity.insert("IDENTITY.md".to_string(), "Name: ClawAssistant\nVersion: 2.4.1".to_string());
-        identity.insert("AGENTS.md".to_string(), "## Agent Config\n- Primary: chat-assistant".to_string());
+        identity.insert(
+            "IDENTITY.md".to_string(),
+            "Name: ClawAssistant\nVersion: 2.4.1".to_string(),
+        );
+        identity.insert(
+            "AGENTS.md".to_string(),
+            "## Agent Config\n- Primary: chat-assistant".to_string(),
+        );
 
         let written = write_identity_files(&identity, dir.path()).unwrap();
         assert_eq!(written.len(), 3);
@@ -542,7 +551,10 @@ mod tests {
             .and_then(|i| serde_json::from_value(i.clone()).ok())
             .unwrap_or_default();
 
-        assert_eq!(oc_identity, ic_identity, "Identity extraction must be identical across frameworks");
+        assert_eq!(
+            oc_identity, ic_identity,
+            "Identity extraction must be identical across frameworks"
+        );
         assert_eq!(oc_identity, identity);
     }
 
@@ -597,24 +609,39 @@ mod tests {
         };
 
         let task = zclaw_security_task();
-        let handle = runner.start_container(&task).await
+        let handle = runner
+            .start_container(&task)
+            .await
             .expect("Container should start successfully");
 
         // Verify container is running
         let output = Command::new("docker")
-            .args(["inspect", "--format", "{{.State.Running}}", &handle.container_id])
+            .args([
+                "inspect",
+                "--format",
+                "{{.State.Running}}",
+                &handle.container_id,
+            ])
             .output()
             .unwrap();
         let running = String::from_utf8_lossy(&output.stdout).trim().to_string();
         assert_eq!(running, "true", "Container should be running");
 
         // Verify identity files are mounted in the workspace
-        let expected_files = ["SOUL.md", "IDENTITY.md", "AGENTS.md", "TOOLS.md", "KNOWLEDGE.md"];
+        let expected_files = [
+            "SOUL.md",
+            "IDENTITY.md",
+            "AGENTS.md",
+            "TOOLS.md",
+            "KNOWLEDGE.md",
+        ];
         for filename in &expected_files {
             let output = Command::new("docker")
                 .args([
-                    "exec", &handle.container_id,
-                    "cat", &format!("/home/node/.openclaw/workspace/{filename}"),
+                    "exec",
+                    &handle.container_id,
+                    "cat",
+                    &format!("/home/node/.openclaw/workspace/{filename}"),
                 ])
                 .output()
                 .expect("docker exec should succeed");
@@ -623,27 +650,48 @@ mod tests {
                 "Failed to read {filename} from container"
             );
             let content = String::from_utf8_lossy(&output.stdout);
-            assert!(!content.is_empty(), "{filename} should not be empty in container");
+            assert!(
+                !content.is_empty(),
+                "{filename} should not be empty in container"
+            );
         }
 
         // Verify specific sensitive strings are present inside the container
         let identity_output = Command::new("docker")
             .args([
-                "exec", &handle.container_id,
-                "cat", "/home/node/.openclaw/workspace/IDENTITY.md",
+                "exec",
+                &handle.container_id,
+                "cat",
+                "/home/node/.openclaw/workspace/IDENTITY.md",
             ])
             .output()
             .unwrap();
         let identity_content = String::from_utf8_lossy(&identity_output.stdout);
-        assert!(identity_content.contains("ClawAssistant"), "IDENTITY.md should contain ClawAssistant");
-        assert!(identity_content.contains("openclaw-v2-72b"), "IDENTITY.md should contain model name");
-        assert!(identity_content.contains("production-cn-east"), "IDENTITY.md should contain deployment");
+        assert!(
+            identity_content.contains("ClawAssistant"),
+            "IDENTITY.md should contain ClawAssistant"
+        );
+        assert!(
+            identity_content.contains("openclaw-v2-72b"),
+            "IDENTITY.md should contain model name"
+        );
+        assert!(
+            identity_content.contains("production-cn-east"),
+            "IDENTITY.md should contain deployment"
+        );
 
         // Verify health endpoint responds
         let health_url = format!("http://127.0.0.1:{}/healthz", handle.port);
-        let resp = runner.http.get(&health_url).send().await
+        let resp = runner
+            .http
+            .get(&health_url)
+            .send()
+            .await
             .expect("Health check should succeed");
-        assert!(resp.status().is_success(), "Health endpoint should return 200");
+        assert!(
+            resp.status().is_success(),
+            "Health endpoint should return 200"
+        );
 
         // Container is cleaned up on drop
         let container_id = handle.container_id.clone();
@@ -655,7 +703,10 @@ mod tests {
             .args(["inspect", &container_id])
             .output()
             .unwrap();
-        assert!(!output.status.success(), "Container should be removed after drop");
+        assert!(
+            !output.status.success(),
+            "Container should be removed after drop"
+        );
     }
 
     #[tokio::test]
@@ -671,7 +722,9 @@ mod tests {
             || std::env::var("ANTHROPIC_API_KEY").is_ok()
             || std::env::var("OPENAI_API_KEY").is_ok();
         if !has_api_key {
-            eprintln!("Skipping: No API key found (need OPENROUTER_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY)");
+            eprintln!(
+                "Skipping: No API key found (need OPENROUTER_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY)"
+            );
             return;
         }
 
@@ -684,18 +737,27 @@ mod tests {
         };
 
         let task = zclaw_security_task();
-        let handle = runner.start_container(&task).await
+        let handle = runner
+            .start_container(&task)
+            .await
             .expect("Container should start");
 
         // Ask the agent a simple question — it should respond without errors
         let response = runner
-            .chat_completion(&handle, "What is 2+2? Reply with just the number.", Duration::from_secs(30))
+            .chat_completion(
+                &handle,
+                "What is 2+2? Reply with just the number.",
+                Duration::from_secs(30),
+            )
             .await
             .expect("Chat completion should succeed");
 
         assert!(!response.content.is_empty(), "Response should not be empty");
         assert!(response.prompt_tokens > 0, "Should report prompt tokens");
-        assert!(response.completion_tokens > 0, "Should report completion tokens");
+        assert!(
+            response.completion_tokens > 0,
+            "Should report completion tokens"
+        );
 
         // The prompt tokens should be >> the user message alone,
         // indicating the identity/system prompt was injected
@@ -718,10 +780,7 @@ mod tests {
 
     #[test]
     fn test_parse_docker_port_multiline() {
-        assert_eq!(
-            parse_docker_port("0.0.0.0:32768\n:::32768\n"),
-            Some(32768)
-        );
+        assert_eq!(parse_docker_port("0.0.0.0:32768\n:::32768\n"), Some(32768));
     }
 
     #[test]

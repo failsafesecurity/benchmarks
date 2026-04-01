@@ -6,6 +6,8 @@ mod instrumented_llm;
 #[allow(dead_code)]
 mod mission;
 mod openclaw;
+#[allow(dead_code)]
+mod post_mortem_mission;
 mod results;
 mod runner;
 mod scoring;
@@ -307,10 +309,8 @@ async fn main() -> anyhow::Result<()> {
                 })?;
 
                 let session =
-                    ironclaw::llm::create_session_manager(
-                        ironclaw::llm::SessionConfig::default(),
-                    )
-                    .await;
+                    ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig::default())
+                        .await;
 
                 let is_nearai = ironclaw_config.llm.backend == "nearai"
                     || ironclaw_config.llm.backend == "near_ai";
@@ -321,13 +321,11 @@ async fn main() -> anyhow::Result<()> {
                 let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to create LLM provider: {e}"))?;
-                let safety =
-                    Arc::new(ironclaw_safety::SafetyLayer::new(&ironclaw_config.safety));
+                let safety = Arc::new(ironclaw_safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }
             };
 
-            let runner =
-                runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
+            let runner = runner::BenchRunner::new(bench_suite, bench_config.clone(), framework);
 
             // Run for each matrix entry
             for matrix_entry in &bench_config.matrix {
@@ -451,10 +449,7 @@ async fn main() -> anyhow::Result<()> {
             let base_ver = short_version(&baseline_run.framework_version);
             let comp_ver = short_version(&comparison_run.framework_version);
             if !base_ver.is_empty() || !comp_ver.is_empty() {
-                println!(
-                    "{:<20} {:>12} {:>12}",
-                    "Framework ver", base_ver, comp_ver,
-                );
+                println!("{:<20} {:>12} {:>12}", "Framework ver", base_ver, comp_ver,);
             }
 
             // Per-category comparison
@@ -546,9 +541,7 @@ fn rebuild_and_exec(rev: &str) -> anyhow::Result<()> {
 
     // Build (debug profile to reduce memory pressure; release builds OOM on constrained machines)
     eprintln!("Building with ironclaw @ {rev} ...");
-    let build_status = std::process::Command::new("cargo")
-        .args(["build"])
-        .status();
+    let build_status = std::process::Command::new("cargo").args(["build"]).status();
 
     // Always restore the original Cargo.toml, even if build fails
     std::fs::write(&cargo_toml, &original)?;
@@ -604,8 +597,9 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
             alert_on_failure,
             webhook,
         } => {
-            let mission_id = id.unwrap_or_else(|| format!("deploy-{}", chrono::Utc::now().timestamp()));
-            
+            let mission_id =
+                id.unwrap_or_else(|| format!("deploy-{}", chrono::Utc::now().timestamp()));
+
             let config = MissionConfig {
                 mission_id: mission_id.clone(),
                 deployment_url: url,
@@ -615,7 +609,7 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
             };
 
             let _mission = mission::create_mission_from_config(&config);
-            
+
             println!("Created mission: {}", mission_id);
             println!("  URL: {}", config.deployment_url);
             println!("  Interval: {} hours", config.check_interval_hours);
@@ -623,7 +617,10 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
             if let Some(webhook) = config.webhook_url {
                 println!("  Webhook: {}", webhook);
             }
-            println!("\nTo start monitoring: nearai-bench mission start --id {}", mission_id);
+            println!(
+                "\nTo start monitoring: nearai-bench mission start --id {}",
+                mission_id
+            );
             println!("To pause: nearai-bench mission pause --id {}", mission_id);
         }
 
@@ -658,7 +655,9 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
             println!("Active missions:");
             println!("  (Mission persistence not implemented in this demo)");
             println!("\nExample usage:");
-            println!("  Create: nearai-bench mission create --url https://deploy.example.com --interval-hours 2");
+            println!(
+                "  Create: nearai-bench mission create --url https://deploy.example.com --interval-hours 2"
+            );
             println!("  Start:  nearai-bench mission start --id <mission-id>");
             println!("  Pause:  nearai-bench mission pause --id <mission-id>");
             println!("  Resume: nearai-bench mission resume --id <mission-id>");
@@ -669,9 +668,9 @@ async fn handle_mission_command(cmd: MissionCommands) -> anyhow::Result<()> {
             println!("Monitoring deployment every 2 hours");
             println!("\nTo pause: nearai-bench mission pause --id {}", id);
             println!("To resume: nearai-bench mission resume --id {}", id);
-            
+
             let mission = DeploymentMission::new(&id, "https://deploy.example.com", 2.0);
-            
+
             // Run in background so we can demonstrate pause/resume
             let mission_clone = mission.clone();
             let handle = tokio::spawn(async move {
@@ -725,7 +724,7 @@ fn find_results_base(root: &str) -> PathBuf {
                 let run_json = results::run_json_path(&fw_dir, uuid);
                 if let Ok(meta) = std::fs::metadata(&run_json) {
                     if let Ok(modified) = meta.modified() {
-                        if best.as_ref().map_or(true, |(_, t)| modified > *t) {
+                        if best.as_ref().is_none_or(|(_, t)| modified > *t) {
                             best = Some((fw_dir, modified));
                         }
                     }

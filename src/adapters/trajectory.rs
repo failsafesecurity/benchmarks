@@ -258,18 +258,18 @@ impl TrajectorySuite {
             if turn.user_input.is_empty() {
                 if let Some(ref file) = turn.user_input_file {
                     let file_path = base_dir.join(file);
-                    turn.user_input =
-                        std::fs::read_to_string(&file_path).map_err(|e| {
-                            BenchError::Config(format!(
-                                "failed to read user_input_file {}: {}",
-                                file_path.display(),
-                                e
-                            ))
-                        })?;
+                    turn.user_input = std::fs::read_to_string(&file_path).map_err(|e| {
+                        BenchError::Config(format!(
+                            "failed to read user_input_file {}: {}",
+                            file_path.display(),
+                            e
+                        ))
+                    })?;
                 } else {
                     return Err(BenchError::Config(format!(
                         "turn {} in {} has neither user_input nor user_input_file",
-                        i, path.display()
+                        i,
+                        path.display()
                     )));
                 }
             }
@@ -741,7 +741,11 @@ mod tests {
     async fn test_user_input_file() {
         let dir = tempfile::tempdir().unwrap();
 
-        std::fs::write(dir.path().join("prompt.md"), "What is the capital of France?").unwrap();
+        std::fs::write(
+            dir.path().join("prompt.md"),
+            "What is the capital of France?",
+        )
+        .unwrap();
 
         let path = dir.path().join("test.json");
         let mut file = std::fs::File::create(&path).unwrap();
@@ -809,19 +813,20 @@ mod tests {
         )
         .unwrap();
 
-        let suite = TrajectorySuite::new(
-            scenario_dir.path(),
-            Some(ws_dir.path().to_path_buf()),
-        );
+        let suite = TrajectorySuite::new(scenario_dir.path(), Some(ws_dir.path().to_path_buf()));
         let tasks = suite.load_tasks().await.unwrap();
 
         // Extract merged identity from metadata
-        let identity: HashMap<String, String> = serde_json::from_value(
-            tasks[0].metadata["setup"]["identity"].clone(),
-        )
-        .unwrap();
+        let identity: HashMap<String, String> =
+            serde_json::from_value(tasks[0].metadata["setup"]["identity"].clone()).unwrap();
 
-        assert_eq!(identity["SOUL.md"], "Overridden soul.", "Scenario should override base");
-        assert_eq!(identity["IDENTITY.md"], "Base identity.", "Base should be preserved");
+        assert_eq!(
+            identity["SOUL.md"], "Overridden soul.",
+            "Scenario should override base"
+        );
+        assert_eq!(
+            identity["IDENTITY.md"], "Base identity.",
+            "Base should be preserved"
+        );
     }
 }

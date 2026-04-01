@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::time::interval;
 
@@ -50,7 +50,7 @@ impl DeploymentMission {
     /// Create a new deployment monitoring mission
     pub fn new(id: &str, deployment_url: &str, interval_hours: f64) -> Self {
         let interval_seconds = (interval_hours * 3600.0) as u64;
-        
+
         Self {
             id: id.to_string(),
             state: Arc::new(AtomicMissionState::new(true)),
@@ -99,7 +99,7 @@ impl DeploymentMission {
     /// Run the mission monitoring loop
     pub async fn run(&self) -> Result<(), BenchError> {
         let mut ticker = interval(Duration::from_secs(self.interval_seconds));
-        
+
         tracing::info!(
             "Starting deployment mission '{}' - monitoring {} every {} hours",
             self.id,
@@ -132,7 +132,7 @@ impl DeploymentMission {
     async fn check_deployment(&self) -> Result<DeploymentStatus, BenchError> {
         // Simulated deployment check
         // In production, this would make HTTP requests to deployment endpoints
-        
+
         let status = DeploymentStatus {
             url: self.deployment_url.clone(),
             healthy: true,
@@ -230,7 +230,11 @@ impl Default for MissionConfig {
 
 /// Create a mission from configuration
 pub fn create_mission_from_config(config: &MissionConfig) -> DeploymentMission {
-    DeploymentMission::new(&config.mission_id, &config.deployment_url, config.check_interval_hours)
+    DeploymentMission::new(
+        &config.mission_id,
+        &config.deployment_url,
+        config.check_interval_hours,
+    )
 }
 
 #[cfg(test)]
@@ -240,7 +244,7 @@ mod tests {
     #[test]
     fn test_mission_lifecycle() {
         let mission = DeploymentMission::new("test-1", "https://deploy.example.com", 2.0);
-        
+
         // Start running
         assert_eq!(mission.state(), MissionState::Running);
         assert!(mission.is_active());
@@ -267,7 +271,7 @@ mod tests {
         let monitor = mission.create_monitor();
 
         assert_eq!(monitor.state(), MissionState::Running);
-        
+
         monitor.pause();
         assert_eq!(monitor.state(), MissionState::Paused);
 
@@ -278,7 +282,7 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = MissionConfig::default();
-        
+
         assert!(config.mission_id.starts_with("deploy-monitor-"));
         assert_eq!(config.check_interval_hours, 2.0);
         assert!(config.alert_on_failure);

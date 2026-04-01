@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -154,7 +154,10 @@ impl PostMortemMission {
     }
 
     /// Record an event and trigger analysis if it's a failure
-    pub async fn handle_event(&self, event: DeploymentEvent) -> Result<PostMortemReport, BenchError> {
+    pub async fn handle_event(
+        &self,
+        event: DeploymentEvent,
+    ) -> Result<PostMortemReport, BenchError> {
         // Record event in history
         {
             let mut history = self.event_history.write().await;
@@ -167,12 +170,12 @@ impl PostMortemMission {
                 self.set_state(PostMortemState::Analyzing).await;
                 let report = self.analyze_failure(event).await?;
                 self.set_state(PostMortemState::ReportGenerated).await;
-                
+
                 // Send webhook notification if configured
                 if let Some(webhook) = &self.analysis_config.webhook_url {
                     self.send_webhook(&report, webhook).await?;
                 }
-                
+
                 Ok(report)
             }
             _ => {
@@ -194,20 +197,31 @@ impl PostMortemMission {
     async fn set_state(&self, state: PostMortemState) {
         let mut current = self.state.write().await;
         *current = state.clone();
-        tracing::info!("Post-mortem mission {} state changed to {:?}", self.id, state);
+        tracing::info!(
+            "Post-mortem mission {} state changed to {:?}",
+            self.id,
+            state
+        );
     }
 
     /// Analyze a deployment failure event
-    async fn analyze_failure(&self, event: DeploymentEvent) -> Result<PostMortemReport, BenchError> {
+    async fn analyze_failure(
+        &self,
+        event: DeploymentEvent,
+    ) -> Result<PostMortemReport, BenchError> {
         tracing::info!("Analyzing deployment failure for mission {}", self.id);
 
-        let (deployment_id, error_message, log_path) = match &event {
+        let (_deployment_id, error_message, log_path) = match &event {
             DeploymentEvent::Failure {
                 deployment_id,
                 error_message,
                 log_path,
                 ..
-            } => (deployment_id.clone(), error_message.clone(), log_path.clone()),
+            } => (
+                deployment_id.clone(),
+                error_message.clone(),
+                log_path.clone(),
+            ),
             _ => return Err(BenchError::Config("Expected failure event".to_string())),
         };
 
@@ -219,9 +233,13 @@ impl PostMortemMission {
         };
 
         // Perform root cause analysis
-        let root_causes = self.identify_root_causes(&error_message, &log_content).await;
+        let root_causes = self
+            .identify_root_causes(&error_message, &log_content)
+            .await;
         let error_patterns = self.extract_error_patterns(&log_content).await;
-        let recommendations = self.generate_recommendations(&root_causes, &error_patterns).await;
+        let recommendations = self
+            .generate_recommendations(&root_causes, &error_patterns)
+            .await;
         let severity = self.calculate_severity(&error_message, &root_causes);
         let affected_services = self.identify_affected_services(&error_message, &log_content);
 
@@ -239,12 +257,13 @@ impl PostMortemMission {
     /// Read logs from a file or directory
     async fn read_logs(&self, log_path: &str) -> Result<String, BenchError> {
         let path = PathBuf::from(log_path);
-        
+
         if path.is_file() {
             let content = fs::read_to_string(&path)
                 .await
                 .map_err(|e| BenchError::Config(format!("Failed to read log file: {}", e)))?;
-            Ok(content.lines()
+            Ok(content
+                .lines()
                 .take(self.analysis_config.max_log_lines)
                 .collect::<Vec<_>>()
                 .join("\n"))
@@ -254,8 +273,10 @@ impl PostMortemMission {
             let mut entries = fs::read_dir(&path)
                 .await
                 .map_err(|e| BenchError::Config(format!("Failed to read log directory: {}", e)))?;
-            
-            while let Some(entry) = entries.next_entry().await
+
+            while let Some(entry) = entries
+                .next_entry()
+                .await
                 .map_err(|e| BenchError::Config(format!("Failed to read directory entry: {}", e)))?
             {
                 let entry_path: std::path::PathBuf = entry.path();
@@ -265,7 +286,7 @@ impl PostMortemMission {
                     }
                 }
             }
-            
+
             Ok(logs.join("\n"))
         } else {
             Ok(String::new())
@@ -273,72 +294,111 @@ impl PostMortemMission {
     }
 
     /// Identify root causes from error message and logs
-    async fn identify_root_causes(&self, error_message: &str, log_content: &str) -> Vec<SuggestedFix> {
+    async fn identify_root_causes(
+        &self,
+        error_message: &str,
+        log_content: &str,
+    ) -> Vec<SuggestedFix> {
         let mut fixes = Vec::new();
-        
+
         // Pattern matching for common deployment failures
         let patterns: HashMap<&str, (RootCauseCategory, &str, Vec<String>)> = [
             (
                 "connection refused",
-                (RootCauseCategory::NetworkIssue, "Service connectivity failure", vec![
-                    "Check if the target service is running".to_string(),
-                    "Verify network policies and firewalls".to_string(),
-                    "Confirm service endpoints are correct".to_string(),
-                ]),
+                (
+                    RootCauseCategory::NetworkIssue,
+                    "Service connectivity failure",
+                    vec![
+                        "Check if the target service is running".to_string(),
+                        "Verify network policies and firewalls".to_string(),
+                        "Confirm service endpoints are correct".to_string(),
+                    ],
+                ),
             ),
             (
                 "timeout",
-                (RootCauseCategory::InfrastructureProblem, "Request timeout detected", vec![
-                    "Increase timeout thresholds if appropriate".to_string(),
-                    "Check system resource utilization".to_string(),
-                    "Review service performance metrics".to_string(),
-                ]),
+                (
+                    RootCauseCategory::InfrastructureProblem,
+                    "Request timeout detected",
+                    vec![
+                        "Increase timeout thresholds if appropriate".to_string(),
+                        "Check system resource utilization".to_string(),
+                        "Review service performance metrics".to_string(),
+                    ],
+                ),
             ),
             (
                 "permission denied",
-                (RootCauseCategory::ConfigurationIssue, "Permission or access control issue", vec![
-                    "Verify IAM roles and permissions".to_string(),
-                    "Check file system permissions".to_string(),
-                    "Review service account configurations".to_string(),
-                ]),
+                (
+                    RootCauseCategory::ConfigurationIssue,
+                    "Permission or access control issue",
+                    vec![
+                        "Verify IAM roles and permissions".to_string(),
+                        "Check file system permissions".to_string(),
+                        "Review service account configurations".to_string(),
+                    ],
+                ),
             ),
             (
                 "out of memory",
-                (RootCauseCategory::ResourceExhaustion, "Memory resource exhaustion", vec![
-                    "Increase memory limits for the service".to_string(),
-                    "Check for memory leaks in the application".to_string(),
-                    "Review resource allocation policies".to_string(),
-                ]),
+                (
+                    RootCauseCategory::ResourceExhaustion,
+                    "Memory resource exhaustion",
+                    vec![
+                        "Increase memory limits for the service".to_string(),
+                        "Check for memory leaks in the application".to_string(),
+                        "Review resource allocation policies".to_string(),
+                    ],
+                ),
             ),
             (
                 "failed to compile",
-                (RootCauseCategory::CodeError, "Build or compilation error", vec![
-                    "Review recent code changes".to_string(),
-                    "Check dependency versions".to_string(),
-                    "Run local build tests".to_string(),
-                ]),
+                (
+                    RootCauseCategory::CodeError,
+                    "Build or compilation error",
+                    vec![
+                        "Review recent code changes".to_string(),
+                        "Check dependency versions".to_string(),
+                        "Run local build tests".to_string(),
+                    ],
+                ),
             ),
             (
                 "test failed",
-                (RootCauseCategory::TestFailure, "Test suite failure", vec![
-                    "Review failing test logs".to_string(),
-                    "Check test environment configuration".to_string(),
-                    "Verify test data integrity".to_string(),
-                ]),
+                (
+                    RootCauseCategory::TestFailure,
+                    "Test suite failure",
+                    vec![
+                        "Review failing test logs".to_string(),
+                        "Check test environment configuration".to_string(),
+                        "Verify test data integrity".to_string(),
+                    ],
+                ),
             ),
             (
                 "dependency",
-                (RootCauseCategory::DependencyFailure, "External dependency failure", vec![
-                    "Check dependency service health".to_string(),
-                    "Review dependency version compatibility".to_string(),
-                    "Verify network access to dependency endpoints".to_string(),
-                ]),
+                (
+                    RootCauseCategory::DependencyFailure,
+                    "External dependency failure",
+                    vec![
+                        "Check dependency service health".to_string(),
+                        "Review dependency version compatibility".to_string(),
+                        "Verify network access to dependency endpoints".to_string(),
+                    ],
+                ),
             ),
-        ].iter().cloned().collect();
+        ]
+        .iter()
+        .cloned()
+        .collect();
 
         // Check error message and logs against patterns
-        let combined_text = format!("{} {}", error_message.to_lowercase(), log_content.to_lowercase());
-        
+        let combined_text = format!(
+            "{} {}",
+            error_message.to_lowercase(),
+            log_content.to_lowercase()
+        );
+
         for (pattern, (category, description, actions)) in &patterns {
             if combined_text.contains(pattern) {
                 fixes.push(SuggestedFix {
@@ -391,7 +451,7 @@ impl PostMortemMission {
 
         let mut patterns = Vec::new();
         let error_keywords = ["error", "fail", "exception", "critical", "fatal"];
-        
+
         for line in log_content.lines() {
             let lower_line = line.to_lowercase();
             for keyword in &error_keywords {
@@ -409,18 +469,24 @@ impl PostMortemMission {
     }
 
     /// Generate recommendations based on root causes
-    async fn generate_recommendations(&self, root_causes: &[SuggestedFix], _error_patterns: &[String]) -> Vec<String> {
+    async fn generate_recommendations(
+        &self,
+        root_causes: &[SuggestedFix],
+        _error_patterns: &[String],
+    ) -> Vec<String> {
         let mut recommendations = Vec::new();
 
         // Category-specific recommendations
         for cause in root_causes {
             match cause.category {
                 RootCauseCategory::NetworkIssue => {
-                    recommendations.push("Implement circuit breakers for external service calls".to_string());
+                    recommendations
+                        .push("Implement circuit breakers for external service calls".to_string());
                     recommendations.push("Add health checks for dependent services".to_string());
                 }
                 RootCauseCategory::ConfigurationIssue => {
-                    recommendations.push("Use configuration validation in CI/CD pipeline".to_string());
+                    recommendations
+                        .push("Use configuration validation in CI/CD pipeline".to_string());
                     recommendations.push("Implement secrets management best practices".to_string());
                 }
                 RootCauseCategory::ResourceExhaustion => {
@@ -437,7 +503,8 @@ impl PostMortemMission {
                 }
                 RootCauseCategory::DependencyFailure => {
                     recommendations.push("Implement dependency version pinning".to_string());
-                    recommendations.push("Add fallback mechanisms for critical dependencies".to_string());
+                    recommendations
+                        .push("Add fallback mechanisms for critical dependencies".to_string());
                 }
                 RootCauseCategory::InfrastructureProblem | RootCauseCategory::Unknown => {
                     recommendations.push("Review infrastructure capacity and limits".to_string());
@@ -454,20 +521,33 @@ impl PostMortemMission {
     }
 
     /// Calculate severity based on error and root causes
-    fn calculate_severity(&self, error_message: &str, root_causes: &[SuggestedFix]) -> SeverityLevel {
+    fn calculate_severity(
+        &self,
+        error_message: &str,
+        root_causes: &[SuggestedFix],
+    ) -> SeverityLevel {
         // Check for critical keywords
         let lower_error = error_message.to_lowercase();
-        if lower_error.contains("critical") || lower_error.contains("fatal") || lower_error.contains("panic") {
+        if lower_error.contains("critical")
+            || lower_error.contains("fatal")
+            || lower_error.contains("panic")
+        {
             return SeverityLevel::Critical;
         }
-        
-        if lower_error.contains("cluster") || lower_error.contains("database") || lower_error.contains("primary") {
+
+        if lower_error.contains("cluster")
+            || lower_error.contains("database")
+            || lower_error.contains("primary")
+        {
             return SeverityLevel::High;
         }
 
         // Base severity on root cause confidence
-        let max_confidence = root_causes.iter().map(|r| r.confidence).fold(0.0f64, f64::max);
-        
+        let max_confidence = root_causes
+            .iter()
+            .map(|r| r.confidence)
+            .fold(0.0f64, f64::max);
+
         if max_confidence > 0.8 {
             SeverityLevel::High
         } else if max_confidence > 0.5 {
@@ -481,7 +561,7 @@ impl PostMortemMission {
     fn identify_affected_services(&self, error_message: &str, log_content: &str) -> Vec<String> {
         let mut services = Vec::new();
         let combined = format!("{} {}", error_message, log_content);
-        
+
         // Common service naming patterns
         let patterns = vec![
             "api-service",
@@ -494,22 +574,26 @@ impl PostMortemMission {
             "queue",
             "worker",
         ];
-        
+
         for pattern in patterns {
             if combined.to_lowercase().contains(pattern) {
                 services.push(pattern.to_string());
             }
         }
-        
+
         if services.is_empty() {
             services.push("unknown".to_string());
         }
-        
+
         services
     }
 
     /// Send webhook notification for critical failures
-    async fn send_webhook(&self, report: &PostMortemReport, webhook_url: &str) -> Result<(), BenchError> {
+    async fn send_webhook(
+        &self,
+        report: &PostMortemReport,
+        webhook_url: &str,
+    ) -> Result<(), BenchError> {
         if report.severity != SeverityLevel::Critical && !self.analysis_config.notify_on_critical {
             return Ok(());
         }
@@ -522,27 +606,33 @@ impl PostMortemMission {
 
         // In a real implementation, this would make an HTTP POST request
         tracing::info!("Would send webhook to {}: {:?}", webhook_url, payload);
-        
+
         Ok(())
     }
 
     /// Archive a completed post-mortem report
     pub async fn archive_report(&self, report: &PostMortemReport) -> Result<PathBuf, BenchError> {
         let archive_dir = self.log_directory.join("archived");
-        fs::create_dir_all(&archive_dir).await
+        fs::create_dir_all(&archive_dir)
+            .await
             .map_err(|e| BenchError::Config(format!("Failed to create archive dir: {}", e)))?;
-        
-        let filename = format!("{}-{}.json", self.id, report.analysis_timestamp.replace(':', "-"));
+
+        let filename = format!(
+            "{}-{}.json",
+            self.id,
+            report.analysis_timestamp.replace(':', "-")
+        );
         let archive_path = archive_dir.join(&filename);
-        
+
         let json = serde_json::to_string_pretty(report)
             .map_err(|e| BenchError::Config(format!("Failed to serialize report: {}", e)))?;
-        
-        fs::write(&archive_path, json.as_bytes()).await
+
+        fs::write(&archive_path, json.as_bytes())
+            .await
             .map_err(|e| BenchError::Config(format!("Failed to write archive: {}", e)))?;
-        
+
         self.set_state(PostMortemState::Archived).await;
-        
+
         Ok(archive_path)
     }
 
@@ -587,7 +677,10 @@ impl PostMortemEventHandler {
     }
 
     /// Handle a deployment event - creates mission if needed and processes event
-    pub async fn handle_deployment_event(&self, event: DeploymentEvent) -> Result<PostMortemReport, BenchError> {
+    pub async fn handle_deployment_event(
+        &self,
+        event: DeploymentEvent,
+    ) -> Result<PostMortemReport, BenchError> {
         let deployment_id = match &event {
             DeploymentEvent::Failure { deployment_id, .. } => deployment_id.clone(),
             DeploymentEvent::Success { deployment_id, .. } => deployment_id.clone(),
@@ -597,10 +690,15 @@ impl PostMortemEventHandler {
         // Get or create mission for this deployment
         let mission = {
             let mut missions = self.active_missions.write().await;
-            missions.entry(deployment_id.clone())
+            missions
+                .entry(deployment_id.clone())
                 .or_insert_with(|| {
                     let mission_id = format!("postmortem-{}", deployment_id);
-                    PostMortemMission::with_config(&mission_id, self.log_directory.to_str().unwrap_or("./logs"), self.config.clone())
+                    PostMortemMission::with_config(
+                        &mission_id,
+                        self.log_directory.to_str().unwrap_or("./logs"),
+                        self.config.clone(),
+                    )
                 })
                 .clone()
         };
@@ -614,10 +712,10 @@ impl PostMortemEventHandler {
     /// This is the main entry point for OnEvent cadence type missions
     pub async fn listen_for_failures(&self) -> Result<(), BenchError> {
         tracing::info!("Post-mortem handler listening for deployment failures...");
-        
+
         // In a real implementation, this would subscribe to an event bus or message queue
         // For now, we provide the interface for external event triggering
-        
+
         Ok(())
     }
 
@@ -629,12 +727,15 @@ impl PostMortemEventHandler {
 }
 
 /// Factory function to create a post-mortem mission from event data
-pub fn create_post_mortem_mission_from_event(event: &DeploymentEvent, log_dir: &str) -> PostMortemMission {
+pub fn create_post_mortem_mission_from_event(
+    event: &DeploymentEvent,
+    log_dir: &str,
+) -> PostMortemMission {
     let mission_id = match event {
         DeploymentEvent::Failure { deployment_id, .. } => format!("postmortem-{}", deployment_id),
         _ => format!("postmortem-{}", chrono::Utc::now().timestamp()),
     };
-    
+
     PostMortemMission::new(&mission_id, log_dir)
 }
 
@@ -656,15 +757,18 @@ mod tests {
         };
 
         let report = handler.handle_deployment_event(event).await.unwrap();
-        
+
         assert!(!report.root_causes.is_empty());
-        assert_eq!(report.root_causes[0].category, RootCauseCategory::NetworkIssue);
+        assert_eq!(
+            report.root_causes[0].category,
+            RootCauseCategory::NetworkIssue
+        );
     }
 
     #[tokio::test]
     async fn test_severity_calculation() {
         let mission = PostMortemMission::new("test", "./logs");
-        
+
         let critical_error = "Critical: Database cluster failed";
         let causes = vec![SuggestedFix {
             category: RootCauseCategory::InfrastructureProblem,
@@ -673,7 +777,7 @@ mod tests {
             action_items: vec![],
             related_logs: vec![],
         }];
-        
+
         let severity = mission.calculate_severity(critical_error, &causes);
         assert_eq!(severity, SeverityLevel::Critical);
     }
@@ -690,7 +794,7 @@ mod tests {
 
         let json = serde_json::to_string(&event).unwrap();
         let parsed: DeploymentEvent = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(event, parsed);
     }
 }

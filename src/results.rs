@@ -152,17 +152,18 @@ impl RunResult {
                 let n = cat_results.len();
                 let passes = cat_results.iter().filter(|t| t.score.value >= 1.0).count();
                 let cat_result = CategoryResult {
-                    pass_rate: if n == 0 { 0.0 } else { passes as f64 / n as f64 },
+                    pass_rate: if n == 0 {
+                        0.0
+                    } else {
+                        passes as f64 / n as f64
+                    },
                     avg_score: if n == 0 {
                         0.0
                     } else {
                         cat_results.iter().map(|t| t.score.value).sum::<f64>() / n as f64
                     },
                     total_tasks: n,
-                    total_cost_usd: cat_results
-                        .iter()
-                        .map(|t| t.trace.estimated_cost_usd)
-                        .sum(),
+                    total_cost_usd: cat_results.iter().map(|t| t.trace.estimated_cost_usd).sum(),
                     total_wall_time_ms: cat_results.iter().map(|t| t.trace.wall_time_ms).sum(),
                 };
                 (cat, cat_result)
