@@ -27,12 +27,14 @@ fn truncate_str(s: &str, max_bytes: usize) -> &str {
 pub struct ChannelCapture {
     /// All responses the agent sent back.
     pub responses: Vec<String>,
-    /// Tool calls observed (name, success, duration_ms).
+    /// Tool calls observed (name, success, duration_ms, input, output).
     pub tool_calls: Vec<TraceToolCall>,
     /// Full conversation turns for multi-turn scoring.
     pub conversation: Vec<ConversationTurn>,
     /// Status messages (for debugging).
     pub status_log: Vec<String>,
+    /// Pending tool name -> input (between ToolStarted and ToolCompleted).
+    pending_tool_input: Option<(String, Option<String>)>,
 }
 
 /// A headless Channel implementation for benchmarking.
@@ -108,12 +110,22 @@ impl Channel for BenchChannel {
 
         match status {
             StatusUpdate::ToolCompleted {
-                ref name, success, ..
+                ref name,
+                success,
+                ref error,
+                ref parameters,
             } => {
+                // Grab any pending output from the ToolResult event
+                let output = cap.pending_tool_input.take().and_then(|(_, o)| o);
                 cap.tool_calls.push(TraceToolCall {
                     name: name.clone(),
-                    duration_ms: 0, // We don't have precise per-tool timing here
+                    duration_ms: 0,
                     success,
+                    input: parameters
+                        .as_ref()
+                        .or(error.as_ref())
+                        .map(|s| truncate_str(s, 2000).to_string()),
+                    output: output.map(|s| truncate_str(&s, 2000).to_string()),
                 });
                 cap.status_log
                     .push(format!("tool_completed: {name} success={success}"));
@@ -130,12 +142,19 @@ impl Channel for BenchChannel {
                 cap.status_log.push(format!("thinking: {msg}"));
             }
             StatusUpdate::ToolStarted { ref name } => {
+                cap.pending_tool_input = Some((name.clone(), None));
                 cap.status_log.push(format!("tool_started: {name}"));
             }
             StatusUpdate::ToolResult {
                 ref name,
                 ref preview,
             } => {
+                // Store the preview as pending output for the next ToolCompleted
+                if let Some((ref pending_name, ref mut output)) = cap.pending_tool_input {
+                    if pending_name == name {
+                        *output = Some(preview.clone());
+                    }
+                }
                 cap.status_log.push(format!(
                     "tool_result: {name} -> {}",
                     truncate_str(preview, 100)

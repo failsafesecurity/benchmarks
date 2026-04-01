@@ -580,6 +580,18 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     let cap = capture.lock().await;
     let response = cap.responses.last().cloned().unwrap_or_default();
 
+    // Collect per-LLM-call details before building the trace.
+    let llm_records = instrumented.take_records().await;
+    let llm_calls_detail: Vec<crate::results::LlmCallDetail> = llm_records
+        .iter()
+        .map(|r| crate::results::LlmCallDetail {
+            input_tokens: r.input_tokens,
+            output_tokens: r.output_tokens,
+            duration_ms: r.duration_ms,
+            had_tool_calls: r.had_tool_calls,
+        })
+        .collect();
+
     let trace = Trace {
         wall_time_ms: wall_time.as_millis() as u64,
         llm_calls: instrumented.call_count(),
@@ -590,6 +602,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         turns: cap.responses.len() as u32,
         hit_iteration_limit: false,
         hit_timeout,
+        llm_calls_detail,
     };
 
     let error = if hit_timeout {
@@ -615,6 +628,15 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         config_label: config_label.to_string(),
         error,
         tags: task.tags.clone(),
+        conversation: cap
+            .conversation
+            .iter()
+            .map(|turn| crate::results::ConversationEntry {
+                role: format!("{:?}", turn.role).to_lowercase(),
+                content: turn.content.clone(),
+            })
+            .collect(),
+        system_prompt: None, // Populated below if workspace had identity
     }
 }
 
@@ -639,6 +661,7 @@ pub(crate) fn make_error_result(
             turns: 0,
             hit_iteration_limit: false,
             hit_timeout: false,
+            llm_calls_detail: vec![],
         },
         response: String::new(),
         started_at,
@@ -646,6 +669,8 @@ pub(crate) fn make_error_result(
         config_label: config_label.to_string(),
         error: Some(reason.to_string()),
         tags: task.tags.clone(),
+        conversation: vec![],
+        system_prompt: None,
     }
 }
 

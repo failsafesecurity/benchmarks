@@ -32,6 +32,18 @@ pub struct Trace {
     pub turns: u32,
     pub hit_iteration_limit: bool,
     pub hit_timeout: bool,
+    /// Per-LLM-call breakdown (tokens, timing, whether tools were involved).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub llm_calls_detail: Vec<LlmCallDetail>,
+}
+
+/// Recorded metrics from a single LLM API call.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct LlmCallDetail {
+    pub input_tokens: u32,
+    pub output_tokens: u32,
+    pub duration_ms: u64,
+    pub had_tool_calls: bool,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -39,6 +51,12 @@ pub struct TraceToolCall {
     pub name: String,
     pub duration_ms: u64,
     pub success: bool,
+    /// Tool input parameters (JSON string, truncated for large payloads).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input: Option<String>,
+    /// Tool output / result preview (truncated).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<String>,
 }
 
 /// Result of running a single benchmark task.
@@ -57,6 +75,19 @@ pub struct TaskResult {
     /// Tags from the benchmark task definition (category, difficulty, etc.).
     #[serde(default)]
     pub tags: Vec<String>,
+    /// Full multi-turn conversation (user + assistant messages in order).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub conversation: Vec<ConversationEntry>,
+    /// System prompt / identity injected for this task.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub system_prompt: Option<String>,
+}
+
+/// A single conversation turn stored in results for replay/training.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ConversationEntry {
+    pub role: String,
+    pub content: String,
 }
 
 /// Per-category (tag) breakdown of results.
@@ -422,6 +453,7 @@ mod tests {
                     turns: 1,
                     hit_iteration_limit: false,
                     hit_timeout: false,
+                    llm_calls_detail: vec![],
                 },
                 response: "answer".to_string(),
                 started_at: Utc::now(),
@@ -429,6 +461,8 @@ mod tests {
                 config_label: "default".to_string(),
                 error: None,
                 tags: vec!["cat-a".to_string()],
+                conversation: vec![],
+                system_prompt: None,
             },
             TaskResult {
                 task_id: "t2".to_string(),
@@ -448,6 +482,7 @@ mod tests {
                     turns: 2,
                     hit_iteration_limit: false,
                     hit_timeout: false,
+                    llm_calls_detail: vec![],
                 },
                 response: "wrong answer".to_string(),
                 started_at: Utc::now(),
@@ -455,6 +490,8 @@ mod tests {
                 config_label: "default".to_string(),
                 error: None,
                 tags: vec!["cat-b".to_string()],
+                conversation: vec![],
+                system_prompt: None,
             },
         ];
 
@@ -508,6 +545,7 @@ mod tests {
                 turns: 1,
                 hit_iteration_limit: false,
                 hit_timeout: false,
+                llm_calls_detail: vec![],
             },
             response: "hello".to_string(),
             started_at: Utc::now(),
@@ -515,6 +553,8 @@ mod tests {
             config_label: "test".to_string(),
             error: None,
             tags: vec![],
+            conversation: vec![],
+            system_prompt: None,
         };
 
         append_task_result(&path, &result).expect("append");
@@ -544,6 +584,7 @@ mod tests {
                 turns: 1,
                 hit_iteration_limit: false,
                 hit_timeout: false,
+                llm_calls_detail: vec![],
             },
             response: "x".to_string(),
             started_at: Utc::now(),
@@ -551,6 +592,8 @@ mod tests {
             config_label: "test".to_string(),
             error: None,
             tags: vec![],
+            conversation: vec![],
+            system_prompt: None,
         };
         append_task_result(&path, &result).expect("append");
 
@@ -583,6 +626,7 @@ mod tests {
                 turns: 1,
                 hit_iteration_limit: false,
                 hit_timeout: false,
+                llm_calls_detail: vec![],
             },
             response: "42".to_string(),
             started_at: Utc::now(),
@@ -590,6 +634,8 @@ mod tests {
             config_label: "default".to_string(),
             error: None,
             tags: vec![],
+            conversation: vec![],
+            system_prompt: None,
         };
         append_task_result(&path, &pending).expect("append");
 

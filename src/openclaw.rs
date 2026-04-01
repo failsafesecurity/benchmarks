@@ -374,6 +374,7 @@ pub async fn run_task_openclaw(
             turns: 1,
             hit_iteration_limit: false,
             hit_timeout: false,
+            llm_calls_detail: vec![],
         },
         response: result.content,
         started_at,
@@ -381,6 +382,8 @@ pub async fn run_task_openclaw(
         config_label: config_label.to_string(),
         error: None,
         tags: task.tags.clone(),
+        conversation: vec![],
+        system_prompt: None,
     }
 }
 
