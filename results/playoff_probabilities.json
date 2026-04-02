@@ -1,0 +1,32 @@
+{
+  "eastern_playoff_probabilities": {
+    "BOS": 1.0,
+    "MIL": 1.0,
+    "CLE": 0.9998,
+    "MIA": 0.9848,
+    "ORL": 0.9717,
+    "NYK": 0.9972,
+    "PHI": 0.9993,
+    "IND": 0.9949,
+    "ATL": 0.0412,
+    "CHI": 0.0075,
+    "BKN": 0.0035,
+    "TOR": 0.0001
+  },
+  "western_playoff_probabilities": {
+    "MIN": 1.0,
+    "DEN": 1.0,
+    "OKC": 1.0,
+    "LAC": 0.9856,
+    "PHX": 0.9682,
+    "DAL": 0.9278,
+    "SAC": 0.7462,
+    "NOP": 0.5633,
+    "UTA": 0.0411,
+    "GSW": 0.4189,
+    "HOU": 0.1245,
+    "LAL": 0.2236,
+    "MEM": 0.0008
+  },
+  "iterations": 10000
+}
