@@ -16,7 +16,7 @@ export default function LeaderboardPage() {
     error,
     filteredRuns,
     sortedRuns,
-    runsByModel,
+    runsBySuite,
     metricTab,
     setMetricTab,
     viewMode,
@@ -174,36 +174,50 @@ export default function LeaderboardPage() {
           <LeaderboardTable runs={sortedRuns} data={data} />
         </div>
       ) : (
-        <div className="space-y-8">
-          {[...runsByModel.entries()].map(([modelId, runs]) => {
-            const model = data.models.find((m) => m.id === modelId);
-            return (
-              <section key={modelId}>
-                <h2 className="text-lg font-semibold mb-3">
-                  {model?.name ?? modelId}
-                  {model?.provider && (
-                    <span className="text-sm font-normal text-gray-500 ml-2">
-                      {model.provider}
-                    </span>
-                  )}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[...runs]
-                    .sort((a, b) => b.pass_rate - a.pass_rate)
-                    .map((run) => (
-                      <FrameworkCard
-                        key={run.run_id}
-                        run={run}
-                        framework={data.frameworks.find(
-                          (f) => f.id === run.framework_id,
-                        )}
-                      />
-                    ))}
-                </div>
-              </section>
-            );
-          })}
-          {runsByModel.size === 0 && (
+        <div className="space-y-10">
+          {[...runsBySuite.entries()].map(([suiteId, byDataset]) => (
+            <section key={suiteId}>
+              <h2 className="text-xl font-bold mb-4 text-orange-400">{suiteId}</h2>
+              <div className="space-y-8">
+                {[...byDataset.entries()].map(([dataset, byModel]) => (
+                  <div key={dataset}>
+                    <h3 className="text-base font-semibold text-gray-400 mb-3">{dataset}</h3>
+                    <div className="space-y-6">
+                      {[...byModel.entries()].map(([modelId, runs]) => {
+                        const model = data.models.find((m) => m.id === modelId);
+                        return (
+                          <div key={modelId}>
+                            <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                              {model?.name ?? modelId}
+                              {model?.provider && (
+                                <span className="font-normal text-gray-500 ml-2">
+                                  {model.provider}
+                                </span>
+                              )}
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {[...runs]
+                                .sort((a, b) => b.pass_rate - a.pass_rate)
+                                .map((run) => (
+                                  <FrameworkCard
+                                    key={run.run_id}
+                                    run={run}
+                                    framework={data.frameworks.find(
+                                      (f) => f.id === run.framework_id,
+                                    )}
+                                  />
+                                ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+          {runsBySuite.size === 0 && (
             <p className="text-center text-gray-500 py-8">
               No runs match the current filters.
             </p>
