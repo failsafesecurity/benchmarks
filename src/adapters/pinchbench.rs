@@ -391,7 +391,7 @@ impl BenchSuite for PinchBenchSuite {
                         &self.judge_model,
                         &content.prompt,
                         &content.expected_behavior,
-                        &transcript_str,
+                        &judge_transcript_str,
                         rubric,
                     )
                     .await?;

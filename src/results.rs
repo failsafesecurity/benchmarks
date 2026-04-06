@@ -205,8 +205,8 @@ pub fn read_run_result(path: &Path) -> Result<RunResult, BenchError> {
 
 /// Get the set of already-completed task IDs from a JSONL file (for resume).
 ///
-/// Only includes tasks that have been scored (label != "pending"). Tasks that
-/// were written but not scored (e.g., from an interrupted run) will be re-executed.
+/// Includes all tasks that exist in the JSONL, including unscored ("pending") ones.
+/// Scoring happens after all tasks run, so pending tasks should not be re-executed.
 pub fn completed_task_ids(path: &Path) -> Result<HashSet<String>, BenchError> {
     let results = read_task_results(path)?;
     // A task is "completed" if it exists in the JSONL (was executed).
