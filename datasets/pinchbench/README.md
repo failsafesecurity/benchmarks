@@ -11,12 +11,27 @@ Task definitions and assets from [PinchBench](https://pinchbench.com) — a benc
 
 ## Contents
 
-- `v1/tasks/` — 23 task definitions as markdown files with YAML frontmatter
-- `v1/assets/` — Supporting files (PDFs, spreadsheets, text) referenced by tasks
+- `v1/tasks/` — task definitions as markdown files with YAML frontmatter
+- `v1/assets/` — supporting files (PDFs, spreadsheets, text) referenced by tasks, stored in Git LFS
+
+## Setup
+
+Assets are stored in Git LFS. After cloning, either pull them via LFS:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+Or re-download directly from upstream (does not require LFS):
+
+```bash
+scripts/pinchbench_download.sh
+```
 
 ## Updating
 
-To re-download tasks and assets from the latest upstream:
+To re-download assets from the latest upstream:
 
 ```bash
 scripts/pinchbench_download.sh --force
