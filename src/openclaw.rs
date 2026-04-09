@@ -176,9 +176,10 @@ impl OpenClawRunner {
             "--allow-unconfigured".to_string(),
         ]);
 
-        let output = Command::new("docker")
+        let output = tokio::process::Command::new("docker")
             .args(&docker_args)
             .output()
+            .await
             .map_err(|e| BenchError::OpenClaw(format!("failed to run docker: {e}")))?;
 
         if !output.status.success() {
@@ -190,14 +191,15 @@ impl OpenClawRunner {
 
         let container_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
-        let port_output = Command::new("docker")
+        let port_output = tokio::process::Command::new("docker")
             .args(["port", &container_id, "18789/tcp"])
             .output()
+            .await
             .map_err(|e| BenchError::OpenClaw(format!("docker port failed: {e}")))?;
 
         let port_str = String::from_utf8_lossy(&port_output.stdout);
         let port = parse_docker_port(&port_str).ok_or_else(|| {
-            // Clean up container on port parse failure
+            // Clean up container on port parse failure — sync is fine here, we're already in error path
             let _ = Command::new("docker")
                 .args(["rm", "-f", &container_id])
                 .output();
@@ -221,15 +223,17 @@ impl OpenClawRunner {
                 ));
             }
 
-            let inspect = Command::new("docker")
+            let inspect = tokio::process::Command::new("docker")
                 .args(["inspect", "--format", "{{.State.Running}}", &handle.container_id])
-                .output();
+                .output()
+                .await;
             if let Ok(out) = inspect {
                 let state = String::from_utf8_lossy(&out.stdout).trim().to_string();
                 if state == "false" {
-                    let logs = Command::new("docker")
+                    let logs = tokio::process::Command::new("docker")
                         .args(["logs", "--tail", "20", &handle.container_id])
                         .output()
+                        .await
                         .map(|o| String::from_utf8_lossy(&o.stderr).to_string())
                         .unwrap_or_default();
                     return Err(BenchError::OpenClaw(format!(
@@ -425,17 +429,18 @@ pub async fn run_task_openclaw(
         let dest = format!("{}/{}", scoring_dir, task.id);
         let _ = std::fs::create_dir_all(&dest);
 
-        let _ = Command::new("docker")
+        let _ = tokio::process::Command::new("docker")
             .args([
                 "cp",
                 &format!("{}:/home/node/.openclaw/workspace/.", handle.container_id),
                 &dest,
             ])
-            .output();
+            .output()
+            .await;
 
         let sessions_dest = format!("{dest}/.openclaw-sessions");
         let _ = std::fs::create_dir_all(&sessions_dest);
-        let _ = Command::new("docker")
+        let _ = tokio::process::Command::new("docker")
             .args([
                 "cp",
                 &format!(
@@ -444,10 +449,11 @@ pub async fn run_task_openclaw(
                 ),
                 &sessions_dest,
             ])
-            .output();
+            .output()
+            .await;
     }
 
-    let tool_calls = parse_session_tool_calls(&handle.container_id);
+    let tool_calls = parse_session_tool_calls(&handle.container_id).await;
 
     let wall_time = start.elapsed();
 
@@ -508,8 +514,8 @@ pub(crate) fn write_identity_files(
 }
 
 /// Extract tool calls (with arguments) from OpenClaw session JSONL inside the container.
-fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
-    let find_output = Command::new("docker")
+async fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
+    let find_output = tokio::process::Command::new("docker")
         .args([
             "exec",
             container_id,
@@ -518,7 +524,8 @@ fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceTool
             "-name",
             "*.jsonl",
         ])
-        .output();
+        .output()
+        .await;
 
     let jsonl_paths = match find_output {
         Ok(out) if out.status.success() => {
@@ -533,9 +540,10 @@ fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceTool
     let mut tool_calls = Vec::new();
 
     for path in jsonl_paths {
-        let cat_output = Command::new("docker")
+        let cat_output = tokio::process::Command::new("docker")
             .args(["exec", container_id, "cat", &path])
-            .output();
+            .output()
+            .await;
 
         let content = match cat_output {
             Ok(out) if out.status.success() => {

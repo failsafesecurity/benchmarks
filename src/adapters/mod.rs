@@ -10,6 +10,8 @@ use crate::config::BenchConfig;
 use crate::error::BenchError;
 use crate::suite::BenchSuite;
 
+const DEFAULT_JUDGE_MODEL: &str = "openrouter/anthropic/claude-haiku-4.5";
+
 /// List of all known suite IDs.
 pub const KNOWN_SUITES: &[(&str, &str)] = &[
     ("custom", "Custom JSONL tasks"),
@@ -69,7 +71,7 @@ pub fn create_suite(name: &str, config: &BenchConfig) -> Result<Box<dyn BenchSui
             let judge_model = suite_map
                 .get("judge_model")
                 .and_then(|v| v.as_str())
-                .unwrap_or("openrouter/anthropic/claude-opus-4-6")
+                .unwrap_or(DEFAULT_JUDGE_MODEL)
                 .to_string();
             let hybrid_auto_weight = suite_map
                 .get("hybrid_auto_weight")

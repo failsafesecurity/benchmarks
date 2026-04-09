@@ -488,7 +488,7 @@ fn parse_frontmatter(raw: &str) -> Result<(PinchTaskMeta, String), String> {
     let body = &after_first[end + 4..]; // skip "\n---"
 
     let meta: PinchTaskMeta =
-        serde_yaml::from_str(yaml_str).map_err(|e| format!("YAML parse error: {e}"))?;
+        serde_yml::from_str(yaml_str).map_err(|e| format!("YAML parse error: {e}"))?;
 
     Ok((meta, body.to_string()))
 }
