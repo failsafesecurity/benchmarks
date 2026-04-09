@@ -173,6 +173,7 @@ impl BenchSuite for SweBenchSuite {
                 reason: "missing base_commit in metadata".to_string(),
             })?;
 
+        crate::suite::validate_task_id(&task.id)?;
         let task_dir = self.workspace_dir.join(&task.id);
 
         // Clone repo if not already present

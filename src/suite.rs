@@ -5,6 +5,40 @@ use async_trait::async_trait;
 
 use crate::error::BenchError;
 
+/// Reject task IDs that could escape the workspace base directory when used as a path component.
+pub fn validate_task_id(id: &str) -> Result<(), BenchError> {
+    if id.is_empty()
+        || std::path::Path::new(id).components().any(|c| {
+            matches!(
+                c,
+                std::path::Component::ParentDir | std::path::Component::RootDir
+            )
+        })
+    {
+        return Err(BenchError::Config(format!(
+            "invalid task id {id:?}: must not contain '..' or be an absolute path"
+        )));
+    }
+    Ok(())
+}
+
+/// Reject workspace file paths that could escape the workspace directory.
+pub fn validate_workspace_path(path: &str) -> Result<(), BenchError> {
+    if path.is_empty()
+        || std::path::Path::new(path).components().any(|c| {
+            matches!(
+                c,
+                std::path::Component::ParentDir | std::path::Component::RootDir
+            )
+        })
+    {
+        return Err(BenchError::Config(format!(
+            "invalid workspace file path {path:?}: must not contain '..' or be an absolute path"
+        )));
+    }
+    Ok(())
+}
+
 /// A single task in a benchmark suite.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BenchTask {

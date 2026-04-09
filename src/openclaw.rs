@@ -630,12 +630,14 @@ fn write_workspace_files(
 
     for wf in &files {
         if let (Some(path), Some(content)) = (&wf.path, &wf.content) {
+            crate::suite::validate_workspace_path(path)?;
             let dest = dir.join(path);
             if let Some(parent) = dest.parent() {
                 std::fs::create_dir_all(parent)?;
             }
             std::fs::write(&dest, content)?;
         } else if let (Some(source), Some(dest_name)) = (&wf.source, &wf.dest) {
+            crate::suite::validate_workspace_path(dest_name)?;
             let src = dataset_path.join("assets").join(source);
             let dest = dir.join(dest_name);
             if let Some(parent) = dest.parent() {

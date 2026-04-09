@@ -150,6 +150,7 @@ impl PinchBenchSuite {
         task_id: &str,
         workspace_files: &[WorkspaceFile],
     ) -> Result<PathBuf, BenchError> {
+        crate::suite::validate_task_id(task_id)?;
         let ws_path = self.workspace_path_for(task_id);
 
         if ws_path.exists() {
@@ -159,12 +160,14 @@ impl PinchBenchSuite {
 
         for wf in workspace_files {
             if let (Some(path), Some(content)) = (&wf.path, &wf.content) {
+                crate::suite::validate_workspace_path(path)?;
                 let dest = ws_path.join(path);
                 if let Some(parent) = dest.parent() {
                     std::fs::create_dir_all(parent)?;
                 }
                 std::fs::write(&dest, content)?;
             } else if let (Some(source), Some(dest_name)) = (&wf.source, &wf.dest) {
+                crate::suite::validate_workspace_path(dest_name)?;
                 let src = self.dataset_path.join("assets").join(source);
                 let dest = ws_path.join(dest_name);
                 if let Some(parent) = dest.parent() {
@@ -758,15 +761,6 @@ fn resolve_judge_endpoint(model: &str) -> Result<(String, String, String), Bench
             })?;
         Ok((
             "https://openrouter.ai/api/v1".to_string(),
-            key,
-            api_model.to_string(),
-        ))
-    } else if let Some(api_model) = model.strip_prefix("anthropic/") {
-        let key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| {
-            BenchError::PinchBench("ANTHROPIC_API_KEY required for judge model".to_string())
-        })?;
-        Ok((
-            "https://api.anthropic.com/v1".to_string(),
             key,
             api_model.to_string(),
         ))

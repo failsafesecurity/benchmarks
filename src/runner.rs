@@ -702,6 +702,9 @@ fn resolve_workspace_placeholder(prompt: &str, task: &BenchTask, ws_base: &std::
     if !prompt.contains(WORKSPACE_PLACEHOLDER) {
         return prompt.to_string();
     }
+    if crate::suite::validate_task_id(&task.id).is_err() {
+        return prompt.to_string();
+    }
     let ws_path = ws_base.join(&task.id);
     prompt.replace(WORKSPACE_PLACEHOLDER, &ws_path.display().to_string())
 }
