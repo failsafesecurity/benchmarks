@@ -1,39 +1,27 @@
 #!/usr/bin/env bash
-# Download PinchBench tasks and assets from GitHub.
+# Download PinchBench assets from GitHub.
 # Usage: scripts/pinchbench_download.sh [--force]
 #
-# Requires: gh CLI (authenticated)
-# Output: datasets/pinchbench/v1/tasks/*.md + datasets/pinchbench/v1/assets/*
+# Requires: gh CLI (authenticated), curl
+# Output: datasets/pinchbench/v1/assets/*
 
 set -euo pipefail
 
 REPO="pinchbench/skill"
-DEST="datasets/pinchbench/v1"
-TASKS_DIR="$DEST/tasks"
-ASSETS_DIR="$DEST/assets"
-EXPECTED_TASKS=23
+ASSETS_DIR="datasets/pinchbench/v1/assets"
 
-if [[ "${1:-}" != "--force" ]] && [[ -d "$TASKS_DIR" ]] && [[ "$(ls "$TASKS_DIR"/*.md 2>/dev/null | wc -l)" -ge "$EXPECTED_TASKS" ]]; then
-    echo "Already have $EXPECTED_TASKS+ task files in $TASKS_DIR. Use --force to re-download."
+if [[ "${1:-}" != "--force" ]] && [[ -d "$ASSETS_DIR" ]] && [[ "$(ls "$ASSETS_DIR"/* 2>/dev/null | wc -l)" -gt 0 ]]; then
+    echo "Assets already present in $ASSETS_DIR. Use --force to re-download."
     exit 0
 fi
 
-mkdir -p "$TASKS_DIR" "$ASSETS_DIR"
-
-echo "Downloading task files..."
-TASK_FILES=$(gh api "repos/$REPO/contents/tasks" --jq '.[].name' | grep '^task_')
-for f in $TASK_FILES; do
-    gh api "repos/$REPO/contents/tasks/$f" --jq '.content' | base64 -d > "$TASKS_DIR/$f"
-    echo "  $f"
-done
+mkdir -p "$ASSETS_DIR"
 
 echo "Downloading assets..."
-ASSET_FILES=$(gh api "repos/$REPO/contents/assets" --jq '.[].name')
-for f in $ASSET_FILES; do
-    gh api "repos/$REPO/contents/assets/$f" --jq '.content' | base64 -d > "$ASSETS_DIR/$f"
-    echo "  $f"
+gh api "repos/$REPO/contents/assets" --jq '.[] | select(.type == "file") | [.name, .download_url] | @tsv' | while IFS=$'\t' read -r name url; do
+    curl -fsSL "$url" -o "$ASSETS_DIR/$name"
+    echo "  $name"
 done
 
-TASK_COUNT=$(ls "$TASKS_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
 ASSET_COUNT=$(ls "$ASSETS_DIR"/* 2>/dev/null | wc -l | tr -d ' ')
-echo "Done: $TASK_COUNT tasks, $ASSET_COUNT assets in $DEST"
+echo "Done: $ASSET_COUNT assets in $ASSETS_DIR"
