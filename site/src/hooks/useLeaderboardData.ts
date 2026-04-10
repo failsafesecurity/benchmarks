@@ -5,6 +5,7 @@ import type {
   MetricTab,
   ViewMode,
 } from "../data/types";
+
 import { loadLeaderboardData } from "../data";
 
 export interface Filters {
@@ -93,6 +94,19 @@ export function useLeaderboardData() {
     return grouped;
   }, [filteredRuns]);
 
+  const runsBySuite = useMemo(() => {
+    const bySuite = new Map<string, Map<string, Map<string, RunSummary[]>>>();
+    for (const run of filteredRuns) {
+      if (!bySuite.has(run.suite_id)) bySuite.set(run.suite_id, new Map());
+      const byDataset = bySuite.get(run.suite_id)!;
+      if (!byDataset.has(run.dataset)) byDataset.set(run.dataset, new Map());
+      const byModel = byDataset.get(run.dataset)!;
+      if (!byModel.has(run.model_id)) byModel.set(run.model_id, []);
+      byModel.get(run.model_id)!.push(run);
+    }
+    return bySuite;
+  }, [filteredRuns]);
+
   const sortedRuns = useMemo(() => {
     const sorted = [...filteredRuns];
     switch (metricTab) {
@@ -119,6 +133,7 @@ export function useLeaderboardData() {
     filteredRuns,
     sortedRuns,
     runsByModel,
+    runsBySuite,
     metricTab,
     setMetricTab,
     viewMode,

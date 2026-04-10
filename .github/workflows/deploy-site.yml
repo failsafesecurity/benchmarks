@@ -35,9 +35,12 @@ jobs:
         working-directory: site
         run: npm ci
 
-      - name: Build leaderboard data
-        working-directory: site
-        run: npx tsx scripts/build-data.ts
+      # TODO: figure out how to store trajectories without exposing sensitive data
+      # (local file paths, directory listings in tasks.jsonl traces).
+      # For now the site uses the committed leaderboard.json directly.
+      # - name: Build leaderboard data
+      #   working-directory: site
+      #   run: npx tsx scripts/build-data.ts
 
       - name: Build site
         working-directory: site

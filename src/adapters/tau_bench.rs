@@ -214,6 +214,7 @@ mod tests {
             response: "I found your order.".to_string(),
             conversation: vec![],
             tool_calls: vec!["lookup_order".to_string()],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();
@@ -225,6 +226,7 @@ mod tests {
             response: "Return processed.".to_string(),
             conversation: vec![],
             tool_calls: vec!["lookup_order".to_string(), "process_return".to_string()],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();

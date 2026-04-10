@@ -11,6 +11,9 @@ interface Props {
 export default function FrameworkCard({ run, framework }: Props) {
   const color = frameworkColor(run.framework_id);
   const name = framework?.name ?? run.framework_id;
+  const scoreSum = run.tasks
+    ? run.tasks.reduce((acc, t) => acc + t.score, 0).toFixed(2)
+    : null;
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col items-center gap-3 hover:border-gray-700 transition-colors">
@@ -34,15 +37,21 @@ export default function FrameworkCard({ run, framework }: Props) {
         <div>
           Time: <span className="text-gray-200">{formatMs(run.total_wall_time_ms)}</span>
         </div>
-        <div>
+        <div title="Sum of partial scores / total tasks">
           Tasks:{" "}
           <span className="text-gray-200">
-            {run.completed_tasks}/{run.total_tasks}
+            {scoreSum !== null ? `${scoreSum}/${run.total_tasks}` : `${run.completed_tasks}/${run.total_tasks}`}
           </span>
         </div>
-        <div>
-          Score: <span className="text-gray-200">{run.avg_score.toFixed(3)}</span>
+        <div title="Average score per task (0–1 partial credit)">
+          Avg score: <span className="text-gray-200">{run.avg_score.toFixed(3)}</span>
         </div>
+      </div>
+      <div className="text-xs text-gray-500 w-full text-center" title="Percentage of tasks with score = 1.0 (fully passed)">
+        Gauge = % fully passed (score = 1.0)
+      </div>
+      <div className="text-xs text-gray-600 font-mono truncate w-full text-center" title={run.run_id}>
+        {run.run_id}
       </div>
     </div>
   );

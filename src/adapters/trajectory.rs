@@ -472,6 +472,7 @@ mod tests {
             response: response.to_string(),
             conversation: vec![],
             tool_calls: tool_calls.into_iter().map(|s| s.to_string()).collect(),
+            trace_tool_calls: vec![],
             error: error.map(|s| s.to_string()),
         }
     }

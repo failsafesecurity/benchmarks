@@ -165,6 +165,7 @@ mod tests {
             response: "paris".to_string(),
             conversation: vec![],
             tool_calls: vec![],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();
@@ -175,6 +176,7 @@ mod tests {
             response: "London".to_string(),
             conversation: vec![],
             tool_calls: vec![],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();

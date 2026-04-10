@@ -1,0 +1,11 @@
+task_timeout = "600s"
+parallelism = 1
+
+[[matrix]]
+label = "default"
+
+[suite_config]
+dataset_path = "datasets/pinchbench/v1"
+judge_model = "openrouter/anthropic/claude-haiku-4.5"
+# hybrid_auto_weight = 0.6
+# grading_types = ["automated", "hybrid"]

@@ -22,6 +22,7 @@ futures = "0.3"
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yml = "0.0.12"
 toml = "0.8"
 
 # CLI
@@ -51,3 +52,6 @@ reqwest = { version = "0.12", features = ["json"] }
 
 # Temp files (used for per-task in-memory workspace DBs)
 tempfile = "3"
+
+# Environment file loading
+dotenvy = "0.15"

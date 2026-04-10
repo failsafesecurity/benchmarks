@@ -27,12 +27,15 @@ fn truncate_str(s: &str, max_bytes: usize) -> &str {
 pub struct ChannelCapture {
     /// All responses the agent sent back.
     pub responses: Vec<String>,
-    /// Tool calls observed (name, success, duration_ms).
+    /// Tool calls observed (name, success, duration_ms, arguments, result).
     pub tool_calls: Vec<TraceToolCall>,
     /// Full conversation turns for multi-turn scoring.
     pub conversation: Vec<ConversationTurn>,
     /// Status messages (for debugging).
     pub status_log: Vec<String>,
+    /// Tool arguments captured from ApprovalNeeded, consumed at ToolCompleted.
+    /// VecDeque per tool name so repeated calls to the same tool dequeue in order.
+    pub pending_tool_args: std::collections::HashMap<String, std::collections::VecDeque<serde_json::Value>>,
 }
 
 /// A headless Channel implementation for benchmarking.
@@ -108,16 +111,27 @@ impl Channel for BenchChannel {
 
         match status {
             StatusUpdate::ToolCompleted { ref name, success } => {
+                let args = cap.pending_tool_args.get_mut(name).and_then(|q| q.pop_front());
                 cap.tool_calls.push(TraceToolCall {
                     name: name.clone(),
-                    duration_ms: 0, // We don't have precise per-tool timing here
+                    duration_ms: 0,
                     success,
+                    arguments: args,
+                    result_preview: None,
                 });
                 cap.status_log
                     .push(format!("tool_completed: {name} success={success}"));
             }
-            StatusUpdate::ApprovalNeeded { ref request_id, .. } => {
-                // Auto-approve all tools during benchmarks
+            StatusUpdate::ApprovalNeeded {
+                ref request_id,
+                ref tool_name,
+                ref parameters,
+                ..
+            } => {
+                cap.pending_tool_args
+                    .entry(tool_name.clone())
+                    .or_default()
+                    .push_back(parameters.clone());
                 cap.status_log.push(format!("auto_approved: {request_id}"));
                 drop(cap); // Release lock before sending
                 let approval = IncomingMessage::new("bench", "bench-user", "always");
@@ -134,6 +148,9 @@ impl Channel for BenchChannel {
                 ref name,
                 ref preview,
             } => {
+                if let Some(tc) = cap.tool_calls.iter_mut().rev().find(|tc| tc.name == *name) {
+                    tc.result_preview = Some(truncate_str(preview, 500).to_string());
+                }
                 cap.status_log.push(format!(
                     "tool_result: {name} -> {}",
                     truncate_str(preview, 100)

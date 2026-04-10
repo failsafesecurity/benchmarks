@@ -39,6 +39,10 @@ pub struct TraceToolCall {
     pub name: String,
     pub duration_ms: u64,
     pub success: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub result_preview: Option<String>,
 }
 
 /// Result of running a single benchmark task.
@@ -201,15 +205,14 @@ pub fn read_run_result(path: &Path) -> Result<RunResult, BenchError> {
 
 /// Get the set of already-completed task IDs from a JSONL file (for resume).
 ///
-/// Only includes tasks that have been scored (label != "pending"). Tasks that
-/// were written but not scored (e.g., from an interrupted run) will be re-executed.
+/// Includes all tasks that exist in the JSONL, including unscored ("pending") ones.
+/// Scoring happens after all tasks run, so pending tasks should not be re-executed.
 pub fn completed_task_ids(path: &Path) -> Result<HashSet<String>, BenchError> {
     let results = read_task_results(path)?;
-    Ok(results
-        .into_iter()
-        .filter(|r| r.score.label != "pending")
-        .map(|r| r.task_id)
-        .collect())
+    // A task is "completed" if it exists in the JSONL (was executed).
+    // Scoring happens separately after all tasks run, so unscored
+    // ("pending") tasks should not be re-executed on resume.
+    Ok(results.into_iter().map(|r| r.task_id).collect())
 }
 
 /// Get the results directory for a specific run.

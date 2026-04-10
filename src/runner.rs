@@ -35,6 +35,7 @@ struct TaskRunParams<'a> {
     safety: Arc<SafetyLayer>,
     timeout: std::time::Duration,
     additional_tools: &'a [Arc<dyn ironclaw::tools::Tool>],
+    ws_base: &'a std::path::Path,
 }
 
 /// Framework-specific dependencies. Each variant carries exactly what
@@ -87,6 +88,11 @@ impl BenchRunner {
 
         let jsonl_path = tasks_jsonl_path(results_base, run_id);
         let json_path = run_json_path(results_base, run_id);
+
+        // Workspaces persist in results dir to survive resume.
+        let ws_base = dir.join("workspaces");
+        std::fs::create_dir_all(&ws_base)?;
+        self.suite.set_run_workspace_base(ws_base.clone());
 
         // Load completed task IDs for resume support
         let completed: HashSet<String> = if resume_run_id.is_some() {
@@ -193,6 +199,7 @@ impl BenchRunner {
                             safety: Arc::clone(safety),
                             timeout,
                             additional_tools: &additional_tools,
+                            ws_base: &ws_base,
                         };
                         run_task_isolated(params).await
                     }
@@ -231,6 +238,7 @@ impl BenchRunner {
                 let total = total_tasks;
                 let additional_tools = Arc::clone(&shared_tools);
                 let oc_runner = openclaw_runner.clone();
+                let ws_base = ws_base.clone();
 
                 handles.push(tokio::spawn(async move {
                     let _permit = match sem.acquire().await {
@@ -269,6 +277,7 @@ impl BenchRunner {
                                 safety: Arc::clone(safety),
                                 timeout,
                                 additional_tools: &additional_tools,
+                                ws_base: &ws_base,
                             };
                             run_task_isolated(params).await
                         }
@@ -322,6 +331,7 @@ impl BenchRunner {
                         .iter()
                         .map(|tc| tc.name.clone())
                         .collect(),
+                    trace_tool_calls: result.trace.tool_calls.clone(),
                     error: result.error.clone(),
                 };
                 match self.suite.score(task, &submission).await {
@@ -417,6 +427,7 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         safety,
         timeout,
         additional_tools,
+        ws_base,
     } = params;
 
     let started_at = Utc::now();
@@ -492,6 +503,8 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     } else {
         task.prompt.clone()
     };
+
+    let full_prompt = resolve_workspace_placeholder(&full_prompt, task, &ws_base);
 
     // Inject the task prompt
     let incoming = IncomingMessage::new("bench", "bench-user", &full_prompt);
@@ -678,6 +691,22 @@ fn git_short_hash() -> String {
             }
         })
         .unwrap_or_else(|| "unknown".to_string())
+}
+
+/// Workspace placeholder used by adapters (e.g. PinchBench) in prompts.
+/// Each framework substitutes its own workspace path at runtime.
+pub const WORKSPACE_PLACEHOLDER: &str = "{{WORKSPACE}}";
+
+/// Replace `{{WORKSPACE}}` in a prompt with the IronClaw workspace path.
+fn resolve_workspace_placeholder(prompt: &str, task: &BenchTask, ws_base: &std::path::Path) -> String {
+    if !prompt.contains(WORKSPACE_PLACEHOLDER) {
+        return prompt.to_string();
+    }
+    if crate::suite::validate_task_id(&task.id).is_err() {
+        return prompt.to_string();
+    }
+    let ws_path = ws_base.join(&task.id);
+    prompt.replace(WORKSPACE_PLACEHOLDER, &ws_path.display().to_string())
 }
 
 #[cfg(test)]

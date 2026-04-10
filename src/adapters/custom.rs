@@ -210,6 +210,7 @@ mod tests {
             response: "4".to_string(),
             conversation: vec![],
             tool_calls: vec![],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();
@@ -235,6 +236,7 @@ mod tests {
             response: "Hello there!".to_string(),
             conversation: vec![],
             tool_calls: vec![],
+            trace_tool_calls: vec![],
             error: None,
         };
         let score = suite.score(&tasks[0], &submission).await.unwrap();

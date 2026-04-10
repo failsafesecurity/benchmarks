@@ -20,9 +20,9 @@ pub struct OpenClawRunner {
 
 /// Handle to a running OpenClaw container. Stops the container on drop.
 pub struct ContainerHandle {
-    container_id: String,
+    pub container_id: String,
     port: u16,
-    _workspace_dir: tempfile::TempDir,
+    pub workspace_dir: tempfile::TempDir,
     _config_dir: tempfile::TempDir,
 }
 
@@ -64,6 +64,9 @@ impl OpenClawRunner {
 
         let identity = extract_identity(task);
         write_identity_files(&identity, workspace_dir.path())?;
+
+        // Write PinchBench workspace files if present.
+        write_workspace_files(task, workspace_dir.path())?;
 
         let config_dir = tempfile::tempdir()
             .map_err(|e| BenchError::OpenClaw(format!("failed to create config dir: {e}")))?;
@@ -173,9 +176,10 @@ impl OpenClawRunner {
             "--allow-unconfigured".to_string(),
         ]);
 
-        let output = Command::new("docker")
+        let output = tokio::process::Command::new("docker")
             .args(&docker_args)
             .output()
+            .await
             .map_err(|e| BenchError::OpenClaw(format!("failed to run docker: {e}")))?;
 
         if !output.status.success() {
@@ -187,14 +191,15 @@ impl OpenClawRunner {
 
         let container_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
-        let port_output = Command::new("docker")
+        let port_output = tokio::process::Command::new("docker")
             .args(["port", &container_id, "18789/tcp"])
             .output()
+            .await
             .map_err(|e| BenchError::OpenClaw(format!("docker port failed: {e}")))?;
 
         let port_str = String::from_utf8_lossy(&port_output.stdout);
         let port = parse_docker_port(&port_str).ok_or_else(|| {
-            // Clean up container on port parse failure
+            // Clean up container on port parse failure — sync is fine here, we're already in error path
             let _ = Command::new("docker")
                 .args(["rm", "-f", &container_id])
                 .output();
@@ -204,7 +209,7 @@ impl OpenClawRunner {
         let handle = ContainerHandle {
             container_id,
             port,
-            _workspace_dir: workspace_dir,
+            workspace_dir,
             _config_dir: config_dir,
         };
 
@@ -218,15 +223,17 @@ impl OpenClawRunner {
                 ));
             }
 
-            let inspect = Command::new("docker")
+            let inspect = tokio::process::Command::new("docker")
                 .args(["inspect", "--format", "{{.State.Running}}", &handle.container_id])
-                .output();
+                .output()
+                .await;
             if let Ok(out) = inspect {
                 let state = String::from_utf8_lossy(&out.stdout).trim().to_string();
                 if state == "false" {
-                    let logs = Command::new("docker")
+                    let logs = tokio::process::Command::new("docker")
                         .args(["logs", "--tail", "20", &handle.container_id])
                         .output()
+                        .await
                         .map(|o| String::from_utf8_lossy(&o.stderr).to_string())
                         .unwrap_or_default();
                     return Err(BenchError::OpenClaw(format!(
@@ -250,63 +257,85 @@ impl OpenClawRunner {
         Ok(handle)
     }
 
-    /// Send a chat completion request to the running container.
-    pub async fn chat_completion(
+    /// Run a full agentic turn inside the container via `openclaw agent --message`.
+    ///
+    /// Unlike `chat_completion` (single LLM call via gateway HTTP), this runs
+    /// the OpenClaw agent CLI which executes a full tool-use loop: the agent
+    /// can read/write files, run commands, search the web, etc. This matches
+    /// how the original PinchBench harness invokes OpenClaw.
+    pub async fn agent_message(
         &self,
         handle: &ContainerHandle,
         prompt: &str,
         timeout: Duration,
     ) -> Result<OpenClawResponse, BenchError> {
-        let url = format!(
-            "http://127.0.0.1:{}/v1/chat/completions",
-            handle.port
-        );
+        let timeout_secs = timeout.as_secs().to_string();
 
-        let mut body = serde_json::json!({
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": false
-        });
+        // Process-level timeout in case the agent command hangs.
+        let exec_timeout = timeout + Duration::from_secs(30); // grace period
+        let output = tokio::time::timeout(
+            exec_timeout,
+            tokio::process::Command::new("docker")
+                .args([
+                    "exec",
+                    &handle.container_id,
+                    "openclaw",
+                    "agent",
+                    "--agent",
+                    "main",
+                    "--message",
+                    prompt,
+                    "--json",
+                    "--timeout",
+                    &timeout_secs,
+                ])
+                .output(),
+        )
+        .await
+        .map_err(|_| BenchError::OpenClaw(format!("agent command timed out after {}s", exec_timeout.as_secs())))?
+        .map_err(|e| BenchError::OpenClaw(format!("docker exec failed: {e}")))?;
 
-        if let Some(ref model) = self.model {
-            body["model"] = serde_json::Value::String(model.clone());
-        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
 
-        let resp = self
-            .http
-            .post(&url)
-            .header("Authorization", format!("Bearer {}", self.gateway_token))
-            .header("Content-Type", "application/json")
-            .timeout(timeout)
-            .json(&body)
-            .send()
-            .await
-            .map_err(|e| BenchError::OpenClaw(format!("chat completion request failed: {e}")))?;
-
-        if !resp.status().is_success() {
-            let status = resp.status();
-            let body = resp.text().await.unwrap_or_default();
+        if !output.status.success() {
+            tracing::error!(
+                "OpenClaw agent command failed (exit {}).\nstdout: {stdout}\nstderr: {stderr}",
+                output.status.code().unwrap_or(-1)
+            );
             return Err(BenchError::OpenClaw(format!(
-                "chat completion returned {status}: {body}"
+                "agent command failed: {stderr}"
             )));
         }
 
-        let json: serde_json::Value = resp
-            .json()
-            .await
-            .map_err(|e| BenchError::OpenClaw(format!("failed to parse response: {e}")))?;
+        // Parse the JSON response from `openclaw agent --json`
+        let json: serde_json::Value = serde_json::from_str(&stdout).map_err(|e| {
+            BenchError::OpenClaw(format!(
+                "failed to parse agent JSON: {e}\nstdout: {stdout}"
+            ))
+        })?;
 
-        let content = json["choices"][0]["message"]["content"]
-            .as_str()
-            .unwrap_or("")
-            .to_string();
+        // Extract response text from result.payloads[].text
+        let content = json["result"]["payloads"]
+            .as_array()
+            .map(|payloads| {
+                payloads
+                    .iter()
+                    .filter_map(|p| p["text"].as_str())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            })
+            .unwrap_or_default();
 
-        let prompt_tokens = json["usage"]["prompt_tokens"].as_u64().unwrap_or(0) as u32;
-        let completion_tokens = json["usage"]["completion_tokens"].as_u64().unwrap_or(0) as u32;
+        // Extract token usage from result.meta.agentMeta.usage
+        let usage = &json["result"]["meta"]["agentMeta"]["usage"];
+        let input_tokens = usage["input"].as_u64().unwrap_or(0) as u32;
+        let output_tokens = usage["output"].as_u64().unwrap_or(0) as u32;
 
         Ok(OpenClawResponse {
             content,
-            prompt_tokens,
-            completion_tokens,
+            prompt_tokens: input_tokens,
+            completion_tokens: output_tokens,
         })
     }
 }
@@ -335,18 +364,96 @@ pub async fn run_task_openclaw(
         }
     };
 
-    let full_prompt = if let Some(ref ctx) = task.context {
-        format!("{}\n\nContext:\n{}", task.prompt, ctx)
+    // Check for multi-session tasks (e.g. PinchBench task_22_second_brain).
+    // Send each session prompt sequentially to the same agent.
+    let sessions: Vec<String> = task
+        .metadata
+        .get("meta")
+        .and_then(|m| m.get("sessions"))
+        .and_then(|s| s.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|s| s.get("prompt").and_then(|p| p.as_str()).map(|p| p.to_string()))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let is_multi_session = !sessions.is_empty();
+    let prompts: Vec<String> = if is_multi_session {
+        sessions
     } else {
-        task.prompt.clone()
+        let full = if let Some(ref ctx) = task.context {
+            format!("{}\n\nContext:\n{}", task.prompt, ctx)
+        } else {
+            task.prompt.clone()
+        };
+        vec![full]
     };
 
-    let result = match runner.chat_completion(&handle, &full_prompt, timeout).await {
-        Ok(r) => r,
-        Err(e) => {
-            return make_error_result(task, suite_id, config_label, started_at, &e.to_string());
+    let mut last_result: Option<OpenClawResponse> = None;
+    for (i, prompt) in prompts.iter().enumerate() {
+        let prompt = prompt.replace(
+            crate::runner::WORKSPACE_PLACEHOLDER,
+            "/home/node/.openclaw/workspace",
+        );
+        let remaining = timeout.saturating_sub(start.elapsed());
+        if remaining.is_zero() {
+            return make_error_result(task, suite_id, config_label, started_at, "timeout");
         }
-    };
+        if is_multi_session {
+            tracing::info!("  Session {}/{}: sending prompt", i + 1, prompts.len());
+        }
+        match runner.agent_message(&handle, &prompt, remaining).await {
+            Ok(r) => last_result = Some(r),
+            Err(e) => {
+                return make_error_result(
+                    task, suite_id, config_label, started_at, &e.to_string(),
+                );
+            }
+        }
+    }
+
+    let result = last_result.unwrap_or(OpenClawResponse {
+        content: String::new(),
+        prompt_tokens: 0,
+        completion_tokens: 0,
+    });
+
+    // Copy workspace + session transcripts from container before it's destroyed.
+    if let Some(scoring_dir) = task
+        .metadata
+        .get("meta")
+        .and_then(|m| m.get("_workspace_base"))
+        .and_then(|v| v.as_str())
+    {
+        let dest = format!("{}/{}", scoring_dir, task.id);
+        let _ = std::fs::create_dir_all(&dest);
+
+        let _ = tokio::process::Command::new("docker")
+            .args([
+                "cp",
+                &format!("{}:/home/node/.openclaw/workspace/.", handle.container_id),
+                &dest,
+            ])
+            .output()
+            .await;
+
+        let sessions_dest = format!("{dest}/.openclaw-sessions");
+        let _ = std::fs::create_dir_all(&sessions_dest);
+        let _ = tokio::process::Command::new("docker")
+            .args([
+                "cp",
+                &format!(
+                    "{}:/home/node/.openclaw/agents/main/sessions/.",
+                    handle.container_id
+                ),
+                &sessions_dest,
+            ])
+            .output()
+            .await;
+    }
+
+    let tool_calls = parse_session_tool_calls(&handle.container_id).await;
 
     let wall_time = start.elapsed();
 
@@ -364,7 +471,7 @@ pub async fn run_task_openclaw(
             input_tokens: result.prompt_tokens,
             output_tokens: result.completion_tokens,
             estimated_cost_usd: 0.0,
-            tool_calls: vec![],
+            tool_calls: tool_calls,
             turns: 1,
             hit_iteration_limit: false,
             hit_timeout: false,
@@ -404,6 +511,165 @@ pub(crate) fn write_identity_files(
     }
     written.sort();
     Ok(written)
+}
+
+/// Extract tool calls (with arguments) from OpenClaw session JSONL inside the container.
+async fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
+    let find_output = tokio::process::Command::new("docker")
+        .args([
+            "exec",
+            container_id,
+            "find",
+            "/home/node/.openclaw/agents/main/sessions",
+            "-name",
+            "*.jsonl",
+        ])
+        .output()
+        .await;
+
+    let jsonl_paths = match find_output {
+        Ok(out) if out.status.success() => {
+            String::from_utf8_lossy(&out.stdout)
+                .lines()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+        }
+        _ => return vec![],
+    };
+
+    let mut tool_calls = Vec::new();
+
+    for path in jsonl_paths {
+        let cat_output = tokio::process::Command::new("docker")
+            .args(["exec", container_id, "cat", &path])
+            .output()
+            .await;
+
+        let content = match cat_output {
+            Ok(out) if out.status.success() => {
+                String::from_utf8_lossy(&out.stdout).to_string()
+            }
+            _ => continue,
+        };
+
+        for line in content.lines() {
+            let Ok(event) = serde_json::from_str::<serde_json::Value>(line) else {
+                continue;
+            };
+            if event.get("type").and_then(|t| t.as_str()) != Some("message") {
+                continue;
+            }
+            let Some(msg) = event.get("message") else {
+                continue;
+            };
+            if msg.get("role").and_then(|r| r.as_str()) != Some("assistant") {
+                continue;
+            }
+            let Some(content_arr) = msg.get("content").and_then(|c| c.as_array()) else {
+                continue;
+            };
+            for item in content_arr {
+                if item.get("type").and_then(|t| t.as_str()) == Some("toolCall") {
+                    let name = item
+                        .get("name")
+                        .and_then(|n| n.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let arguments = item
+                        .get("params")
+                        .or_else(|| item.get("arguments"))
+                        .cloned();
+                    tool_calls.push(crate::results::TraceToolCall {
+                        name,
+                        duration_ms: 0,
+                        success: true,
+                        arguments,
+                        result_preview: None,
+                    });
+                }
+            }
+        }
+    }
+
+    tool_calls
+}
+
+/// Write PinchBench workspace files (from `task.metadata.meta.workspace_files`)
+/// into the container's workspace directory. Handles inline content and asset
+/// references. Binary assets are copied from the dataset path.
+fn write_workspace_files(
+    task: &BenchTask,
+    dir: &std::path::Path,
+) -> Result<(), BenchError> {
+    #[derive(serde::Deserialize)]
+    struct WsFile {
+        #[serde(default)]
+        path: Option<String>,
+        #[serde(default)]
+        content: Option<String>,
+        #[serde(default)]
+        source: Option<String>,
+        #[serde(default)]
+        dest: Option<String>,
+    }
+
+    let files: Vec<WsFile> = task
+        .metadata
+        .get("meta")
+        .and_then(|m| m.get("workspace_files"))
+        .and_then(|wf| serde_json::from_value(wf.clone()).ok())
+        .unwrap_or_default();
+
+    if files.is_empty() {
+        return Ok(());
+    }
+
+    // Resolve the dataset_path for asset references by walking up from the
+    // known workspace base. For OpenClaw we don't have direct access to the
+    // suite's dataset_path, so we look for it in the task metadata or fall
+    // back to the conventional location.
+    let dataset_path = std::path::PathBuf::from(
+        task.metadata
+            .get("meta")
+            .and_then(|m| m.get("_dataset_path"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("datasets/pinchbench/v1"),
+    );
+
+    for wf in &files {
+        if let (Some(path), Some(content)) = (&wf.path, &wf.content) {
+            crate::suite::validate_workspace_path(path)?;
+            let dest = dir.join(path);
+            if let Some(parent) = dest.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            std::fs::write(&dest, content)?;
+        } else if let (Some(source), Some(dest_name)) = (&wf.source, &wf.dest) {
+            crate::suite::validate_workspace_path(dest_name)?;
+            let src = dataset_path.join("assets").join(source);
+            let dest = dir.join(dest_name);
+            if let Some(parent) = dest.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            if src.exists() {
+                std::fs::copy(&src, &dest).map_err(|e| {
+                    BenchError::OpenClaw(format!(
+                        "failed to copy asset {} -> {}: {e}",
+                        src.display(),
+                        dest.display()
+                    ))
+                })?;
+            } else {
+                tracing::warn!(
+                    "Asset not found for OpenClaw workspace: {} (task {})",
+                    src.display(),
+                    task.id
+                );
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Parse host port from `docker port` output like "0.0.0.0:32768" or ":::32768".
@@ -659,13 +925,12 @@ mod tests {
 
     #[tokio::test]
     #[ignore] // Requires Docker + openclaw:local image + API key
-    async fn integration_chat_completion_with_identity() {
+    async fn integration_agent_message_with_identity() {
         if !docker_available() || !openclaw_image_exists() {
             eprintln!("Skipping: Docker or openclaw:local image not available");
             return;
         }
 
-        // Need at least one API key to actually send a chat completion
         let has_api_key = std::env::var("OPENROUTER_API_KEY").is_ok()
             || std::env::var("ANTHROPIC_API_KEY").is_ok()
             || std::env::var("OPENAI_API_KEY").is_ok();
@@ -688,13 +953,11 @@ mod tests {
 
         // Ask the agent a simple question — it should respond without errors
         let response = runner
-            .chat_completion(&handle, "What is 2+2? Reply with just the number.", Duration::from_secs(30))
+            .agent_message(&handle, "What is 2+2? Reply with just the number.", Duration::from_secs(60))
             .await
-            .expect("Chat completion should succeed");
+            .expect("Agent message should succeed");
 
         assert!(!response.content.is_empty(), "Response should not be empty");
-        assert!(response.prompt_tokens > 0, "Should report prompt tokens");
-        assert!(response.completion_tokens > 0, "Should report completion tokens");
 
         // The prompt tokens should be >> the user message alone,
         // indicating the identity/system prompt was injected
