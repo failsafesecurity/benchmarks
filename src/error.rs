@@ -32,6 +32,9 @@ pub enum BenchError {
     #[error("OpenClaw error: {0}")]
     OpenClaw(String),
 
+    #[error("Docker error: {0}")]
+    Docker(String),
+
     #[error("PinchBench error: {0}")]
     PinchBench(String),
 }

@@ -53,5 +53,8 @@ reqwest = { version = "0.12", features = ["json"] }
 # Temp files (used for per-task in-memory workspace DBs)
 tempfile = "3"
 
+# YAML parsing (terminal bench legacy task format)
+serde_yaml = "0.9"
+
 # Environment file loading
 dotenvy = "0.15"

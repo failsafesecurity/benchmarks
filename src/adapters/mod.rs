@@ -4,6 +4,7 @@ pub mod pinchbench;
 pub mod spot;
 pub mod swe_bench;
 pub mod tau_bench;
+pub mod terminal_bench;
 pub mod trajectory;
 
 use crate::config::BenchConfig;
@@ -20,6 +21,10 @@ pub const KNOWN_SUITES: &[(&str, &str)] = &[
     ("spot", "Spot checks (end-to-end user workflows)"),
     ("tau_bench", "Tau-bench (multi-turn tool use)"),
     ("swe_bench", "SWE-bench Pro (software engineering)"),
+    (
+        "terminal_bench",
+        "Terminal Bench (containerized terminal tasks)",
+    ),
     ("trajectory", "Multi-turn trajectory scenarios"),
 ];
 
@@ -138,6 +143,32 @@ pub fn create_suite(name: &str, config: &BenchConfig) -> Result<Box<dyn BenchSui
                 dataset_path,
                 workspace_dir,
                 use_docker,
+            )))
+        }
+        "terminal_bench" => {
+            let dataset_path = suite_map
+                .get("dataset_path")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .ok_or_else(|| {
+                    BenchError::Config(
+                        "suite_config.dataset_path is required for 'terminal_bench' suite"
+                            .to_string(),
+                    )
+                })?;
+            let rebuild_images = suite_map
+                .get("rebuild_images")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let verifier_timeout = suite_map
+                .get("verifier_timeout")
+                .and_then(|v| v.as_str())
+                .and_then(|s| crate::config::parse_duration(s).ok())
+                .unwrap_or(std::time::Duration::from_secs(300));
+            Ok(Box::new(terminal_bench::TerminalBenchSuite::new(
+                dataset_path,
+                rebuild_images,
+                verifier_timeout,
             )))
         }
         "trajectory" => {
