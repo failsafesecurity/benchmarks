@@ -12,7 +12,7 @@ use ironclaw::config::AgentConfig;
 use ironclaw::db::Database;
 use ironclaw::db::libsql::LibSqlBackend;
 use ironclaw::llm::LlmProvider;
-use ironclaw::safety::SafetyLayer;
+use ironclaw_safety::SafetyLayer;
 use ironclaw::tools::ToolRegistry;
 use ironclaw::workspace::Workspace;
 
@@ -471,6 +471,16 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         allow_local_tools: true,
         max_cost_per_day_cents: None,
         max_actions_per_hour: None,
+        max_cost_per_user_per_day_cents: None,
+        max_tool_iterations: 50,
+        auto_approve_tools: true,
+        default_timezone: "UTC".to_string(),
+        max_jobs_per_user: None,
+        max_tokens_per_job: 0,
+        multi_tenant: false,
+        max_llm_concurrent_per_user: None,
+        max_jobs_concurrent_per_user: None,
+        engine_v2: false,
     };
 
     let cost_guard = Arc::new(ironclaw::agent::cost_guard::CostGuard::new(
@@ -488,7 +498,9 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
     };
 
     let deps = AgentDeps {
+        owner_id: "bench-user".to_string(),
         store: None,
+        settings_store: None,
         llm: instrumented.clone() as Arc<dyn LlmProvider>,
         cheap_llm: None,
         safety,
@@ -496,15 +508,34 @@ async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
         workspace,
         extension_manager: None,
         skill_registry: None,
+        skill_catalog: None,
         skills_config: ironclaw::config::SkillsConfig::default(),
         hooks: Arc::new(ironclaw::hooks::HookRegistry::new()),
+        auth_manager: None,
         cost_guard,
+        sse_tx: None,
+        http_interceptor: None,
+        transcription: None,
+        document_extraction: None,
+        sandbox_readiness: ironclaw::agent::routine_engine::SandboxReadiness::DisabledByConfig,
+        builder: None,
+        llm_backend: "nearai".to_string(),
+        tenant_rates: Arc::new(ironclaw::tenant::TenantRateRegistry::new(4, 3)),
     };
 
-    let mut channels = ChannelManager::new();
-    channels.add(Box::new(bench_channel));
+    let channels = ChannelManager::new();
+    channels.add(Box::new(bench_channel)).await;
 
-    let agent = Agent::new(agent_config, deps, channels, None, None, None, None, None);
+    let agent = Agent::new(
+        agent_config,
+        deps,
+        Arc::new(channels),
+        None,
+        None,
+        None,
+        None,
+        None,
+    );
 
     // Build the full prompt with context
     let full_prompt = if let Some(ref ctx) = task.context {

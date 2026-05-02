@@ -12,7 +12,8 @@ name = "nearai-bench"
 path = "src/main.rs"
 
 [dependencies]
-ironclaw = { git = "https://github.com/nearai/ironclaw.git" }
+ironclaw = { git = "https://github.com/nearai/ironclaw.git", tag = "ironclaw-v0.27.0" }
+ironclaw_safety = { git = "https://github.com/nearai/ironclaw.git", tag = "ironclaw-v0.27.0" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }

@@ -17,7 +17,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use ironclaw::context::JobContext;
-use ironclaw::tools::{Tool, ToolDomain, ToolError, ToolOutput};
+use ironclaw::tools::{ApprovalRequirement, Tool, ToolDomain, ToolError, ToolOutput};
 
 /// Extract a required string parameter from a JSON object.
 fn require_str<'a>(params: &'a serde_json::Value, name: &str) -> Result<&'a str, ToolError> {
@@ -186,14 +186,7 @@ impl Tool for DockerExecTool {
         ctx: &JobContext,
     ) -> Result<ToolOutput, ToolError> {
         let command = require_str(&params, "command")?;
-        let task_id = extract_task_id(&ctx.title);
-
-        let container_id = {
-            let map = self.containers.lock().await;
-            map.get(task_id).cloned().ok_or_else(|| {
-                ToolError::ExecutionFailed(format!("no container for task '{task_id}'"))
-            })?
-        };
+        let container_id = resolve_container_id(&self.containers, &ctx.title).await?;
 
         let start = std::time::Instant::now();
         let result = docker::exec_in_container(&container_id, command, self.timeout).await;
@@ -218,8 +211,8 @@ impl Tool for DockerExecTool {
         }
     }
 
-    fn requires_approval(&self) -> bool {
-        false
+    fn requires_approval(&self, _params: &serde_json::Value) -> ApprovalRequirement {
+        ApprovalRequirement::Never
     }
 
     fn domain(&self) -> ToolDomain {
@@ -269,14 +262,7 @@ impl Tool for DockerReadFileTool {
         ctx: &JobContext,
     ) -> Result<ToolOutput, ToolError> {
         let path = require_str(&params, "path")?;
-        let task_id = extract_task_id(&ctx.title);
-
-        let container_id = {
-            let map = self.containers.lock().await;
-            map.get(task_id).cloned().ok_or_else(|| {
-                ToolError::ExecutionFailed(format!("no container for task '{task_id}'"))
-            })?
-        };
+        let container_id = resolve_container_id(&self.containers, &ctx.title).await?;
 
         let start = std::time::Instant::now();
         let cmd = format!("cat {}", shell_escape(path));
@@ -292,8 +278,8 @@ impl Tool for DockerReadFileTool {
         }
     }
 
-    fn requires_approval(&self) -> bool {
-        false
+    fn requires_approval(&self, _params: &serde_json::Value) -> ApprovalRequirement {
+        ApprovalRequirement::Never
     }
 
     fn domain(&self) -> ToolDomain {
@@ -344,14 +330,7 @@ impl Tool for DockerWriteFileTool {
     ) -> Result<ToolOutput, ToolError> {
         let path = require_str(&params, "path")?;
         let content = require_str(&params, "content")?;
-        let task_id = extract_task_id(&ctx.title);
-
-        let container_id = {
-            let map = self.containers.lock().await;
-            map.get(task_id).cloned().ok_or_else(|| {
-                ToolError::ExecutionFailed(format!("no container for task '{task_id}'"))
-            })?
-        };
+        let container_id = resolve_container_id(&self.containers, &ctx.title).await?;
 
         let start = std::time::Instant::now();
         // Use heredoc to avoid quoting issues
@@ -372,8 +351,8 @@ impl Tool for DockerWriteFileTool {
         }
     }
 
-    fn requires_approval(&self) -> bool {
-        false
+    fn requires_approval(&self, _params: &serde_json::Value) -> ApprovalRequirement {
+        ApprovalRequirement::Never
     }
 
     fn domain(&self) -> ToolDomain {
@@ -391,6 +370,11 @@ impl Tool for DockerWriteFileTool {
 
 pub struct TerminalBenchSuite {
     dataset_path: PathBuf,
+    /// Upstream git repo to clone task definitions from when `dataset_path`
+    /// is missing or empty. Default: harbor-framework/terminal-bench.
+    upstream_repo: String,
+    /// Subdirectory within the upstream repo containing one task per dir.
+    upstream_tasks_subdir: String,
     rebuild_images: bool,
     verifier_timeout: Duration,
     /// task_id -> container_id (shared with DockerExecTool instances)
@@ -402,17 +386,109 @@ pub struct TerminalBenchSuite {
 impl TerminalBenchSuite {
     pub fn new(
         dataset_path: impl Into<PathBuf>,
+        upstream_repo: impl Into<String>,
+        upstream_tasks_subdir: impl Into<String>,
         rebuild_images: bool,
         verifier_timeout: Duration,
     ) -> Self {
         Self {
             dataset_path: dataset_path.into(),
+            upstream_repo: upstream_repo.into(),
+            upstream_tasks_subdir: upstream_tasks_subdir.into(),
             rebuild_images,
             verifier_timeout,
             containers: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             rewards: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         }
     }
+
+    /// Clone the upstream repo (shallow) and copy the tasks subdirectory into
+    /// `dataset_path`. Idempotent: skips if `dataset_path` already has tasks.
+    async fn ensure_dataset(&self) -> Result<(), BenchError> {
+        if dataset_has_tasks(&self.dataset_path) {
+            return Ok(());
+        }
+
+        tracing::info!(
+            "Terminal Bench dataset is empty; cloning {} into {}",
+            self.upstream_repo,
+            self.dataset_path.display()
+        );
+
+        let tmp = tempfile::tempdir()
+            .map_err(|e| BenchError::Config(format!("failed to create temp dir: {e}")))?;
+        let clone_dir = tmp.path().join("upstream");
+
+        let status = tokio::process::Command::new("git")
+            .args([
+                "clone",
+                "--depth",
+                "1",
+                "--quiet",
+                &self.upstream_repo,
+                clone_dir.to_str().unwrap(),
+            ])
+            .status()
+            .await
+            .map_err(|e| BenchError::Config(format!("git clone failed to spawn: {e}")))?;
+        if !status.success() {
+            return Err(BenchError::Config(format!(
+                "git clone {} failed (exit {})",
+                self.upstream_repo,
+                status.code().unwrap_or(-1)
+            )));
+        }
+
+        let src = clone_dir.join(&self.upstream_tasks_subdir);
+        if !src.is_dir() {
+            return Err(BenchError::Config(format!(
+                "upstream subdir '{}' not found in {}",
+                self.upstream_tasks_subdir,
+                self.upstream_repo
+            )));
+        }
+
+        std::fs::create_dir_all(&self.dataset_path)?;
+        copy_dir_recursive(&src, &self.dataset_path)?;
+
+        tracing::info!(
+            "Cloned {} task dirs into {}",
+            std::fs::read_dir(&self.dataset_path)?.count(),
+            self.dataset_path.display()
+        );
+        Ok(())
+    }
+}
+
+/// True if `dir` exists and contains at least one subdirectory with a
+/// `task.toml` or `task.yaml` (the markers we use to identify a task).
+fn dataset_has_tasks(dir: &Path) -> bool {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return false;
+    };
+    for entry in entries.flatten() {
+        let p = entry.path();
+        if p.is_dir() && (p.join("task.toml").exists() || p.join("task.yaml").exists()) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Recursively copy `src` directory contents into `dst`.
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), BenchError> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let from = entry.path();
+        let to = dst.join(entry.file_name());
+        if from.is_dir() {
+            copy_dir_recursive(&from, &to)?;
+        } else {
+            std::fs::copy(&from, &to)?;
+        }
+    }
+    Ok(())
 }
 
 #[async_trait]
@@ -426,6 +502,8 @@ impl BenchSuite for TerminalBenchSuite {
     }
 
     async fn load_tasks(&self) -> Result<Vec<BenchTask>, BenchError> {
+        self.ensure_dataset().await?;
+
         let mut tasks = Vec::new();
         discover_tasks(&self.dataset_path, &self.dataset_path, &mut tasks)?;
         if tasks.is_empty() {
@@ -715,6 +793,12 @@ fn load_legacy_task(root: &Path, task_dir: &Path) -> Result<BenchTask, BenchErro
 // ---------------------------------------------------------------------------
 
 /// Run the verifier (test script) inside the container and return the reward.
+///
+/// Reward sources, in order of preference:
+/// 1. `/logs/verifier/reward.txt` — single numeric value (custom suites)
+/// 2. `/logs/verifier/reward.json` — `{"reward": float}` or numeric (custom suites)
+/// 3. The verifier's own exit code — 0 ⇒ 1.0, non-zero ⇒ 0.0 (real terminal-bench
+///    tasks rely on pytest exit status; they don't write reward files).
 async fn run_verifier(container_id: &str, timeout: Duration) -> f64 {
     // Try test.sh first, then run-tests.sh
     let test_script = if docker::exec_in_container(
@@ -726,7 +810,7 @@ async fn run_verifier(container_id: &str, timeout: Duration) -> f64 {
     .map(|o| o.exit_code == 0)
     .unwrap_or(false)
     {
-        "bash /tests/test.sh"
+        "TEST_DIR=/tests bash /tests/test.sh"
     } else if docker::exec_in_container(
         container_id,
         "test -f /tests/run-tests.sh",
@@ -736,24 +820,27 @@ async fn run_verifier(container_id: &str, timeout: Duration) -> f64 {
     .map(|o| o.exit_code == 0)
     .unwrap_or(false)
     {
-        "bash /tests/run-tests.sh"
+        "TEST_DIR=/tests bash /tests/run-tests.sh"
     } else {
         tracing::warn!("no test script found in container {container_id}");
         return 0.0;
     };
 
     tracing::info!("Running verifier: {test_script}");
-    match docker::exec_in_container(container_id, test_script, timeout).await {
+    let verifier_exit_code = match docker::exec_in_container(container_id, test_script, timeout)
+        .await
+    {
         Ok(output) => {
             if !output.stderr.is_empty() {
                 tracing::debug!("verifier stderr: {}", output.stderr.trim());
             }
+            output.exit_code
         }
         Err(e) => {
             tracing::warn!("verifier execution failed: {e}");
             return 0.0;
         }
-    }
+    };
 
     // Read reward.txt first, fall back to reward.json
     if let Ok(output) = docker::exec_in_container(
@@ -790,8 +877,11 @@ async fn run_verifier(container_id: &str, timeout: Duration) -> f64 {
         }
     }
 
-    tracing::warn!("no reward file found in container {container_id}");
-    0.0
+    // Real terminal-bench tasks rely on the verifier exit code (pytest).
+    tracing::info!(
+        "no reward file in {container_id}; using verifier exit code {verifier_exit_code} as reward"
+    );
+    if verifier_exit_code == 0 { 1.0 } else { 0.0 }
 }
 
 // ---------------------------------------------------------------------------
@@ -812,6 +902,30 @@ fn derive_task_id(root: &Path, task_dir: &Path) -> String {
 /// Extract the task ID from a `JobContext.title` like `"bench-{task_id}"`.
 fn extract_task_id(title: &str) -> &str {
     title.strip_prefix("bench-").unwrap_or(title)
+}
+
+/// Resolve the container ID for the current tool invocation.
+///
+/// In ironclaw, `JobContext.title` is set to "chat" (not the agent name), so we
+/// can't recover the task ID from the title. Since the bench harness runs one
+/// task at a time per agent (and the container map is per-suite), if the map
+/// has exactly one entry it must be ours.
+async fn resolve_container_id(
+    containers: &tokio::sync::Mutex<HashMap<String, String>>,
+    title: &str,
+) -> Result<String, ToolError> {
+    let map = containers.lock().await;
+    let task_id = extract_task_id(title);
+    if let Some(id) = map.get(task_id) {
+        return Ok(id.clone());
+    }
+    if map.len() == 1 {
+        return Ok(map.values().next().unwrap().clone());
+    }
+    Err(ToolError::ExecutionFailed(format!(
+        "no container available (title='{title}', map size={})",
+        map.len()
+    )))
 }
 
 /// Sanitize a string for use as a Docker image/container name.

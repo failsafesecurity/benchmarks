@@ -22,7 +22,7 @@ pub struct OpenClawRunner {
 pub struct ContainerHandle {
     pub container_id: String,
     port: u16,
-    pub workspace_dir: tempfile::TempDir,
+    _workspace_dir: tempfile::TempDir,
     _config_dir: tempfile::TempDir,
 }
 
@@ -226,7 +226,7 @@ impl OpenClawRunner {
         let handle = ContainerHandle {
             container_id,
             port,
-            workspace_dir,
+            _workspace_dir: workspace_dir,
             _config_dir: config_dir,
         };
 
@@ -409,6 +409,8 @@ pub async fn run_task_openclaw(
     let prompts: Vec<String> = if is_multi_session {
         sessions
     } else {
+        // Single-session: use build_prompt which adds Terminal Bench docker exec
+        // preamble when the task has a tb_container_id.
         vec![build_prompt(task)]
     };
 
@@ -559,7 +561,6 @@ fn build_prompt(task: &BenchTask) -> String {
         base
     }
 }
-
 
 /// Extract tool calls (with arguments) from OpenClaw session JSONL inside the container.
 async fn parse_session_tool_calls(container_id: &str) -> Vec<crate::results::TraceToolCall> {
@@ -1059,6 +1060,11 @@ mod tests {
             .expect("Agent message should succeed");
 
         assert!(!response.content.is_empty(), "Response should not be empty");
+        assert!(response.prompt_tokens > 0, "Should report prompt tokens");
+        assert!(
+            response.completion_tokens > 0,
+            "Should report completion tokens"
+        );
 
         // The prompt tokens should be >> the user message alone,
         // indicating the identity/system prompt was injected

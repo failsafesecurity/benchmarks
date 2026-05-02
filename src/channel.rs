@@ -110,7 +110,9 @@ impl Channel for BenchChannel {
         let mut cap = self.capture.lock().await;
 
         match status {
-            StatusUpdate::ToolCompleted { ref name, success } => {
+            StatusUpdate::ToolCompleted {
+                ref name, success, ..
+            } => {
                 let args = cap.pending_tool_args.get_mut(name).and_then(|q| q.pop_front());
                 cap.tool_calls.push(TraceToolCall {
                     name: name.clone(),
@@ -141,12 +143,13 @@ impl Channel for BenchChannel {
             StatusUpdate::Thinking(ref msg) => {
                 cap.status_log.push(format!("thinking: {msg}"));
             }
-            StatusUpdate::ToolStarted { ref name } => {
+            StatusUpdate::ToolStarted { ref name, .. } => {
                 cap.status_log.push(format!("tool_started: {name}"));
             }
             StatusUpdate::ToolResult {
                 ref name,
                 ref preview,
+                ..
             } => {
                 if let Some(tc) = cap.tool_calls.iter_mut().rev().find(|tc| tc.name == *name) {
                     tc.result_preview = Some(truncate_str(preview, 500).to_string());
@@ -183,6 +186,8 @@ impl Channel for BenchChannel {
                     "auth_completed: {extension_name} success={success}"
                 ));
             }
+            // Other variants (ImageGenerated, JobStatus, JobResult, etc.) — ignore for benches.
+            _ => {}
         }
         Ok(())
     }
@@ -239,6 +244,7 @@ mod tests {
             tool_name: "shell".to_string(),
             description: "run ls".to_string(),
             parameters: serde_json::json!({}),
+            allow_always: true,
         };
         channel
             .send_status(status, &serde_json::Value::Null)
@@ -261,6 +267,10 @@ mod tests {
         let status = StatusUpdate::ToolCompleted {
             name: "echo".to_string(),
             success: true,
+            error: None,
+            parameters: None,
+            call_id: None,
+            duration_ms: None,
         };
         channel
             .send_status(status, &serde_json::Value::Null)

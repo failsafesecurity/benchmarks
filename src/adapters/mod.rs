@@ -156,6 +156,16 @@ pub fn create_suite(name: &str, config: &BenchConfig) -> Result<Box<dyn BenchSui
                             .to_string(),
                     )
                 })?;
+            let upstream_repo = suite_map
+                .get("upstream_repo")
+                .and_then(|v| v.as_str())
+                .unwrap_or("https://github.com/harbor-framework/terminal-bench")
+                .to_string();
+            let upstream_tasks_subdir = suite_map
+                .get("upstream_tasks_subdir")
+                .and_then(|v| v.as_str())
+                .unwrap_or("original-tasks")
+                .to_string();
             let rebuild_images = suite_map
                 .get("rebuild_images")
                 .and_then(|v| v.as_bool())
@@ -167,6 +177,8 @@ pub fn create_suite(name: &str, config: &BenchConfig) -> Result<Box<dyn BenchSui
                 .unwrap_or(std::time::Duration::from_secs(300));
             Ok(Box::new(terminal_bench::TerminalBenchSuite::new(
                 dataset_path,
+                upstream_repo,
+                upstream_tasks_subdir,
                 rebuild_images,
                 verifier_timeout,
             )))

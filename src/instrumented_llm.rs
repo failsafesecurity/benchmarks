@@ -47,6 +47,7 @@ impl InstrumentedLlm {
     }
 
     /// Take all recorded call metrics, clearing the internal buffer.
+    #[cfg(test)]
     pub async fn take_records(&self) -> Vec<LlmCallRecord> {
         let mut records = self.records.lock().await;
         std::mem::take(&mut *records)
@@ -77,6 +78,7 @@ impl InstrumentedLlm {
     }
 
     /// Reset all counters and records.
+    #[cfg(test)]
     pub async fn reset(&self) {
         self.records.lock().await.clear();
         self.total_input_tokens.store(0, Ordering::Relaxed);
@@ -182,7 +184,8 @@ mod tests {
                 input_tokens: 100,
                 output_tokens: 50,
                 finish_reason: FinishReason::Stop,
-                response_id: None,
+                cache_read_input_tokens: 0,
+                cache_creation_input_tokens: 0,
             })
         }
 
@@ -196,7 +199,8 @@ mod tests {
                 input_tokens: 200,
                 output_tokens: 100,
                 finish_reason: FinishReason::Stop,
-                response_id: None,
+                cache_read_input_tokens: 0,
+                cache_creation_input_tokens: 0,
             })
         }
     }

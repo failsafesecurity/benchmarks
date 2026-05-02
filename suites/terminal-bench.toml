@@ -6,5 +6,9 @@ label = "default"
 
 [suite_config]
 dataset_path = "datasets/terminal-bench/v1"
+# Auto-cloned (shallow) into dataset_path on first use when the directory is empty.
+# Override these only to point at a fork or a different task layout.
+upstream_repo = "https://github.com/harbor-framework/terminal-bench"
+upstream_tasks_subdir = "original-tasks"
 rebuild_images = false
 verifier_timeout = "300s"

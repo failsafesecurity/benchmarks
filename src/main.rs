@@ -208,22 +208,23 @@ async fn main() -> anyhow::Result<()> {
                     )
                 })?;
 
-                let session = ironclaw::llm::create_session_manager(ironclaw::llm::SessionConfig {
-                    auth_base_url: ironclaw_config.llm.nearai.auth_base_url.clone(),
-                    session_path: ironclaw_config.llm.nearai.session_path.clone(),
-                })
-                .await;
+                let session =
+                    ironclaw::llm::create_session_manager(ironclaw_config.llm.session.clone())
+                        .await;
 
                 let is_nearai = matches!(
-                    ironclaw_config.llm.backend,
-                    ironclaw::config::LlmBackend::NearAi
+                    ironclaw_config.llm.backend.as_str(),
+                    "nearai" | "near_ai" | "near"
                 );
-                if is_nearai {
+                // Skip OAuth flow when an API key is set — the chat-completions
+                // path uses the key directly and doesn't need a session token.
+                if is_nearai && ironclaw_config.llm.nearai.api_key.is_none() {
                     session.ensure_authenticated().await?;
                 }
 
-                let llm = ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session)?;
-                let safety = Arc::new(ironclaw::safety::SafetyLayer::new(&ironclaw_config.safety));
+                let llm =
+                    ironclaw::llm::create_llm_provider(&ironclaw_config.llm, session).await?;
+                let safety = Arc::new(ironclaw_safety::SafetyLayer::new(&ironclaw_config.safety));
                 runner::FrameworkDeps::Ironclaw { llm, safety }
             };
 

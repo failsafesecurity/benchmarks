@@ -4,3 +4,7 @@
 .DS_Store
 .env
 /results/
+
+# Terminal Bench tasks are fetched on demand from harbor-framework/terminal-bench.
+# Vendoring them here would pollute the upstream canary string.
+/datasets/terminal-bench/v1/
