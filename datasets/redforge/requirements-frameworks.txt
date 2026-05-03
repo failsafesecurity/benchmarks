@@ -1,0 +1,17 @@
+# Python deps for the agent frameworks the harness wraps.
+#
+# Hermes (`NousResearch/hermes-agent`) is vendored as a sibling clone by
+# scripts/setup.sh. Its full deps live in its own pyproject.toml; the
+# subset below is what the harness exercises through it. Install with:
+#
+#     pip install -r requirements-frameworks.txt
+
+# Hermes runtime essentials
+fire>=0.7,<1
+rich>=14.0,<15
+tenacity>=9.0,<10
+prompt_toolkit>=3.0,<4
+pydantic>=2.0,<3
+jinja2>=3.0,<4
+openai>=2.0,<3
+anthropic>=0.39,<1
