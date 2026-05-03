@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """
 Figure 1 — Red-vs-blue flow.
 
@@ -98,6 +99,6 @@ ax.legend(handles=legend_elements, loc='lower right', fontsize=10,
 ax.text(6.5, 7.7, 'Red vs blue, with full reasoning visibility',
         ha='center', va='center', fontsize=14, fontweight='bold', color='#222')
 
-plt.savefig('docs/paper/figures/figure_2_flow.png',
+plt.savefig(str(Path(__file__).parent / 'figure_2_flow.png'),
             dpi=180, bbox_inches='tight', facecolor='white')
-print('wrote docs/paper/figures/figure_2_flow.png')
+print(f'wrote {Path(__file__).parent / "figure_2_flow.png"}')

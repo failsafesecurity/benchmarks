@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """
 Figure 2 — Two side-by-side heatmaps showing per-attack-family vulnerability:
   Left:  Framework × Attack family (aggregate across 4 models)
@@ -61,6 +62,6 @@ cbar.set_label('Violations across 52 scenarios × 5 attempts', fontsize=10)
 
 fig.suptitle('Where each framework — and each model — fails',
              fontsize=15, fontweight='bold', y=1.02)
-plt.savefig('docs/paper/figures/figure_3_dual_heatmap.png',
+plt.savefig(str(Path(__file__).parent / 'figure_3_dual_heatmap.png'),
             dpi=180, bbox_inches='tight', facecolor='white')
-print("wrote docs/paper/figures/figure_3_dual_heatmap.png")
+print(f"wrote {Path(__file__).parent / 'figure_3_dual_heatmap.png'}")

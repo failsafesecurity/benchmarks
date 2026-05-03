@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """
 Figure 3 — Parallel-coordinates view of the headline matrix.
 
@@ -66,6 +67,6 @@ fig.text(0.5, 0.02,
          ha='center', fontsize=10, color='#555', style='italic')
 
 plt.tight_layout(rect=[0, 0.04, 1, 1])
-plt.savefig('docs/paper/figures/figure_4_parallel_coords.png',
+plt.savefig(str(Path(__file__).parent / 'figure_4_parallel_coords.png'),
             dpi=180, bbox_inches='tight', facecolor='white')
-print("wrote docs/paper/figures/figure_4_parallel_coords.png")
+print(f"wrote {Path(__file__).parent / 'figure_4_parallel_coords.png'}")

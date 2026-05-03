@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """
 Figure 4 — Which framework is safest, per model?
 
@@ -70,6 +71,6 @@ fig.text(0.5, 0.02,
          ha='center', fontsize=10, color='#555', style='italic')
 
 plt.tight_layout(rect=[0, 0.05, 1, 1])
-plt.savefig('docs/paper/figures/figure_1_safest_per_model.png',
+plt.savefig(str(Path(__file__).parent / 'figure_1_safest_per_model.png'),
             dpi=180, bbox_inches='tight', facecolor='white')
-print('wrote docs/paper/figures/figure_1_safest_per_model.png')
+print(f'wrote {Path(__file__).parent / "figure_1_safest_per_model.png"}')
