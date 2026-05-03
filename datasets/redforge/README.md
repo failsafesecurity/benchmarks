@@ -30,31 +30,38 @@ model. The pattern is unstable — no framework wins for every model.*
 ## Quickstart
 
 ```sh
-# 1. clone and install
+# 1. clone
 git clone https://github.com/nearai/benchmarks
 cd benchmarks/datasets/redforge
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
 
-# 2. set the keys you need (see .env.example)
-export OPENROUTER_API_KEY=...
-export ANTHROPIC_API_KEY=...
-# ...
+# 2. provision a fresh box for the framework(s) you want to run.
+#    setup.sh creates a venv, installs core deps, and (when asked) clones
+#    Hermes, builds the Ironclaw bench binary, and/or builds the Openclaw
+#    docker image. Re-runnable; pick any combination.
+./scripts/setup.sh --with-hermes
+./scripts/setup.sh --with-ironclaw
+./scripts/setup.sh --with-openclaw
+source .venv/bin/activate
 
-# 3. run the smoke test (one cell, one scenario, ~2 minutes)
-./scripts/smoke_test.sh
+# 3. set the keys you need (see .env.example)
+export OPENAI_API_KEY=...        # red attacker (always)
+export ANTHROPIC_API_KEY=...     # for claude-* models
+export OPENROUTER_API_KEY=...    # for kimi/qwen/glm via OpenRouter
 
-# 4. run a single (model, framework, scenario) cell end-to-end
-python -m harness.run \
-  --framework hermes \
-  --model claude-sonnet-4-6 \
-  --scenario commitments/crud-resolve
-
-# 5. run the full matrix (4 models × 3 frameworks × 52 scenarios; long-running)
-./scripts/run_matrix.sh
+# 4. run the smoke test (one scenario, end-to-end, 1–10 min depending on
+#    framework). Validates the pipeline for a chosen (framework, model) cell.
+FRAMEWORK=hermes   MODEL=claude-sonnet-4-6 ./scripts/smoke_test.sh
+FRAMEWORK=ironclaw MODEL=glm-5             ./scripts/smoke_test.sh
+FRAMEWORK=openclaw MODEL=qwen-3.5          ./scripts/smoke_test.sh
 ```
 
-The matrix takes hours and burns API credit. Smoke test first.
+Beyond the smoke, each substrate has its own fanout flow — see
+`harness/<framework>/README.md`. A full 12-cell matrix run takes hours and
+burns API credit; we did not ship a one-shot matrix runner because the
+substrate concerns (EC2, container orchestration, cost gating) vary too much
+across frameworks. The artifacts from our own run are under
+`runs/matrix-2026-05-02/` and the paper at `paper/01_blog.md` describes the
+methodology end to end.
 
 ---
 
@@ -65,12 +72,12 @@ datasets/redforge/
 ├── README.md            ← this file
 ├── CONTRIBUTING.md      ← how to add a framework, model, or scenario
 ├── paper/               ← the write-up (markdown + figures + html)
-├── docs/                ← methodology, run-artifact inventory
+├── docs/                ← methodology
 ├── harness/             ← the orchestration code (see per-harness READMEs)
-│   ├── ironclaw/
-│   ├── hermes/
-│   ├── openclaw/
-│   └── red/
+│   ├── ironclaw/        ← Ironclaw adapter + the shared red/sidecar/judge modules
+│   ├── hermes/          ← Hermes adapter
+│   ├── openclaw/        ← Openclaw adapter
+│   └── red/             ← README-only; the attacker code lives under ironclaw/
 ├── scripts/             ← smoke test, fanout runners, classifier, proxy
 ├── scenarios/           ← 52 base scenarios + 24 math-heavy variants
 ├── sidecars/            ← per-scenario adversarial config + invariants

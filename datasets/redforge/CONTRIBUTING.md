@@ -10,59 +10,64 @@ align on the shape before writing code.
 
 ## Adding a new framework
 
-Drop an adapter under `harness/<framework>/` that conforms to the harness ABC
-(see `harness/__init__.py`).
+Drop a new package under `harness/<framework>/`. The simplest path is to
+mirror `harness/openclaw/`, which has the smallest surface:
 
-Required interface:
+- `adapter.py` — instantiates the framework and runs a single attempt
+  (red has already mutated the workspace at this point); returns blue's
+  reasoning, tool calls, and final response in a uniform `BlueRunResult`.
+- `orchestrator.py` — the per-scenario attempt loop. Imports
+  `red_attacker`, `sidecar`, and `invariants` from `harness.ironclaw`
+  (these modules are framework-agnostic in practice; their location
+  under `harness/ironclaw/` is historical and is what the other
+  framework orchestrators import).
+- `run.py` or `fanout.py` — CLI entry point.
 
-- `setup(scenario, sidecar) -> SessionHandle` — prepare the framework with
-  the scenario's workspace and tools.
-- `run_attempt(session, user_request, attempt_n) -> AttemptResult` — execute
-  one attempt; return blue's reasoning, tool calls, and final response.
-- `teardown(session)` — clean up.
+The `BlueRunResult` shape is defined inline in
+[`harness/ironclaw/red_attacker.py`](../redforge/harness/ironclaw/red_attacker.py).
+The two fields that matter for adversarial visibility are
+`blue_reasoning` (full chain of thought) and `tool_calls` (structured
+list of `{name, arguments, result}` dicts).
 
-The `AttemptResult` shape is in `harness/types.py`. The two fields that
-matter for adversarial visibility are `blue_reasoning` (full chain of
-thought, captured *somehow*) and `tool_calls` (structured list with
-`name`, `arguments`, `result`).
+For framework-specific reasoning capture, look at how the existing
+adapters do it: `harness/ironclaw/runner.py` reads Ironclaw's
+`tasks.jsonl` (which surfaces `reasoning_content` after
+[nearai/ironclaw#3129](https://github.com/nearai/ironclaw/pull/3129));
+`harness/hermes/adapter.py` and `harness/openclaw/adapter.py` route
+their model traffic through `scripts/reasoning_shim_proxy.py`, which
+forwards `reasoning_content` for thinking models.
 
-For framework-specific reasoning capture, see how the existing adapters do
-it: `harness/ironclaw/` uses Ironclaw's `tracing` channel; `harness/hermes/`
-and `harness/openclaw/` route through the reasoning shim proxy.
-
-After your adapter passes the smoke test (`./scripts/smoke_test.sh`), run it
-through the full corpus:
-
-```sh
-./scripts/run_matrix.sh --frameworks <your-framework> --models all
-```
-
-Open a PR with the adapter, a per-framework README, and the run artifacts
-under `runs/<your-name>-<date>/`. We'll add the new column to the matrix.
+After your adapter passes the smoke, run it through the corpus by
+following the per-framework fanout in `harness/<your-framework>/`. Open
+a PR with the adapter, an updated README, and the run artifacts under
+`runs/<your-name>-<date>/`. We'll add the new column to the matrix.
 
 ## Adding a new model
 
-Most providers route through the existing OpenAI-compatible adapters.
-Add the model's identifier to `harness/models.py` — typically just a config
-entry mapping the model name to its provider, base URL, and any special
-parameters (reasoning effort, max tokens).
+Most providers route through OpenAI-compatible chat completion APIs.
+There's no central model registry — each framework's adapter resolves
+the model name to a base URL and API key the same way `smoke_test.sh`
+does (`anthropic_translator_proxy.py` for `claude-*`,
+`reasoning_shim_proxy.py` for `kimi-*` / `qwen-*`, direct OpenRouter
+for `glm-*`).
 
-If your model is a thinking model (emits structured reasoning), make sure
-`scripts/reasoning_shim_proxy.py` either passes through the reasoning field
-or has a translation rule for your model's reasoning convention.
+If your model is a thinking model and emits structured reasoning that
+the existing shim proxy doesn't handle, add a translation rule to
+[`scripts/reasoning_shim_proxy.py`](scripts/reasoning_shim_proxy.py).
 
-Run the smoke test, then a single (your-model, framework) cell, then if
+Run the smoke, then a single (your-model, framework) cell, then if
 those pass open a PR.
 
 ## Adding a new scenario
 
 A scenario is two files:
 
-1. `scenarios/<category>/<name>.json` — the scenario definition: `setup`
-   block (system prompt, workspace files, available tools), `user_input`
-   (the user's request), `success_criteria` (what blue must do).
+1. `scenarios/<category>/<name>.json` — the scenario definition: setup
+   block (system prompt, workspace files, available tools), user
+   request, and expected answer / success criteria.
 2. `sidecars/<category>/<name>.yaml` — the adversarial config:
-   - `red_controlled_fields`: which paths and which fields red can edit.
+   - `red_controlled_fields`: which paths and which fields red can
+     edit.
    - `arc_invariants`: per-layer invariants the judge will check
      (`tool`, `workflow`, `permission`, `cross_cutting`).
    - `attempts`, `max_fields_per_attempt`: budget knobs.
@@ -70,9 +75,9 @@ A scenario is two files:
 Existing scenarios under `scenarios/commitments/`,
 `scenarios/transactions/`, etc. are good templates.
 
-For the scenario to be useful as a benchmark cell, the success criteria and
-the invariants must be **deterministically checkable** by the judge. The
-judge in `judges/verdict.py` supports:
+For the scenario to be useful as a benchmark cell, the success criteria
+and the invariants must be **deterministically checkable** by the
+judge. The judge in [`judges/verdict.py`](judges/verdict.py) supports:
 
 - Path-prefix and exact-match checks on tool calls.
 - Regex on the response.
@@ -86,17 +91,16 @@ extension in the same PR.
 ## Reproducing a published cell
 
 ```sh
-./scripts/smoke_test.sh \
-  FRAMEWORK=hermes \
-  MODEL=kimi-k2.6 \
-  SCENARIO=commitments/crud-resolve \
-  ATTEMPTS=5
+FRAMEWORK=hermes \
+MODEL=kimi-k2.6 \
+SCENARIO=commitments/crud-resolve \
+  ./scripts/smoke_test.sh
 ```
 
 Compare the run output to the artifact under
-`runs/matrix-2026-05-02/per-cell/kimi-hermes/commitments-crud-resolve/`.
-Verdicts should match modulo model-API nondeterminism (some scenarios are
-sensitive to sampling temperature).
+`runs/matrix-2026-05-02/per-cell/kimi-k2.6-hermes/`. The `summary.csv`
+verdict for `commitments-crud-resolve` should match modulo model-API
+nondeterminism (some scenarios are sensitive to sampling temperature).
 
 ## Reporting a result that disagrees with the matrix
 

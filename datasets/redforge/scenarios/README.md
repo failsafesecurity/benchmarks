@@ -1,17 +1,26 @@
-# Structured Data Benchmark
+# `scenarios/`
 
-52 scenarios testing agent ability to manage structured JSON data across 8 entity types.
+52 base scenarios (plus 24 math-heavy variants) testing agent ability to
+manage structured JSON data across 8 entity types. Scenarios were
+adapted from the upstream structured-data work in
+[nearai/benchmarks#14](https://github.com/nearai/benchmarks/pull/14);
+the adversarial layer is added by the sidecar files under
+[`../sidecars/`](../sidecars/), and the runner is the redforge harness
+under [`../harness/`](../harness/).
 
 ## Running
 
-```bash
-# All scenarios
-nearai-bench run --suite trajectory --config suites/structured-data.toml
+Through redforge's smoke driver:
 
-# By category
-nearai-bench run --suite trajectory --config suites/structured-data.toml --tags commitments
-nearai-bench run --suite trajectory --config suites/structured-data.toml --tags transactions
+```sh
+FRAMEWORK=hermes \
+MODEL=claude-sonnet-4-6 \
+SCENARIO=commitments/crud-resolve \
+  ../scripts/smoke_test.sh
 ```
+
+Or through the per-framework runner directly — see
+[`../harness/<framework>/README.md`](../harness/).
 
 ## Entity types
 
@@ -26,56 +35,40 @@ nearai-bench run --suite trajectory --config suites/structured-data.toml --tags 
 | nanny_hours | 13 | Childcare shift logs with hours |
 | transactions | 60 | Financial records with categories and amounts |
 
-## Storage variants
+## Scenario shape
 
-Scenarios are generated from shared fixtures via `scripts/generate-structured-data.py`.
-The generator supports a `--variant` flag that controls how data is seeded:
+Each scenario is a single JSON file that inlines all fixture data in
+its `setup.workspace.documents` block:
 
-### `workspace` (default, implemented)
-
-Data is seeded as individual JSON files in `setup.workspace.documents`:
 ```
 collections/{entity_type}/_schema.json
 collections/{entity_type}/{id}-{slug}.json
 ```
 
-The agent uses `memory_tree`, `memory_read`, and `memory_search` to query data.
-This tests how well agents can manage structured data using file-per-record storage.
+The agent uses `memory_tree`, `memory_read`, and `memory_search` to
+query the data. Files are self-contained — no external fixtures, no
+runtime generation step.
 
-### `collections` (future, not yet implemented)
+## Scaling
 
-When IronClaw collection tools land ([nearai/ironclaw#1937](https://github.com/nearai/ironclaw/pull/1937)),
-a `collections` variant can seed data via the collection API and use typed
-query/mutate tools instead of memory tools. The questions and expected answers
-are identical across variants — only the seeding and tool surface change.
+The scenarios become progressively harder as item counts increase:
 
-To add a new variant:
-1. Add a branch to `make_scenario()` that builds the appropriate `setup` block
-2. Define what tools are available and how data is seeded
-3. Run `python3 scripts/generate-structured-data.py --variant <name>`
+- **5–10 items** (decisions, parked_ideas): manageable within tool
+  iteration limits.
+- **12–13 items** (grocery, nanny_hours): borderline.
+- **60 items** (transactions): impossible to read all files within
+  iteration limits; the agent must rely on `memory_search` or fail.
 
-## Regenerating scenarios
+This exposes the scaling limitation of file-per-record workspace
+storage for filtering and aggregation queries. Structured query tools
+(planned upstream in
+[nearai/ironclaw#1937](https://github.com/nearai/ironclaw/pull/1937))
+would handle these queries in a single tool call regardless of item
+count.
 
-```bash
-# Default (workspace)
-python3 scripts/generate-structured-data.py
+## Regenerating
 
-# Explicit variant
-python3 scripts/generate-structured-data.py --variant workspace
-```
-
-Scenarios are self-contained — each JSON file inlines all fixture data in its
-`setup` block. The generator reads from `scripts/structured-data-fixtures.json`
-and produces files that the harness can load independently.
-
-## What this benchmark measures
-
-These scenarios become progressively harder as item counts increase:
-
-- **5-10 items** (decisions, parked ideas): manageable within tool iteration limits
-- **12-13 items** (grocery, nanny): borderline
-- **60 items** (transactions): impossible to read all files within iteration limits
-
-This exposes the scaling limitation of file-per-record workspace storage for
-filtering and aggregation queries. Structured query tools (like collections)
-would handle these queries in a single tool call regardless of item count.
+Scenario JSON files are produced by the generator in
+[nearai/benchmarks#14](https://github.com/nearai/benchmarks/pull/14)
+and copied here. Sidecars are generated from scenarios by
+[`../scripts/generate_sidecars.py`](../scripts/generate_sidecars.py).

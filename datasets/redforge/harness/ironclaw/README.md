@@ -1,52 +1,66 @@
 # `harness/ironclaw/` — Ironclaw adapter
 
 Wraps [Ironclaw](https://github.com/nearai/ironclaw) (a Rust-based agent
-runtime) for benchmark runs. Ironclaw runs in a docker container; the harness
-spawns the container per run, injects the scenario's workspace, and captures
-blue's reasoning + tool calls.
+runtime) for benchmark runs. Ironclaw is invoked through the
+`nearai-bench` binary built from this repository's root; the harness
+shells out per attempt, supplies the scenario's workspace, and reads
+back blue's reasoning + tool calls from the structured `tasks.jsonl`
+output.
 
 ## Reasoning capture
 
-After [nearai/ironclaw#3129](https://github.com/nearai/ironclaw/pull/3129)
-landed, reasoning content is captured via Ironclaw's `tracing` channel on
-target `ironclaw::llm::reasoning`. The bench-side `tracing::Subscriber::Layer`
-in `nearai/benchmarks/src/instrumented_llm.rs` reads it into
-`TaskResult.reasoning`, which the harness picks up from the structured
-`tasks.jsonl` output.
-
-The previous workaround — tailing docker logs for `[redforge-dump]` lines
-emitted by a patched-fork ironclaw — has been removed. See
-[migration-3129.md](../../docs/migration-3129.md) for the migration record.
+Reasoning content is captured via Ironclaw's `tracing` channel on
+target `ironclaw::llm::reasoning`. The bench-side
+`tracing::Subscriber::Layer` in
+[`src/instrumented_llm.rs`](../../../../src/instrumented_llm.rs)
+filters that target into `TaskResult.reasoning`, which the harness picks
+up from `tasks.jsonl`. See
+[nearai/ironclaw#3129](https://github.com/nearai/ironclaw/pull/3129)
+for the upstream tracing target.
 
 ## Running
 
-```sh
-python -m harness.run \
-  --framework ironclaw \
-  --model claude-sonnet-4-6 \
-  --scenario commitments/crud-resolve \
-  --container ironclaw      # docker container name
-```
-
-## Container setup
-
-The `--container` flag names a running Ironclaw container the harness will
-exec into. Build the image:
+A single scenario through the smoke driver:
 
 ```sh
-docker build -t ironclaw:local /path/to/ironclaw
-docker run -d --name ironclaw \
-  --add-host host.docker.internal:host-gateway \
-  -v /path/to/state:/home/node/.ironclaw \
-  ironclaw:local
+FRAMEWORK=ironclaw \
+MODEL=glm-5 \
+SCENARIO=commitments/crud-resolve \
+  ./scripts/smoke_test.sh
 ```
 
-The container needs network egress to whichever model API blue is using
-(or to the reasoning shim proxy on `host.docker.internal:8085` for Kimi/Qwen).
+Or directly:
+
+```sh
+python -m harness.ironclaw.run \
+  --sidecar sidecars/commitments/crud-resolve.yaml \
+  --scenario-root scenarios \
+  --bench-binary /path/to/target/release/nearai-bench \
+  --bench-config /path/to/suites/trajectory.toml \
+  --runs-dir runs/my-run
+```
+
+## Bench binary
+
+The runner needs a built `nearai-bench`. From this repository's root:
+
+```sh
+cargo build --release --bin nearai-bench
+```
+
+Or, equivalently, `./scripts/setup.sh --with-ironclaw`. The binary path
+can be passed with `--bench-binary` or env var `BENCH_BIN`.
 
 ## Files
 
-- `__init__.py` — `IronclawAdapter` conforming to the harness ABC.
-- `runner.py` — per-attempt run logic; spawns ironclaw, applies red's edits,
-  captures the trace.
-- `fanout.py` — multi-scenario / multi-attempt orchestration.
+- `runner.py` — invokes `nearai-bench` and reads back the structured
+  result.
+- `orchestrator.py` — per-scenario attempt loop (5 attempts; red ↔
+  blue). The shared modules (`red_attacker.py`, `sidecar.py`,
+  `invariants.py`) live in this directory but are imported by all three
+  framework orchestrators.
+- `red_attacker.py` — GPT-5 attacker (framework-agnostic; named
+  `ironclaw/` for historical reasons).
+- `sidecar.py` — sidecar YAML loader + path rewrite logic.
+- `invariants.py` — judge invariant checks.
+- `run.py` — CLI for a single sidecar.
