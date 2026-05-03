@@ -64,6 +64,23 @@ fi
 
 # ─── Ironclaw bench binary (Rust) ───────────────────────────────────────────
 if [[ $WITH_IRONCLAW -eq 1 ]]; then
+  # The cargo build pulls in `openssl-sys`, which needs pkg-config and the
+  # OpenSSL headers present on the box. macOS toolchains ship these by
+  # default; Linux distros generally do not. Pre-flight check rather than
+  # silent sudo install — easier to audit and to translate across distros.
+  if [[ "$(uname -s)" == "Linux" ]] && ! pkg-config --exists openssl 2>/dev/null; then
+    echo "ERROR: missing OpenSSL build deps required by cargo's openssl-sys crate." >&2
+    echo "       On Debian/Ubuntu:  sudo apt install pkg-config libssl-dev" >&2
+    echo "       On Fedora/RHEL:    sudo dnf install pkgconf-pkg-config openssl-devel" >&2
+    echo "       On Arch:           sudo pacman -S pkgconf openssl" >&2
+    exit 1
+  fi
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "ERROR: cargo not on PATH. Install Rust via https://rustup.rs and retry." >&2
+    exit 1
+  fi
+
   echo "==> building nearai-bench (cargo --release)"
   pushd "$REPO_ROOT" >/dev/null
   if [[ ! -x target/release/nearai-bench || $REBUILD -eq 1 ]]; then

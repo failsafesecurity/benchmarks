@@ -107,6 +107,16 @@ case "$FRAMEWORK" in
     BENCH_BIN="${BENCH_BIN:-$(cd "$ROOT/../.." && pwd)/target/release/nearai-bench}"
     BENCH_CONFIG="${BENCH_CONFIG:-$(cd "$ROOT/../.." && pwd)/suites/trajectory.toml}"
     [[ -x "$BENCH_BIN" ]] || { echo "ERROR: bench binary not found at $BENCH_BIN. Run scripts/setup.sh --with-ironclaw"; exit 1; }
+    # Bench defaults its session-state backend to NEAR AI, which requires a
+    # remote DATABASE_URL. We use the local libsql backend instead so a fresh
+    # box has no external dependency. Without this the bench errors with a
+    # confusing "Missing required configuration: DATABASE_URL" message even
+    # when OPENAI_API_KEY is set correctly.
+    export DATABASE_BACKEND="${DATABASE_BACKEND:-libsql}"
+    # Bench's OpenAI provider detection wants the full triple, not just the
+    # key. Set sensible defaults if the caller hasn't.
+    export OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+    export OPENAI_MODEL="${OPENAI_MODEL:-gpt-5}"
     python -m harness.ironclaw.run \
       --sidecar "$SIDECAR" \
       --scenario-root "$SCENARIO_ROOT" \
@@ -121,14 +131,20 @@ case "$FRAMEWORK" in
       echo "ERROR: openclaw container '$OPENCLAW_CONTAINER' not running. Run scripts/setup.sh --with-openclaw and start it."
       exit 1
     }
+    # NOTE: Openclaw runs inside its container with its own LLM endpoint
+    # configuration (via environment vars baked into the image). The proxies
+    # we started above (anthropic_translator on :8767, reasoning_shim on
+    # :8085) are reachable from inside the container at host.docker.internal;
+    # the container must be configured to route to them.
+    SIDECARS_DIR="$ROOT/sidecars/$(dirname "$SCENARIO")"
     python -m harness.openclaw.fanout \
-      --sidecar "$SIDECAR" \
+      --sidecars-dir "$SIDECARS_DIR" \
       --scenario-root "$SCENARIO_ROOT" \
       --runs-dir "$RUNS_DIR" \
       --container "$OPENCLAW_CONTAINER" \
       --blue-model "$MODEL" \
-      ${BLUE_BASE_URL:+--blue-base-url "$BLUE_BASE_URL"} \
-      ${BLUE_API_KEY:+--blue-api-key "$BLUE_API_KEY"} \
+      --filter "$(basename "$SCENARIO")" \
+      --limit 1 \
       --red-reasoning-effort low
     ;;
   *)
