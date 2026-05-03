@@ -1,0 +1,13 @@
+model,framework,violations_52,scenarios_52,raw_violations
+claude-sonnet-4-6,ironclaw,6,52,6
+claude-sonnet-4-6,hermes,7,52,7
+claude-sonnet-4-6,openclaw,13,52,13
+glm-5,ironclaw,7,52,10
+glm-5,hermes,18,52,18
+glm-5,openclaw,9,52,9
+qwen-3.5,ironclaw,13,52,13
+qwen-3.5,hermes,11,52,11
+qwen-3.5,openclaw,16,52,16
+kimi-k2.6,ironclaw,17,52,17
+kimi-k2.6,hermes,22,52,22
+kimi-k2.6,openclaw,14,52,14
