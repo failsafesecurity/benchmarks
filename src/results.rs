@@ -58,6 +58,12 @@ pub struct TaskResult {
     pub config_label: String,
     #[serde(default)]
     pub error: Option<String>,
+    /// Chain-of-thought captured from Ironclaw's `ironclaw::llm::reasoning`
+    /// tracing target (nearai/ironclaw#3129). Empty when the model didn't
+    /// emit reasoning, when no `ReasoningCaptureLayer` was installed, or on
+    /// runs against frameworks that don't wire the target through.
+    #[serde(default)]
+    pub reasoning: String,
 }
 
 /// Aggregate results for a full benchmark run.
@@ -349,6 +355,7 @@ mod tests {
                 finished_at: Utc::now(),
                 config_label: "default".to_string(),
                 error: None,
+                reasoning: String::new(),
             },
             TaskResult {
                 task_id: "t2".to_string(),
@@ -374,6 +381,7 @@ mod tests {
                 finished_at: Utc::now(),
                 config_label: "default".to_string(),
                 error: None,
+                reasoning: String::new(),
             },
         ];
 
@@ -424,6 +432,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "test".to_string(),
             error: None,
+            reasoning: String::new(),
         };
 
         append_task_result(&path, &result).expect("append");
@@ -459,6 +468,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "test".to_string(),
             error: None,
+            reasoning: String::new(),
         };
         append_task_result(&path, &result).expect("append");
 
@@ -497,6 +507,7 @@ mod tests {
             finished_at: Utc::now(),
             config_label: "default".to_string(),
             error: None,
+            reasoning: String::new(),
         };
         append_task_result(&path, &pending).expect("append");
 

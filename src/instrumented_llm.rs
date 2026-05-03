@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::Mutex as StdMutex;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Instant;
 
@@ -6,6 +7,9 @@ use async_trait::async_trait;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::ToPrimitive;
 use tokio::sync::Mutex;
+use tracing::Event;
+use tracing::field::{Field, Visit};
+use tracing_subscriber::layer::{Context, Layer};
 
 use ironclaw::error::LlmError;
 use ironclaw::llm::{
@@ -151,6 +155,78 @@ impl LlmProvider for InstrumentedLlm {
 
     async fn list_models(&self) -> Result<Vec<String>, LlmError> {
         self.inner.list_models().await
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Reasoning capture
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Subscribes to Ironclaw's reasoning trace events and aggregates the
+/// captured chain-of-thought for inclusion in `TaskResult.reasoning`.
+///
+/// Ironclaw emits events on the `ironclaw::llm::reasoning` target (added in
+/// nearai/ironclaw#3129). Each event carries a `reasoning_content` field
+/// with the model's chain-of-thought for one LLM call. This Layer collects
+/// those strings into an internal buffer; `take()` drains the buffer
+/// (intended to be called between tasks).
+///
+/// To isolate per-task in concurrent runs, install one Layer per task scope
+/// via `tracing::dispatcher::with_default()` or `tracing::instrument()`. A
+/// shared global Layer aggregates across tasks and is only safe for serial
+/// runners.
+#[derive(Debug, Default)]
+pub struct ReasoningCaptureLayer {
+    buffer: StdMutex<Vec<String>>,
+}
+
+impl ReasoningCaptureLayer {
+    pub fn new() -> Self {
+        Self {
+            buffer: StdMutex::new(Vec::new()),
+        }
+    }
+
+    /// Drain the captured reasoning. Joined with `\n---\n` separators,
+    /// matching the previous tap format consumed by the Python harness.
+    pub fn take(&self) -> String {
+        let mut buf = self.buffer.lock().expect("reasoning buffer poisoned");
+        let combined = buf.join("\n---\n");
+        buf.clear();
+        combined
+    }
+}
+
+impl<S: tracing::Subscriber> Layer<S> for ReasoningCaptureLayer {
+    fn on_event(&self, event: &Event<'_>, _ctx: Context<'_, S>) {
+        if event.metadata().target() != "ironclaw::llm::reasoning" {
+            return;
+        }
+        let mut visitor = ReasoningFieldVisitor::default();
+        event.record(&mut visitor);
+        if let Some(content) = visitor.reasoning_content {
+            self.buffer
+                .lock()
+                .expect("reasoning buffer poisoned")
+                .push(content);
+        }
+    }
+}
+
+#[derive(Default)]
+struct ReasoningFieldVisitor {
+    reasoning_content: Option<String>,
+}
+
+impl Visit for ReasoningFieldVisitor {
+    fn record_str(&mut self, field: &Field, value: &str) {
+        if field.name() == "reasoning_content" {
+            self.reasoning_content = Some(value.to_string());
+        }
+    }
+
+    fn record_debug(&mut self, _field: &Field, _value: &dyn std::fmt::Debug) {
+        // reasoning_content is recorded as a string per ironclaw#3129
     }
 }
 

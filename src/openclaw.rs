@@ -505,6 +505,7 @@ pub async fn run_task_openclaw(
         finished_at: Utc::now(),
         config_label: config_label.to_string(),
         error: None,
+        reasoning: String::new(),
     }
 }
 
