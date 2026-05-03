@@ -175,15 +175,18 @@ impl LlmProvider for InstrumentedLlm {
 /// via `tracing::dispatcher::with_default()` or `tracing::instrument()`. A
 /// shared global Layer aggregates across tasks and is only safe for serial
 /// runners.
-#[derive(Debug, Default)]
+///
+/// The buffer is held behind an `Arc` so the Layer can be moved into a
+/// Subscriber while the runner keeps a separate handle to drain it.
+#[derive(Debug, Default, Clone)]
 pub struct ReasoningCaptureLayer {
-    buffer: StdMutex<Vec<String>>,
+    buffer: Arc<StdMutex<Vec<String>>>,
 }
 
 impl ReasoningCaptureLayer {
     pub fn new() -> Self {
         Self {
-            buffer: StdMutex::new(Vec::new()),
+            buffer: Arc::new(StdMutex::new(Vec::new())),
         }
     }
 

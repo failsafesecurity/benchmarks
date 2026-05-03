@@ -19,7 +19,7 @@ use ironclaw::workspace::Workspace;
 use crate::channel::BenchChannel;
 use crate::config::{BenchConfig, MatrixEntry};
 use crate::error::BenchError;
-use crate::instrumented_llm::InstrumentedLlm;
+use crate::instrumented_llm::{InstrumentedLlm, ReasoningCaptureLayer};
 use crate::results::{
     RunResult, TaskResult, Trace, append_task_result, completed_task_ids, run_dir, run_json_path,
     tasks_jsonl_path, write_run_result, write_task_results,
@@ -428,6 +428,25 @@ impl BenchRunner {
 /// - **Conversation not captured**: `TaskSubmission.conversation` is always empty,
 ///   which prevents multi-turn scoring hooks from working.
 async fn run_task_isolated(params: TaskRunParams<'_>) -> TaskResult {
+    use tracing::Dispatch;
+    use tracing::instrument::WithSubscriber;
+    use tracing_subscriber::layer::SubscriberExt;
+
+    // Per-task reasoning capture: each spawn gets its own Layer so events
+    // emitted from `ironclaw::llm::reasoning` (added in nearai/ironclaw#3129)
+    // land in this task's buffer rather than being mixed across concurrent
+    // tasks. The Layer is cheap to clone — its buffer is `Arc`-shared.
+    let reasoning_layer = ReasoningCaptureLayer::new();
+    let task_subscriber = tracing_subscriber::Registry::default()
+        .with(reasoning_layer.clone());
+    let task_dispatch = Dispatch::new(task_subscriber);
+
+    let mut result = run_task_inner(params).with_subscriber(task_dispatch).await;
+    result.reasoning = reasoning_layer.take();
+    result
+}
+
+async fn run_task_inner(params: TaskRunParams<'_>) -> TaskResult {
     let TaskRunParams {
         task,
         suite_id,
