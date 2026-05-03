@@ -1,14 +1,15 @@
-"""Shell-out wrapper for PR #14's nearai-bench Rust binary, with reasoning tap.
+"""Shell-out wrapper for the nearai-bench Rust binary.
 
 Per attempt:
-- write the mutated scenario JSON into a temp dataset directory matching
-  PR #14's expected layout (datasets/trajectory/v1/structured-data/<entity>/<scenario>.json)
-- mark t0
-- run `nearai-bench run --suite structured-data --task-ids <id> --results-dir <tmp>`
-  with REDFORGE_DUMP_RAW_LLM=1 set so our patched ironclaw dumps reasoning
-- mark t1
+- write the mutated scenario JSON into a temp dataset directory
+- run `nearai-bench run --suite trajectory --task-ids <id> --results-dir <tmp>`
 - read the JSONL trace produced under <tmp>/ironclaw/<run-uuid>/tasks.jsonl
-- tail the docker logs / dump file between t0 and t1 for blue's reasoning
+
+Reasoning capture goes through Ironclaw's `ironclaw::llm::reasoning`
+tracing target (added in nearai/ironclaw#3129) and the bench-side
+`tracing::Subscriber::Layer` in src/instrumented_llm.rs that writes it
+into TaskResult.reasoning. The harness reads the field directly from the
+structured tasks.jsonl row.
 """
 import json
 import os
@@ -19,8 +20,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-from ..dump_tail import fetch_reasoning
 
 
 @dataclass
@@ -62,10 +61,9 @@ def run_blue(
     bench_binary: str,
     work_root: Path,
     bench_config: str,
-    container: Optional[str] = None,
     timeout_secs: int = 180,
 ) -> BlueRunResult:
-    """Run a single PR #14 task end-to-end and capture (response, tool_calls, reasoning)."""
+    """Run a single task end-to-end and capture (response, tool_calls, reasoning)."""
     work_root = work_root.resolve()
     work_root.mkdir(parents=True, exist_ok=True)
     dataset_root = work_root / "dataset"
@@ -80,7 +78,6 @@ def run_blue(
     results_dir.mkdir(parents=True)
 
     env = os.environ.copy()
-    env["REDFORGE_DUMP_RAW_LLM"] = "1"
 
     cmd = [
         bench_binary,
@@ -132,10 +129,10 @@ def run_blue(
         if i < len(dump_tool_calls) and dump_tool_calls[i].get("name") == tc.get("name"):
             tc["arguments"] = dump_tool_calls[i].get("arguments")
 
-    if container:
-        reasoning = fetch_reasoning(container, t0, t1)
-    else:
-        reasoning = _parse_reasoning_from_stderr(proc.stderr or "")
+    # Reasoning is written into the structured tasks.jsonl by the bench-side
+    # Subscriber::Layer (src/instrumented_llm.rs) consuming Ironclaw's
+    # `ironclaw::llm::reasoning` tracing target (nearai/ironclaw#3129).
+    reasoning = task_record.get("reasoning", "") or ""
 
     return BlueRunResult(
         response=response,
@@ -178,29 +175,6 @@ def _parse_tool_calls_from_stderr(stderr: str) -> List[Dict[str, Any]]:
                         args = args_raw
                 out.append({"name": fn.get("name"), "arguments": args})
     return out
-
-
-def _parse_reasoning_from_stderr(stderr: str) -> str:
-    """Extract reasoning_content from [redforge-dump] lines emitted by our patched
-    rig adapter. Each line: `[redforge-dump] path=... model=... raw_response=<json>`.
-    """
-    chunks: List[str] = []
-    for line in stderr.splitlines():
-        if "[redforge-dump]" not in line:
-            continue
-        idx = line.find("raw_response=")
-        if idx < 0:
-            continue
-        try:
-            payload = json.loads(line[idx + len("raw_response="):])
-        except json.JSONDecodeError:
-            continue
-        for choice in payload.get("choices", []):
-            msg = choice.get("message") or {}
-            rc = msg.get("reasoning_content")
-            if rc:
-                chunks.append(rc)
-    return "\n---\n".join(chunks)
 
 
 def _read_task_record(results_dir: Path, task_id: str) -> Dict[str, Any]:

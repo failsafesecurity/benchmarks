@@ -2,12 +2,10 @@
 import os
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Dict, List
 
 import litellm
 
-from .dump_tail import fetch_reasoning
 from .ironclaw_client import IronclawClient
 from .llm import complete
 from .scenario import Scenario
@@ -78,7 +76,6 @@ def run_scenario(
     reasoning_effort: str = "minimal",
 ) -> RunResult:
     thread_id = str(uuid.uuid4())
-    container = os.environ.get("IRONCLAW_CONTAINER", "ironclaw")
     history: List[Dict[str, str]] = [
         {
             "role": "system",
@@ -91,11 +88,13 @@ def run_scenario(
     stop_reason = ""
 
     for turn_idx in range(scenario.max_turns):
-        send_t0 = datetime.now(timezone.utc)
         reply = client.send(next_attacker_message, thread_id=thread_id)
-        send_t1 = datetime.now(timezone.utc)
         blue_text = reply.response or ""
-        blue_reasoning = fetch_reasoning(container, send_t0, send_t1)
+        # Reasoning capture for the chat-client path is not yet wired through
+        # nearai/ironclaw#3129's tracing target. TODO: surface it via the
+        # Subscriber::Layer or a per-thread reasoning channel exposed by
+        # IronclawClient.
+        blue_reasoning = getattr(reply, "reasoning", "") or ""
         turns.append(
             Turn(
                 attacker=next_attacker_message,

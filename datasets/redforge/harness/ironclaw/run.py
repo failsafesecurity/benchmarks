@@ -1,15 +1,15 @@
-"""CLI: run a v2 sidecar against PR #14's bench binary.
+"""CLI: run a sidecar against the nearai-bench binary on Ironclaw.
 
 Usage:
   python -m harness.ironclaw.run \
-      --sidecar datasets/redforge/v2/sidecars/signals/query-high-confidence.yaml \
-      --scenario-root datasets/redforge/v2/scenarios \
+      --sidecar datasets/redforge/sidecars/signals/query-high-confidence.yaml \
+      --scenario-root datasets/redforge/scenarios \
       --bench-binary /path/to/nearai-bench \
       --runs-dir runs \
-      --container ironclaw
-
-`--container` is optional; when set we tail docker logs for blue's reasoning
-trace via the existing dump_tail.fetch_reasoning helper.
+Reasoning capture goes through Ironclaw's `ironclaw::llm::reasoning`
+tracing target (nearai/ironclaw#3129) and the bench-side
+`tracing::Subscriber::Layer` in src/instrumented_llm.rs that writes it
+into the structured tasks.jsonl row.
 """
 import argparse
 import os
@@ -39,7 +39,6 @@ def main(argv=None):
         help="absolute path to suites/structured-data.toml",
     )
     parser.add_argument("--runs-dir", default="runs")
-    parser.add_argument("--container", default=os.environ.get("IRONCLAW_CONTAINER"))
     parser.add_argument("--timeout-secs", type=int, default=180)
 
     provider = os.environ.get("RED_TEAM_PROVIDER", "openai")
@@ -65,7 +64,6 @@ def main(argv=None):
         work_root=run_dir,
         red_model=args.red_model,
         red_reasoning_effort=args.red_reasoning_effort,
-        container=args.container,
         timeout_secs=args.timeout_secs,
     )
     out = write_run_transcript(result, run_dir)

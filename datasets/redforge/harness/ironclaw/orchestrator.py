@@ -80,7 +80,6 @@ def run_v2(
     work_root: Path,
     red_model: str,
     red_reasoning_effort: str = "high",
-    container: Optional[str] = None,
     timeout_secs: int = 180,
 ) -> V2RunResult:
     sc = sidecar.load_sidecar(sidecar_path)
@@ -136,7 +135,6 @@ def run_v2(
             bench_binary=bench_binary,
             bench_config=bench_config,
             work_root=attempt_work_root,
-            container=container,
             timeout_secs=timeout_secs,
         )
         verdict = invariants.check(
