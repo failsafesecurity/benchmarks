@@ -1,0 +1,19 @@
+# Python deps
+#
+# Pinned conservatively; CI smoke test should catch any provider-side breakage
+# before merge.
+
+# Core
+pyyaml>=6.0
+python-dotenv>=1.0
+httpx>=0.27
+litellm>=1.50          # multi-provider model adapter
+
+# Figure regeneration (paper/figures/)
+matplotlib>=3.8
+numpy>=1.26
+
+# Dev
+ruff>=0.6
+black>=24.0
+pytest>=8.0
