@@ -63,23 +63,43 @@ def classify(detail: str) -> str:
     return "other"
 
 
-def parse_inventory(inventory_md: Path) -> dict[tuple[str, str], list[Path]]:
+def parse_manifest(
+    manifest_path: Path, staging_root: Path,
+) -> tuple[dict[tuple[str, str], list[Path]], dict[tuple[str, str], list[str]]]:
     """
-    Parse docs/inventory.md and return {(model, framework): [host:path, ...]}.
+    Parse runs/manifest.yaml and return:
+        cells:    {(model, framework): [Path, ...]}    -- staged source paths
+        verbatim: {(model, framework): [scenario, ...]}
 
-    Inventory format (per cell):
-        ### <model>
-        - **<v?> <framework>** ...
-          - <host:path>
+    The manifest references remote hosts (old-ec2, box-a, box-b, laptop).
+    This parser assumes data has already been rsynced into a local staging
+    directory at:
+        <staging_root>/<host>/<original/path>
+
+    The caller is responsible for the rsync from each host. See
+    scripts/stage_run_artifacts.sh.
     """
-    cells = defaultdict(list)
-    text = inventory_md.read_text()
-    # parse loosely — full implementation lives in inventory_parser.py
-    # (TODO: add the structured parser; for now this is a stub that takes
-    # explicit (cell, path) pairs from a YAML manifest)
-    raise NotImplementedError(
-        "stub: see TODO in select_run_artifacts.py — wire the inventory parser"
-    )
+    import yaml
+    cells: dict = defaultdict(list)
+    verbatim: dict = defaultdict(list)
+    data = yaml.safe_load(manifest_path.read_text())
+
+    for cell in data.get("cells", []):
+        key = (cell["model"], cell["framework"])
+        for src in cell["sources"]:
+            host = src["host"]
+            remote = src["path"].lstrip("/")
+            local = staging_root / host / remote
+            if src.get("glob"):
+                cells[key].extend(p for p in staging_root.glob(f"{host}/{remote}") if p.is_dir())
+            else:
+                cells[key].append(local)
+
+    for v in data.get("verbatim", []):
+        key = (v["model"], v["framework"])
+        verbatim[key].extend(v["scenarios"])
+
+    return dict(cells), dict(verbatim)
 
 
 def compact_cell(cell_paths: list[Path], out_dir: Path) -> dict:

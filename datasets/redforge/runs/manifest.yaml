@@ -1,0 +1,113 @@
+# Manifest of canonical run sources for the matrix.
+#
+# Maps each (model, framework) cell to the host:path(s) where the raw run
+# artifacts live. `select_run_artifacts.py` reads this file, rsyncs each
+# cell's source to a local staging dir, and produces the public slice
+# under runs/matrix-<date>/.
+#
+# Hosts:
+#   old-ec2:    ubuntu@18.207.227.201   (~/.ssh/agentbench.pem)  — original run box
+#   box-a:      ubuntu@34.238.155.67    (~/.ssh/agentbench.pem)  — qwen + sonnet/openclaw
+#   box-b:      ubuntu@52.91.62.100     (~/.ssh/agentbench.pem)  — kimi/openclaw
+#   laptop:     local                                            — glm-5/hermes only
+#
+# Each entry can list multiple sources; the script unions them per cell.
+# `glob: true` enables shell glob expansion for the per-scenario dirs that
+# v2 (Ironclaw) emits.
+
+date: "2026-05-02"
+
+cells:
+  - model: claude-sonnet-4-6
+    framework: ironclaw
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v2-sonnet-fanout-rerun-20260501T095850Z/
+
+  - model: claude-sonnet-4-6
+    framework: hermes
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v3-sonnet-fanout-redux/v3-hermes-fanout-20260501T032723Z/
+
+  - model: claude-sonnet-4-6
+    framework: openclaw
+    sources:
+      - host: box-a
+        path: /home/ubuntu/agentbench/runs/v4-rerun-sonnet-kimi-20260502T030826Z/sonnet/
+
+  - model: glm-5
+    framework: ironclaw
+    sources:
+      # canonical fanout summary
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v2-fanout-summary-20260426T221528Z.txt
+      # per-scenario raw dirs (50 dirs)
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v2-*-2026042*/
+        glob: true
+
+  - model: glm-5
+    framework: hermes
+    sources:
+      - host: laptop
+        path: /Users/gennadymedvinsky/agentbench/runs/v3-hermes-fanout-20260428T021608Z/
+
+  - model: glm-5
+    framework: openclaw
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v4-openclaw-fanout-20260429T022328Z/
+
+  - model: qwen-3.5
+    framework: ironclaw
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v2-qwen-fanout-20260501T204405Z/
+
+  - model: qwen-3.5
+    framework: hermes
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v3-qwen-fanout-20260501T204405Z/
+
+  - model: qwen-3.5
+    framework: openclaw
+    sources:
+      # first 7 sidecars before stop
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v4-qwen-fanout-20260501T213116Z/v4-openclaw-fanout-20260501T213120Z/
+      # 69 sidecars round-robin parallel
+      - host: box-a
+        path: /home/ubuntu/agentbench/runs/v4-qwen-parallel-20260501T225436Z/
+
+  - model: kimi-k2.6
+    framework: ironclaw
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v2-kimi-fanout-20260430T204436Z/
+
+  - model: kimi-k2.6
+    framework: hermes
+    sources:
+      - host: old-ec2
+        path: /home/ubuntu/agentbench/runs/v3-kimi-fanout-20260430T210302Z/
+
+  - model: kimi-k2.6
+    framework: openclaw
+    sources:
+      - host: box-b
+        path: /home/ubuntu/agentbench/runs/v4-rerun-kimi-boxb-20260502T033142Z/
+
+# Verbatim cells: those whose full reasoning traces are preserved in the
+# selective slice (because the paper cites them directly). Everything else
+# is compacted to per-scenario verdicts only.
+verbatim:
+  - model: kimi-k2.6
+    framework: hermes
+    scenarios:
+      - commitments/crud-resolve
+  - model: claude-sonnet-4-6
+    framework: hermes
+    scenarios:
+      - commitments/crud-resolve
