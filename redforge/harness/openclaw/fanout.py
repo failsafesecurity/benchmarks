@@ -60,8 +60,10 @@ def _check_container(container: str, ssh_host=None, ssh_key=None) -> str:
     text = out.stdout
     if "true" not in text:
         return f"container not running: {text[:200]}"
-    if '"ok":true' not in text and '"status":"live"' not in text:
-        return f"healthz not live: {text[:200]}"
+    # If the gateway responds with HTTP 2xx (`curl -sf` returncode 0 above),
+    # treat that as live. Older openclaw builds returned `{"ok":true}` JSON,
+    # but newer images serve the SPA index.html on any path. Both are fine —
+    # the gateway is up and reachable.
     return "ok"
 
 

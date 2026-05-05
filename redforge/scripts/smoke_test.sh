@@ -129,7 +129,10 @@ case "$FRAMEWORK" in
   openclaw)
     OPENCLAW_CONTAINER="${OPENCLAW_CONTAINER:-openclaw}"
     docker inspect "$OPENCLAW_CONTAINER" >/dev/null 2>&1 || {
-      echo "ERROR: openclaw container '$OPENCLAW_CONTAINER' not running. Run scripts/setup.sh --with-openclaw and start it."
+      echo "ERROR: openclaw container '$OPENCLAW_CONTAINER' not running."
+      echo "       The openclaw smoke needs a configured + running gateway container."
+      echo "       One-time setup (interactive wizard + docker run): see"
+      echo "       redforge/harness/openclaw/README.md (section: Container setup)."
       exit 1
     }
     # NOTE: Openclaw runs inside its container with its own LLM endpoint

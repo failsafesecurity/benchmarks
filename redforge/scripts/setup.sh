@@ -115,6 +115,12 @@ echo
 echo "=== setup complete ==="
 [[ $WITH_HERMES   -eq 1 ]] && echo "Hermes vendored at: $ROOT/vendor/hermes"
 [[ $WITH_IRONCLAW -eq 1 ]] && echo "Bench binary at:    $REPO_ROOT/target/release/nearai-bench"
-[[ $WITH_OPENCLAW -eq 1 ]] && echo "Openclaw image:     openclaw:local"
+[[ $WITH_OPENCLAW -eq 1 ]] && {
+  echo "Openclaw image:     openclaw:local"
+  echo
+  echo "  Next: configure openclaw and start the gateway container before"
+  echo "  the openclaw smoke. One-time interactive setup:"
+  echo "    redforge/harness/openclaw/README.md (see 'Container setup')"
+}
 echo
 echo "Run scripts/smoke_test.sh next (set FRAMEWORK / MODEL env vars to pick)."

@@ -46,17 +46,81 @@ python -m harness.openclaw.fanout \
 
 ## Container setup
 
+`scripts/setup.sh --with-openclaw` builds the `openclaw:local` image. Before
+the smoke can run, you need a configured state directory and a running
+container. Openclaw is a third-party tool with its own setup CLI — we use
+its standard configure flow rather than scripting around it (the wizard
+prompts evolve between openclaw releases; bypassing it tends to break).
+
+**Step 1 — populate the state dir with provider config + your API keys.**
+Run openclaw's interactive configure wizard inside the image (writes
+provider config + auth into a JSON file under `~/.openclaw/` on the host;
+the exact path depends on the openclaw version):
+
 ```sh
-docker build -t openclaw:local /path/to/openclaw
-docker run -d --name openclaw_qwen_1 \
-  --add-host host.docker.internal:host-gateway \
-  -v /path/to/state:/home/node/.openclaw \
-  openclaw:local
+mkdir -p ~/.openclaw
+docker run -it --rm \
+  -v ~/.openclaw:/home/node/.openclaw \
+  openclaw:local \
+  node openclaw.mjs configure
 ```
 
-For matrix runs we spin up several containers
-(`openclaw_qwen_{1..8}` on Box A) and shard scenarios across them via
-`--shard i/N`.
+The wizard walks you through adding providers and models. For RedForge
+smokes you typically need either:
+
+- **OpenRouter (for kimi/qwen via the reasoning shim)** — provider type
+  `openai-completions`, baseUrl `http://host.docker.internal:8085/v1`,
+  apiKey is anything (the proxy uses `OPENROUTER_API_KEY` from the host
+  env), and add a model with the id you'll pass to the harness
+  (e.g. `qwen-3.5`).
+- **Z.AI (for glm-5)** — provider type `openai-completions`, baseUrl
+  `https://api.z.ai/api/paas/v4`, apiKey from your Z.AI dashboard, and a
+  model with id `glm-5`.
+- **Anthropic via translator proxy (for claude-*)** — provider type
+  `openai-completions`, baseUrl `http://host.docker.internal:8767/v1`,
+  apiKey is anything (translator proxy uses `ANTHROPIC_API_KEY` from
+  host env), and a model with id `claude-sonnet-4-6`.
+
+The `configure` wizard saves to `~/.openclaw/`. Inspect with
+`cat ~/.openclaw/agents/main/agent/models.json` to verify.
+
+**Step 2 — start the gateway container with the state mounted.**
+
+```sh
+docker run -d --name openclaw \
+  -e OPENCLAW_GATEWAY_TOKEN=local-test \
+  -v ~/.openclaw:/home/node/.openclaw \
+  --add-host=host.docker.internal:host-gateway \
+  openclaw:local \
+  node openclaw.mjs gateway --allow-unconfigured
+```
+
+`--allow-unconfigured` lets the gateway skip its own per-instance setup
+(we already configured via step 1). `OPENCLAW_GATEWAY_TOKEN` satisfies
+the gateway's auth bootstrap — value doesn't matter for local use.
+`--add-host` lets the container reach the reasoning-shim and Anthropic
+translator proxies on the host.
+
+Verify the container is healthy:
+
+```sh
+docker logs openclaw | grep "gateway.*listening"
+```
+
+Should print `[gateway] listening on ws://127.0.0.1:18789`.
+
+**Step 3 — run the smoke.**
+
+```sh
+FRAMEWORK=openclaw MODEL=qwen-3.5 SCENARIO=commitments/crud-resolve \
+OPENCLAW_CONTAINER=openclaw \
+  ./redforge/scripts/smoke_test.sh
+```
+
+For matrix runs you can spin up several containers (e.g.
+`openclaw_qwen_{1..8}`) and shard scenarios across them via
+`--shard i/N` on the fanout CLI. Each container needs its own state
+dir mounted (the agent state isn't safe to share concurrently).
 
 ## Files
 
