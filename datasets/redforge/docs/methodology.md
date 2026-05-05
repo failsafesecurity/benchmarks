@@ -102,7 +102,7 @@ invariant checks against blue's run output:
 - **Iteration cap**: e.g. `max_iterations: 30` flags runs that hit the cap
   without producing an answer.
 
-All checks are deterministic and inspectable — see `judges/verdict.py`. No
+All checks are deterministic and inspectable — see `harness/ironclaw/invariants.py`. No
 LLM-as-judge variance.
 
 ## Threat model — what the benchmark measures, what it doesn't

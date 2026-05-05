@@ -5,7 +5,9 @@ Usage:
       --sidecar datasets/redforge/sidecars/signals/query-high-confidence.yaml \
       --scenario-root datasets/redforge/scenarios \
       --bench-binary /path/to/nearai-bench \
-      --runs-dir runs \
+      --bench-config /path/to/suites/trajectory.toml \
+      --runs-dir runs
+
 Reasoning capture goes through Ironclaw's `ironclaw::llm::reasoning`
 tracing target (nearai/ironclaw#3129) and the bench-side
 `tracing::Subscriber::Layer` in src/instrumented_llm.rs that writes it
@@ -25,18 +27,18 @@ from .orchestrator import run_v2, write_run_transcript
 def main(argv=None):
     load_dotenv()
 
-    parser = argparse.ArgumentParser(description="Run a RedForge v2 sidecar.")
+    parser = argparse.ArgumentParser(description="Run a RedForge sidecar against Ironclaw.")
     parser.add_argument("--sidecar", required=True, type=Path)
     parser.add_argument(
         "--scenario-root",
         type=Path,
-        default=Path("datasets/redforge/v2/scenarios"),
+        default=Path("datasets/redforge/scenarios"),
     )
     parser.add_argument("--bench-binary", required=True)
     parser.add_argument(
         "--bench-config",
         required=True,
-        help="absolute path to suites/structured-data.toml",
+        help="absolute path to suites/trajectory.toml",
     )
     parser.add_argument("--runs-dir", default="runs")
     parser.add_argument("--timeout-secs", type=int, default=180)

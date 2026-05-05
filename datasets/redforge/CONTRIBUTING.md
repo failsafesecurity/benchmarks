@@ -77,7 +77,9 @@ Existing scenarios under `scenarios/commitments/`,
 
 For the scenario to be useful as a benchmark cell, the success criteria
 and the invariants must be **deterministically checkable** by the
-judge. The judge in [`judges/verdict.py`](judges/verdict.py) supports:
+judge. The judge implementation in
+[`harness/ironclaw/invariants.py`](harness/ironclaw/invariants.py)
+supports:
 
 - Path-prefix and exact-match checks on tool calls.
 - Regex on the response.

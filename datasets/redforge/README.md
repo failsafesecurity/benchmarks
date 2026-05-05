@@ -81,16 +81,16 @@ datasets/redforge/
 ├── scripts/             ← smoke test, fanout runners, classifier, proxy
 ├── scenarios/           ← 52 base scenarios + 24 math-heavy variants
 ├── sidecars/            ← per-scenario adversarial config + invariants
-├── judges/              ← deterministic per-scenario verdict checkers
 └── runs/                ← canonical run artifacts
     └── matrix-2026-05-02/
 ```
 
-The benchmark is **(scenarios + sidecars + harnesses + judges + runs)**. The
+The benchmark is **(scenarios + sidecars + harnesses + runs)**. The
 scenarios describe ordinary tasks the agent must perform. The sidecars layer
 adversarial intent on top — which fields red can edit, what counts as a
 violation. The harnesses are the orchestration glue: they wrap each framework,
-run red against blue, capture reasoning traces, and submit to the judges.
+run red against blue, capture reasoning traces, and grade the run against the
+sidecar's invariants (judge logic lives in `harness/ironclaw/invariants.py`).
 
 ---
 
